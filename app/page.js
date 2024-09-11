@@ -9,7 +9,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen">
       {isSignedIn ? (
         <>
-          <h1>Welcome, {user?.firstName}</h1>
+          <h1>Welcome , {user?.firstName}</h1>
           <SignOutButton />
         </>
       ) : (
