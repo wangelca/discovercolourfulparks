@@ -14,9 +14,10 @@ export default function Home() {
           </div>
           
           <nav className="hidden md:flex flex-grow justify-center space-x-8">
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
+            <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
             <a href="/" className="text-gray-700 hover:text-gray-900 transition">Events</a>
             <a href="/" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
+            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Fees</a>
             <a href="/" className="text-gray-700 hover:text-gray-900 transition">About Us</a>
           </nav>
 
@@ -79,7 +80,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   Morraine Lake is a stunning turquoise lake, cradled by the Valley of the Ten Peaks, located in Banff National Park, Alberta, Canada.
                 </p>
-                <a href="/attraction-1" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,7 +95,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   The Prince of Wales Hotel, located in the heart of Waterton Lakes National Park in Alberta, Canada, stands on the bluff overlooking Upper Waterton Lake.
                 </p>
-                <a href="/attraction-2" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +110,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   The Fairmont Banff Springs, formerly and commonly known as the Banff Springs Hotel, is a historic hotel in western Canada, located in Banff, Alberta.
                 </p>
-                <a href="/attraction-3" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
