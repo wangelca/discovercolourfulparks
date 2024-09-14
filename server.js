@@ -1,73 +1,81 @@
-// Load environment variables from .env file
 require('dotenv').config();
-
-// Import necessary modules
 const express = require('express');
-const { Pool } = require('pg');
-const { createClerkClient } = require('@clerk/clerk-sdk-node');
+const { PrismaClient } = require('@prisma/client');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-// Create an Express application
+const prisma = new PrismaClient();
 const app = express();
-const port = process.env.PORT || 3000;
+app.use(bodyParser.json());
 
-const detectPort = require('detect-port');
+if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined.');
+    process.exit(1);
+}
 
-const PORT = 3000;
-
-detectPort(PORT, (err, availablePort) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  if (PORT === availablePort) {
-    console.log(`Port ${PORT} is free.`);
-  } else {
-    console.warn(`Port ${PORT} is occupied. Switching to port ${availablePort}`);
-  }
-
-  app.listen(availablePort, () => {
-    console.log(`Server running on port ${availablePort}`);
-  });
-});
-
-
-// Create a Clerk client instance
-const Clerk = createClerkClient({ apiKey: process.env.CLERK_API_KEY });
-
-// Log the Clerk instance to see available methods and properties
-console.log(Clerk);
-
-// Set up PostgreSQL connection
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
-
-// Middleware to parse JSON bodies
-app.use(express.json());
-
-// Example route to get user data from Clerk and link with PostgreSQL
-app.get('/api/user/:id', async (req, res) => {
+// Signup endpoint
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
     try {
-        // Fetch user data from Clerk using Clerk's user ID
-        const clerkUserId = req.params.id;
-        const clerkUser = await Clerk.users.getUser(clerkUserId);
-
-        // Query PostgreSQL for additional user data based on Clerk user ID
-        const result = await pool.query('SELECT * FROM users WHERE clerk_user_id = $1', [clerkUserId]);
-
-        // Respond with combined user data
-        res.json({
-            clerkUser,
-            additionalData: result.rows,
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+            },
         });
+        res.json(user);
     } catch (error) {
-        console.error('Error fetching data:', error);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Error creating user', error: error.message });
     }
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+// Login endpoint
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email,
+            },
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token });
+    } catch (error) {
+        res.status(500).json({ message: 'Login error', error: error.message });
+    }
+});
+
+// Get user endpoint
+app.get('/user', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Assuming "Bearer <token>"
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await prisma.user.findUnique({
+            where: {
+                id: decoded.userId,
+            },
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(401).json({ message: 'Unauthorized', error: error.message });
+    }
+});
+
+app.listen(3000, () => {
+    console.log('Server running on http://localhost:3000');
 });
