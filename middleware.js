@@ -1,11 +1,14 @@
-import { withClerkMiddleware } from "@clerk/nextjs/server";
+// src/middleware.js (or /middleware.js if not using `src`)
+
+import { authMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export default withClerkMiddleware((req) => {
-  return NextResponse.next();
+export default authMiddleware({
+  // Define public routes that should not require authentication
+  publicRoutes: ["/", "/parks", "/events", "/spots", "/fees", "/about", "/explore", "/api/user"], 
 });
 
-// Only run middleware on certain paths
 export const config = {
-  matcher: "/((?!_next|static|favicon.ico).*)", // Match all except static files and API routes
+  // Matcher configuration to apply middleware to necessary routes
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
