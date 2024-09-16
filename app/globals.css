@@ -25,3 +25,50 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Styling the burger menu container */
+.burger-icon {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+}
+
+/* Styling the menu container */
+.bm-menu {
+  background: #333;
+  padding: 2.5em 1.5em 0;
+  font-size: 1.15em;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Menu item styling */
+.menu-item {
+  display: block;
+  padding: 1em 0;
+  color: white; /* Keeping white color to ensure visibility */
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid #444;
+  transition: color 0.2s ease-in-out;
+}
+
+.menu-item:hover {
+  color: #ffa500; /* Orange hover effect */
+}
+
+/* Close button styling */
+.bm-cross-button {
+  height: 24px;
+  width: 24px;
+}
+
+.bm-cross {
+  background: #ffffff;
+}
+
+/* Menu overlay */
+.bm-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}

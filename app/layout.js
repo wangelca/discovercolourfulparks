@@ -1,22 +1,27 @@
-import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
-import './globals.css'
+  'use client'
 
-export default function RootLayout({ children }) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>
-          <header>
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </header>
-          <main>{children}</main>
-        </body>
-      </html>
-    </ClerkProvider>
-  )
-}
+  import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+  import './globals.css'
+  import DrawerMenu from './components/drawer'
+
+
+  export default function RootLayout({ children }) {
+    return (
+      <ClerkProvider>
+        <html lang="en">
+          <body>
+            <header>
+              {/* Sign-in button for users not logged in */}
+              <SignedOut>
+              </SignedOut>
+              <SignedIn>
+                <DrawerMenu />
+              </SignedIn>
+            </header>
+            
+            <main>{children}</main>
+          </body>
+        </html>
+      </ClerkProvider>
+    )
+  }
