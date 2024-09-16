@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 export default authMiddleware({
   // Define public routes that should not require authentication
   publicRoutes: ["/", "/parks", "/events", "/spots", "/fees", "/about", "/explore", "/api/user"], 
-});
+// Remove the extra closing curly brace
+// });
 
   // Ignore Clerk authentication on static assets and API routes
   ignoredRoutes: [
