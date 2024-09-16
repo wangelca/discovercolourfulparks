@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id            Int      @id @default(autoincrement())
   clerk_user_id String   @unique
@@ -20,3 +19,11 @@ model User {
   @@map("users")
 }
 
+model Park {
+  parkId      Int     @id @default(autoincrement()) // Primary key, non-nullable
+  name        String  @db.VarChar(200)             // Non-nullable string, VARCHAR(200)
+  description String? @db.VarChar(1000)            // Optional string, VARCHAR(1000)
+  location    String  @db.VarChar(300)             // Non-nullable string, VARCHAR(300)
+
+  @@map("park")  // Maps the model to the "park" table
+}
