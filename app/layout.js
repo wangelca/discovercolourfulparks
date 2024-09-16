@@ -8,7 +8,7 @@ export default function RootLayout({ children }) {
         <body>
           <header>
             <SignedOut>
-              <SignInButton />
+              <SignInButton/>
             </SignedOut>
             <SignedIn>
               <UserButton />
