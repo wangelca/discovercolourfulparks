@@ -23,7 +23,7 @@ export default function Home() {
 
           <div>
             {!isSignedIn ? (
-              <SignInButton mode="modal">
+              <SignInButton redirectUrl="/login">
                 <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
                   Sign In
                 </button>
