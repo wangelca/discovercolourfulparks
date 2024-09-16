@@ -11,8 +11,7 @@
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.0.38",
     "@clerk/nextjs": "^4.31.4",
-    "bcrypt": "^5.1.1",
-    "detect-port": "^1.6.1",
+    "@clerk/themes": "^2.1.29",
     "discovercolourfulparks": "file:",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
