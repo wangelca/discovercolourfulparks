@@ -36,7 +36,7 @@ export default function Home() {
           <div>
             {!isSignedIn ? (
               <SignInButton redirectUrl="/login">
-                <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
+                <button className={`bg-black text-white font-semibold py-2 px-4 rounded-full transition ${activeFilter === 'Popular Spots' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:bg-gray-700`}>
                   Sign In
                 </button>
               </SignInButton>
