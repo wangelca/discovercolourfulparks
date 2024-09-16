@@ -12,7 +12,7 @@ export default function Home() {
           <div className="text-3xl font-extrabold text-gray-800">
             Discover Colourful Parks
           </div>
-          
+
           <nav className="hidden md:flex flex-grow justify-center space-x-8">
             <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
             <a href="/events" className="text-gray-700 hover:text-gray-900 transition">Events</a>
@@ -124,6 +124,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
