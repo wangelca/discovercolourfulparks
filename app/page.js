@@ -15,15 +15,15 @@ export default function Home() {
           
           <nav className="hidden md:flex flex-grow justify-center space-x-8">
             <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Events</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
+            <a href="/events" className="text-gray-700 hover:text-gray-900 transition">Events</a>
+            <a href="/spots" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
             <a href="/" className="text-gray-700 hover:text-gray-900 transition">Fees</a>
             <a href="/" className="text-gray-700 hover:text-gray-900 transition">About Us</a>
           </nav>
 
           <div>
             {!isSignedIn ? (
-              <SignInButton mode="modal">
+              <SignInButton redirectUrl="/login">
                 <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
                   Sign In
                 </button>
@@ -124,6 +124,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
