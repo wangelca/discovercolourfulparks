@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id            Int      @id @default(autoincrement())
   clerk_user_id String   @unique
@@ -18,3 +19,4 @@ model User {
 
   @@map("users")
 }
+
