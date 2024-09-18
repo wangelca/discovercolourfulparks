@@ -1,6 +1,6 @@
   'use client'
 
-  import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+  import { ClerkProvider, SignedIn, SignedOut,  } from '@clerk/nextjs'
   import './globals.css'
   import DrawerMenu from './components/drawer'
 
