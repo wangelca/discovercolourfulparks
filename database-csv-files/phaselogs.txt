@@ -7,3 +7,4 @@ Changes to be made for the files:
 parks - no changes necessary at this stage, all information is gathered from Parks Canada
 spots - include a location (update in database to add spotLocation)
 events - include a description, tbd (update in database to add eventDescription)
+NOTES : The spotID and eventID will be left blank so we can randomize them in the database
