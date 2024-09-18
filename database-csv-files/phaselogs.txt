@@ -5,6 +5,7 @@ Current files in this folder:
 3 - events (includes event id, park number, name, date, time, location, fee)
 Changes to be made for the files:
 parks - no changes necessary at this stage, all information is gathered from Parks Canada
-spots - include a location (update in database to add spotLocation)
+spots - include a location, adult fee, child fee (update in database to add spotLocation and change the hourly rate to adult fee and child fee)
 events - include a description, tbd (update in database to add eventDescription)
 NOTES : The spotID and eventID will be left blank so we can randomize them in the database
+Spots for now - Limited to parks 1-8 until we can get the API up and running, will continue to add onto it until all 48 parks have 5 spots filled for the website
