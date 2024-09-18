@@ -22,7 +22,7 @@ export default function Header() {
 
         <div>
           {!isSignedIn ? (
-            <SignInButton redirectUrl="/login">
+            <SignInButton redirectUrl="/">
               <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
                 Sign In
               </button>
