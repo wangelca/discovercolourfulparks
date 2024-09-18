@@ -1,0 +1,9 @@
+PHASE 1
+Current files in this folder:
+1 - parks (includes a park number, park name, description, and a location for the address)
+2 - spots (includes spot id, park number, name, description, and an hourly rate)
+3 - events (includes event id, park number, name, date, time, location, fee)
+Changes to be made for the files:
+parks - no changes necessary at this stage, all information is gathered from Parks Canada
+spots - include a location (update in database to add spotLocation)
+events - include a description, tbd (update in database to add eventDescription)
