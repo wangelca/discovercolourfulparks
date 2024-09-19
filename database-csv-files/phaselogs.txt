@@ -1,0 +1,11 @@
+PHASE 1
+Included in phase1 folder:
+parks - will probably go unchanged for future phases
+events - table structure needs to change to account for 
+    eventID (not included, needs to be randomized), parkID, eventName, startDate, endDate, startTime, endTime, eventLocation, eventAdultPrice, eventChildPrice, description
+spots - table structure needs to change to account for
+    spotID (not included, needs to be randomized), parkID, spotName, spotDescription, spotAdultPrice, spotChildPrice, spotLocation
+For Ruth - Please make the changes according to the above.
+There is no spotID or eventID as we need to be able to randomize that but I can make something for future phases as I update the CSV files
+For example, set 00 as the leading number followed by the park number, type (spot/event), and another number
+00111 (00, parkID, spot(1), first spot(so 2nd spot would be 00112))
