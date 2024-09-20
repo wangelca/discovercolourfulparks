@@ -11,7 +11,7 @@ export default function Home() {
   const [selectedProvince, setSelectedProvince] = useState('Alberta');
   const [filterOption, setFilterOption] = useState('alphabetical');
 
-  // List of parks for Alberta until we can connect the PostgreSQL database (just a skeleton for now) and descriptions are taken from ParksCanada
+  // List of parks for Alberta until we can connect the PostgreSQL database (just a skeleton for now) and description from Parks Canada
   const parks = {
     Alberta: [
       { name: 'Banff National Park', description: 'The natural beauty of Banffs surrounding lakes and mountains made it Canadas first National Park and the worlds third national park refuge, and part of the Canadian Rocky Mountain Parks UNESCO World Heritage Site. More than 4 million people from around the world now visit Banff National Park every year.', image: '/banff_parks.jpg' },
