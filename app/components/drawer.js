@@ -55,7 +55,7 @@ export default function DrawerMenu() {
       >
         {user && user.publicMetadata.publicMetadata?.role === 'visitor' && (
           <>
-            <a id="home" className="menu-item text-white" href="/">Visitor Home</a>
+            <a id="user-profile" className="menu-item text-white" href="/user-profile">Profile</a>
             <a id="about" className="menu-item text-white" href="/about">Visitor About</a>
             <a className="menu-item text-white" href="/parks" onClick={closeMenu}>View Parks</a>
           </>

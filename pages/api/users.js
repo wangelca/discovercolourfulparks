@@ -2,6 +2,9 @@ import { prisma } from '../../app/lib/prisma';  // Adjust path if necessary
 
 export default async function handler(req, res) {
   try {
+    if (!prisma) {
+      throw new Error('Prisma client is not initialized');
+    }
     // Fetch all users from the database
     const users = await prisma.user.findMany();
 

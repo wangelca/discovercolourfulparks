@@ -1,10 +1,7 @@
 import { prisma } from '../../app/lib/prisma';  
-import { users } from '@clerk/clerk-sdk-node';
 import { createClerkClient } from '@clerk/nextjs/server'
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
-
-
 
 export default async function handler(req, res) {
   try {
@@ -22,12 +19,18 @@ export default async function handler(req, res) {
         update: {
           email: user.emailAddresses[0]?.emailAddress || '',
           username: user.username || '',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
         },
         create: {
           clerk_user_id: user.id,
           email: user.emailAddresses[0]?.emailAddress || '',
           username: user.username || '',
           password: 'hashed-password',  // Handle password as needed
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
         },
       });
     }

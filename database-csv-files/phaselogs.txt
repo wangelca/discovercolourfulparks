@@ -1,4 +1,3 @@
-PHASE 1
 parks.csv - parkID, parkName, parkDescription, parkLocation (FOR BC AND ALBERTA ONLY - scope shortened as these are the most popular to visit)
 spots.csv - spotID, parkID, spotName, spotDescription, spotadultPrice, spotchildPrice, spotLocation (FOR BC AND ALBERTA ONLY)
 Notes - 
