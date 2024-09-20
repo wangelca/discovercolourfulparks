@@ -1,5 +1,4 @@
 import { prisma } from '../../app/lib/prisma';  
-import { users } from '@clerk/clerk-sdk-node';
 import { createClerkClient } from '@clerk/nextjs/server'
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })

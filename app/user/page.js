@@ -1,7 +1,7 @@
 'use client';
 
 import Header from "../components/header";
-import UserList from "../components/userList";
+import UserList from "../components/userlist";
 
 export default function Home() {
   return (

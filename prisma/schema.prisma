@@ -12,9 +12,13 @@ model User {
   clerk_user_id String   @unique
   username      String?
   email         String   @unique
+  firstname    String?
+  lastName     String?
+  phoneNumber  String?
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt
   password      String
+  publicMetadata String?
 
   @@map("users")
 }

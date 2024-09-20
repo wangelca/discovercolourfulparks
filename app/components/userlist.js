@@ -8,11 +8,26 @@ export default function UserList() {
   useEffect(() => {
     async function fetchUsers() {
       try {
+        const clerkSync = await fetch('/api/clerkSync'); // 
+        const syncResult = await clerkSync.json();
+        console.log('Sync result:', syncResult);
+        
+        if (!clerkSync.ok) {
+          console.error('Error syncing Clerk users:', syncResult);
+          return;
+        }
+
         const response = await fetch('/api/users');  // Fetch from the API
         const data = await response.json();
+        if (Array.isArray(data)) {
         setUsers(data);  // Update state with the fetched users
-      } catch (error) {
+      } else {
+        console.error('Expected array but received:', data);
+        setUsers([]);  // Fallback to an empty array
+      } }
+      catch (error) {
         console.error('Error fetching users:', error);
+        setUsers([]);  // Fallback to an empty array
       } finally {
         setLoading(false);  // Stop loading indicator
       }
@@ -25,7 +40,7 @@ export default function UserList() {
     return <p>Loading users...</p>;  // Show loading message
   }
 
-  if (users.length === 0) {
+  if (!users || users.length === 0) {
     return <p>No users found.</p>;  // Show a message if no users are found
   }
 
