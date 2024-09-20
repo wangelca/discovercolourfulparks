@@ -3,8 +3,6 @@ import { createClerkClient } from '@clerk/nextjs/server'
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 
-
-
 export default async function handler(req, res) {
   try {
     // Fetch all users from Clerk using the SDK
