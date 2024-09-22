@@ -56,7 +56,7 @@ export default function Home() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2 text-gray-800">Provinces and Territories</h2>
           <div className="flex flex-wrap gap-2">
-            {['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia', 'Nunavut Territory', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon Territory'].map(province => (
+            {['Alberta', 'British Columbia'].map(province => (
               <button
                 key={province}
                 onClick={() => setSelectedProvince(province)}

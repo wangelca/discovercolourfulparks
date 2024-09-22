@@ -1,0 +1,7 @@
+parks.csv - parkID, parkName, parkDescription, parkLocation (FOR BC AND ALBERTA ONLY - scope shortened as these are the most popular to visit)
+spots.csv - spotID, parkID, spotName, spotDescription, spotadultPrice, spotchildPrice, spotLocation (FOR BC AND ALBERTA ONLY)
+Notes - 
+Would prefer we randomize the spotID but to make that section pop up on VSCode, I decided on the following order
+First number is parkID, second number (1) is the number for spots, third number is the third spot in that park
+Ie: Banff Gondola - 111 (1 = parkID, 1 = spot numerical ID, 1 = first spot in the park)
+    Golden Skybridge - 112 (1 = parkID, 1 = spot numerical ID, 2 = second spot in the park)
