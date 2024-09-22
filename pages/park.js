@@ -13,17 +13,30 @@ export default function Parks() {
   return (
     <div>
       <h1>Parks</h1>
-      <ul>
-        {parks.length > 0 ? ( // Check if parks exist before mapping
-          parks.map((park) => (
-            <li key={park.parkId}>
-              Park Name: {park.name}, Description: {park.description}
-            </li>
-          ))
-        ) : (
-          <p>No parks found.</p> // Display a message if no parks are available
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Park Name</th>
+            <th>Description</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {parks.length > 0 ? (
+            parks.map((park) => (
+              <tr key={park.parkId}>
+                <td>{park.name}</td>
+                <td>{park.description}</td>
+                <td>{park.location}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3" style={{ textAlign: 'center' }}>No parks found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

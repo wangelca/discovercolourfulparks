@@ -13,17 +13,28 @@ export default function Bookings() {
   return (
     <div>
       <h1>Bookings</h1>
-      <ul>
-        {bookings.length > 0 ? (
-          bookings.map((booking) => (
-            <li key={booking.bookingId}>
-              Booking Date: {new Date(booking.bookingDate).toLocaleDateString()}, Amount: {booking.calculatedAmount}
-            </li>
-          ))
-        ) : (
-          <p>No bookings found.</p> // Show a message if no bookings exist
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Booking Date</th>
+            <th>Calculated Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bookings.length > 0 ? (
+            bookings.map((booking) => (
+              <tr key={booking.bookingId}>
+                <td>{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                <td>{booking.calculatedAmount}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2" style={{ textAlign: 'center' }}>No bookings found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -13,17 +13,30 @@ export default function Admins() {
   return (
     <div>
       <h1>Admins</h1>
-      <ul>
-        {admins.length > 0 ? ( // Only map if there are admins
-          admins.map((admin) => (
-            <li key={admin.adminId}>
-              Name: {admin.name}, Email: {admin.email}, Role: {admin.role}
-            </li>
-          ))
-        ) : (
-          <p>No admins found.</p> // Show a message if there are no admins
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {admins.length > 0 ? (
+            admins.map((admin) => (
+              <tr key={admin.adminId}>
+                <td>{admin.name}</td>
+                <td>{admin.email}</td>
+                <td>{admin.role}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3" style={{ textAlign: 'center' }}>No admins found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

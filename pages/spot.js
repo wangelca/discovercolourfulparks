@@ -13,17 +13,32 @@ export default function Spots() {
   return (
     <div>
       <h1>Spots</h1>
-      <ul>
-        {spots.length > 0 ? ( // Check if spots exist before mapping
-          spots.map((spot) => (
-            <li key={spot.spotId}>
-              Spot Name: {spot.spotName}, Hourly Rate: {spot.spotHourlyRate}
-            </li>
-          ))
-        ) : (
-          <p>No spots found.</p> // Display a message if no spots are available
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Spot Name</th>
+            <th>Hourly Rate</th>
+            <th>Description</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {spots.length > 0 ? (
+            spots.map((spot) => (
+              <tr key={spot.spotId}>
+                <td>{spot.spotName}</td>
+                <td>{spot.spotHourlyRate}</td>
+                <td>{spot.spotDescription}</td>
+                <td>{spot.spotLocation}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" style={{ textAlign: 'center' }}>No spots found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

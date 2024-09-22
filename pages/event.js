@@ -13,17 +13,30 @@ export default function Events() {
   return (
     <div>
       <h1>Events</h1>
-      <ul>
-        {events.length > 0 ? (
-          events.map((event) => (
-            <li key={event.eventId}>
-              Event Name: {event.eventName}, Location: {event.eventLocation}, Date: {new Date(event.eventDate).toLocaleDateString()}
-            </li>
-          ))
-        ) : (
-          <p>No events found.</p> // Show a message if there are no events
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Event Name</th>
+            <th>Location</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {events.length > 0 ? (
+            events.map((event) => (
+              <tr key={event.eventId}>
+                <td>{event.eventName}</td>
+                <td>{event.eventLocation}</td>
+                <td>{new Date(event.eventDate).toLocaleDateString()}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3" style={{ textAlign: 'center' }}>No events found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

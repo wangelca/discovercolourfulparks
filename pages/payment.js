@@ -13,17 +13,28 @@ export default function Payments() {
   return (
     <div>
       <h1>Payments</h1>
-      <ul>
-        {payments.length > 0 ? ( // Check if payments exist before mapping
-          payments.map((payment) => (
-            <li key={payment.paymentId}>
-              Payment ID: {payment.paymentId}, Status: {payment.paymentStatus}
-            </li>
-          ))
-        ) : (
-          <p>No payments found.</p> // Display a message if no payments are available
-        )}
-      </ul>
+      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payments.length > 0 ? (
+            payments.map((payment) => (
+              <tr key={payment.paymentId}>
+                <td>{payment.paymentId}</td>
+                <td>{payment.paymentStatus}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2" style={{ textAlign: 'center' }}>No payments found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
