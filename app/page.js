@@ -1,4 +1,6 @@
 'use client';
+import Header from './components/header';
+import Image from 'next/image';
 
 import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
 
@@ -7,53 +9,25 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <header className="bg-white shadow-lg">
-        <div className="container mx-auto flex justify-between items-center px-6 py-4">
-          <div className="text-3xl font-extrabold text-gray-800">
-            Discover Colourful Parks
-          </div>
-          
-          <nav className="hidden md:flex flex-grow justify-center space-x-8">
-            <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Events</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Fees</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">About Us</a>
-          </nav>
-
-          <div>
-            {!isSignedIn ? (
-              <SignInButton mode="modal">
-                <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
-                  Sign In
-                </button>
-              </SignInButton>
-            ) : (
-              <SignOutButton>
-                <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
-                  Sign Out
-                </button>
-              </SignOutButton>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header/>
 
       <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 bg-white">
         <div className="relative h-[40vh] rounded-lg overflow-hidden">
-          <img
+          <Image
             src="/bowlake_landingpage.jpg"
             alt="Beautiful Lake View"
             className="object-cover w-full h-full rounded-lg"
             style={{ transform: 'scaleX(1.1)' }}
+            width={1920}
+            height={1080}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6 py-12 z-10">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Explore the World's Most Beautiful Parks
+              Explore the World`s Most Beautiful Parks
             </h1>
             <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
-              Explore the never-ending beauty of Canada's national parks. Discover some of the most beautiful landscapes that occupy the Earth.
+              Explore the never-ending beauty of Canada`s national parks. Discover some of the most beautiful landscapes that occupy the Earth.
             </p>
             <a href="/explore" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
               Explore Now
@@ -124,6 +98,9 @@ export default function Home() {
     </div>
   );
 }
+
+
+
 
 
 
