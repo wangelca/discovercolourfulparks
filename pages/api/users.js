@@ -1,4 +1,4 @@
-import { prisma } from '../../app/lib/prisma';  // Adjust path if necessary
+import { prisma } from '../../app/lib/prisma'; 
 
 export default async function handler(req, res) {
   try {

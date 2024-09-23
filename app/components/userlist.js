@@ -15,13 +15,13 @@ export default function UserList() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const clerkSync = await fetch("/api/clerkSync"); //
-        const syncResult = await clerkSync.json();
+        //const clerkSync = await fetch("/api/clerkSync"); 
+        //const syncResult = await clerkSync.json();
 
-        if (!clerkSync.ok) {
-          console.error("Error syncing Clerk users:", syncResult);
-          return;
-        }
+        //if (!clerkSync.ok) {
+        //  console.error("Error syncing Clerk users:", syncResult);
+        //  return;
+        //}
 
         const response = await fetch("/api/users"); // Fetch from the API
         const data = await response.json();
