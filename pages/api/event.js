@@ -1,15 +1,17 @@
-import { prisma } from '../../lib/prisma';
+import { prisma } from '../../app/lib/prisma'; 
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    try {
-      const events = await prisma.event.findMany();
-      res.status(200).json(events);
-    } catch (error) {
-      res.status(500).json({ error: 'Error fetching events' });
+  try {
+    if (!prisma) {
+      throw new Error('Prisma client is not initialized');
     }
-  } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  
+    const events = await prisma.event.findMany();
+
+    // Return the users in the response
+    res.status(200).json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ error: 'Failed to fetch events' });
   }
 }
