@@ -1,29 +1,30 @@
-'use client';
-
+"use client"
 import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '../components/header';
 
-export default function Home() {
-  const { isSignedIn } = useUser(); // Check if the user is signed in
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProvince, setSelectedProvince] = useState('Alberta');
-  const [filterOption, setFilterOption] = useState('alphabetical');
+export default function Home() {
+  // const { isSignedIn } = useUser(); // Check if the user is signed in
+
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [selectedProvince, setSelectedProvince] = useState('Alberta');
+  // const [filterOption, setFilterOption] = useState('alphabetical');
+
 
   // List of parks for Alberta until we can connect the PostgreSQL database (just a skeleton for now)
-  const parks = {
-    Alberta: [
-      { name: 'Banff National Park', description: 'The natural beauty of Banffs surrounding lakes and mountains made it Canadas first National Park and the worlds third national park refuge, and part of the Canadian Rocky Mountain Parks UNESCO World Heritage Site. More than 4 million people from around the world now visit Banff National Park every year.', image: '/banff_parks.jpg' },
-      { name: 'Jasper National Park', description: 'Spanning over 11,000 square kilometers, Jasper is the largest national park in the Canadian Rockies. Known for its vast wilderness, majestic peaks, abundant wildlife, and outstanding beauty, visitors from all over Canada and round the world travel here to experience this very special place.', image: '/jasper_parks.jpg' },
-      { name: 'Elk Island National Park', description: 'Elk Island is home to the densest population of ungulates (hoofed mammals) in Canada. A variety of mammal species including coyote, bison, moose, mule deer, lynx, beaver, elk, white-tailed deer, and porcupine are year round residents.', image: '/elkisland_parks.jpg' },
-      { name: 'Waterton Lakes National Park', description: 'The prairies of Alberta meet the peaks of the Rocky Mountains in Waterton Lakes National Park. Clear lakes, thundering waterfalls, rainbow-coloured streams, colourful rocks, and mountain vistas await hikers and sightseers. Waterton packs a big natural punch into a relatively small and accessible area.', image: '/waterton_parks.jpg' },
-    ],
-  };
+  // const parks = {
+  //   Alberta: [
+  //     { name: 'Banff National Park', description: 'The natural beauty of Banffs surrounding lakes and mountains made it Canadas first National Park and the worlds third national park refuge, and part of the Canadian Rocky Mountain Parks UNESCO World Heritage Site. More than 4 million people from around the world now visit Banff National Park every year.', image: '/banff_parks.jpg' },
+  //     { name: 'Jasper National Park', description: 'Spanning over 11,000 square kilometers, Jasper is the largest national park in the Canadian Rockies. Known for its vast wilderness, majestic peaks, abundant wildlife, and outstanding beauty, visitors from all over Canada and round the world travel here to experience this very special place.', image: '/jasper_parks.jpg' },
+  //     { name: 'Elk Island National Park', description: 'Elk Island is home to the densest population of ungulates (hoofed mammals) in Canada. A variety of mammal species including coyote, bison, moose, mule deer, lynx, beaver, elk, white-tailed deer, and porcupine are year round residents.', image: '/elkisland_parks.jpg' },
+  //     { name: 'Waterton Lakes National Park', description: 'The prairies of Alberta meet the peaks of the Rocky Mountains in Waterton Lakes National Park. Clear lakes, thundering waterfalls, rainbow-coloured streams, colourful rocks, and mountain vistas await hikers and sightseers. Waterton packs a big natural punch into a relatively small and accessible area.', image: '/waterton_parks.jpg' },
+  //   ],
+  // };
 
-  const filteredParks = parks[selectedProvince].filter(park =>
-    park.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredParks = parks[selectedProvince].filter(park =>
+  //   park.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
@@ -87,13 +88,6 @@ export default function Home() {
     </div>
   );
 }
-
-
-
-
-
-
-
 
 
 
