@@ -67,7 +67,7 @@ export default function DrawerMenu() {
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}>Manage Parks</a>
             <a className="menu-item text-white" href="/manage-events" onClick={closeMenu}>Manage Events</a>
             <a className="menu-item text-white" href="/manage-spots" onClick={closeMenu}>Manage Spots</a>
-            <a className="menu-item text-white" href="/report" onClick={closeMenu}>Generate Reports</a>
+            <a className="menu-item text-white" href="/reports" onClick={closeMenu}>Generate Reports</a>
           </>
         )}
       </Menu>

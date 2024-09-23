@@ -1,7 +1,7 @@
 'use client';
 
 import Header from "../components/header";
-import ProfilePage from "../components/userProfile";
+import ProfilePage from "../components/userprofile";
 
 export default function Home() {
   return (
