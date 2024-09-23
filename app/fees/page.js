@@ -8,6 +8,9 @@ export default function FeesPage() {
   const { isSignedIn } = useUser();
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedPark, setSelectedPark] = useState('');
+  const [selectedPass, setSelectedPass] = useState(false);
+  const [showShipping, setShowShipping] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const albertaParks = [
     'Banff National Park',
@@ -153,7 +156,103 @@ export default function FeesPage() {
     },
   };
 
-  
+  const discoveryPassInfo = (
+    <div className="mt-8 p-6 bg-white shadow-md rounded-lg text-black flex flex-wrap gap-6">
+      <div className="flex-1">
+        <h4 className="font-semibold text-lg">Cost:</h4>
+        <p>Adult - $75.25</p>
+        <p>Senior - $64.50</p>
+        <p>Family/Group - $151.25</p>
+        <a
+          href="https://www.commandesparcs-parksorders.ca/en/decouverte-discovery?_ga=2.124083406.553489718.1710794358-1329834248.1669915314"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block px-4 py-2 bg-blue-800 text-white rounded-full font-semibold hover:bg-blue-700 transition duration-300"
+        >
+          Buy Now
+        </a>
+      </div>
+
+      <div className="flex-1">
+        <div className="flex gap-4">
+          <button
+            onClick={() => {
+              setShowShipping(!showShipping);
+              setShowTerms(false);
+            }}
+            className={`px-4 py-2 rounded-full font-semibold transition duration-300 ease-in-out ${
+              showShipping
+                ? 'bg-black text-white'
+                : 'bg-white text-black hover:bg-black hover:bg-opacity-30 hover:text-white'
+            }`}
+          >
+            Shipping and Delivery
+          </button>
+          <button
+            onClick={() => {
+              setShowTerms(!showTerms);
+              setShowShipping(false);
+            }}
+            className={`px-4 py-2 rounded-full font-semibold transition duration-300 ease-in-out ${
+              showTerms
+                ? 'bg-black text-white'
+                : 'bg-white text-black hover:bg-black hover:bg-opacity-30 hover:text-white'
+            }`}
+          >
+            Terms of Use
+          </button>
+        </div>
+
+        {showShipping && (
+          <div className="mt-4">
+            <h4 className="font-semibold">Shipping and Delivery:</h4>
+            <p>
+              Parks Canada will temporarily accept printed confirmation emails
+              that show a valid entry pass or permit. The printed confirmation
+              email can be used until one month from date of purchase.
+            </p>
+            <p><strong>Canada -</strong></p>
+            <p>Standard shipping and handling: $4.00 (6-15 business days)</p>
+            <p>Express shipping and handling: $15.75 (2-5 business days)</p>
+            <p><strong>United States -</strong></p>
+            <p>Standard shipping and handling: $4.50 (6-20 business days)</p>
+            <p>Express shipping and handling calculated at checkout (2-6 business days)</p>
+            <p><strong>China and Taiwan -</strong> </p>
+            <p>Express shipping and handling calculated at checkout (5-7 business days)</p>
+            <p><strong>Other International Destinations -</strong> </p>
+            <p>Standard shipping and handling: $6.50 (10-20 business days)</p>
+            <p>Express shipping and handling calculated at checkout (5-7 business days)</p>
+            <p>Add 2-3 business days for remote locations.</p>
+          </div>
+        )}
+
+        {showTerms && (
+          <div className="mt-4">
+            <h4 className="font-semibold">Terms of Use:</h4>
+            <p>By purchasing a Parks Canada Discovery Pass, you are agreeing to the following Terms of use.</p>
+            <p><strong>Locations:</strong></p>
+            <p> A Discovery Pass provides the holder with unlimited admission to all participating national parks, national marine conservation areas and national historic sites.</p>
+            <p><strong>Validity Period:</strong> </p>
+            <p>The Discovery Pass is valid for a full 12 months from the date of purchase, expiring on the last day of the month in which it was purchased.</p>
+            <p>Example: A Discovery Pass bought on January 15, 2024 will be valid until January 31, 2025.</p>
+            <p>If a pass is purchased online within the last seven days of the month, the activation date will be the first day of the next month. This allows time for delivery.</p>
+            <p><strong>Exclusions:</strong> </p>
+            <p>The Discovery Pass includes all the privileges and services that normally come with a daily admission pass or permit. Services such as Canadian Rockies Hot Springs admission, backcountry overnight use, guided tours or parking that normally carry a separate fee are excluded.</p>
+            <p>Camping fees are not included.</p>
+            <p>Family/group passes are not valid for commercial groups.</p>
+            <p><strong>Display and Usage:</strong></p>
+            <p> The Discovery Pass must be signed by the pass holder and is void if re-sold or transferred. The pass holder must be present when using the pass. Present your Discovery Pass upon arrival at national historic sites.</p>
+            <p><strong>Driving:</strong> </p>
+            <p>Hang your pass from the rear-view mirror with the date facing forward or place your pass on the driver side dashboard with the date facing up.</p>
+            <p><strong>Arriving on Foot, Motorcycle, Boat, or Transit:</strong></p>
+            <p> Present your pass in person upon arrival.</p>
+            <p><strong>Lost Passes and Refunds:</strong> </p>
+            <p>Keep your Discovery Pass in a safe place and retain your receipt as proof of purchase. Parks Canada is not liable for any loss. The Discovery Pass is non-refundable.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
@@ -163,7 +262,7 @@ export default function FeesPage() {
         <img
           src="/banff_fees.jpg"
           alt="Banff Fees"
-          className="w-screen object-cover h-[40vh]"
+          className="w-screen object-cover h-[30vh]"
         />
         <div className="absolute inset-0 bg-black opacity-50"></div>
 
@@ -177,6 +276,7 @@ export default function FeesPage() {
               onClick={() => {
                 setSelectedProvince('Alberta');
                 setSelectedPark('');
+                setSelectedPass(false);
               }}
               className={`px-4 py-2 rounded-full font-semibold transition duration-300 ease-in-out ${
                 selectedProvince === 'Alberta'
@@ -190,6 +290,7 @@ export default function FeesPage() {
               onClick={() => {
                 setSelectedProvince('British Columbia');
                 setSelectedPark('');
+                setSelectedPass(false);
               }}
               className={`px-4 py-2 rounded-full font-semibold transition duration-300 ease-in-out ${
                 selectedProvince === 'British Columbia'
@@ -198,6 +299,20 @@ export default function FeesPage() {
               }`}
             >
               British Columbia
+            </button>
+            <button
+              onClick={() => {
+                setSelectedPass(true);
+                setSelectedPark('');
+                setSelectedProvince('');
+              }}
+              className={`px-4 py-2 rounded-full font-semibold transition duration-300 ease-in-out ${
+                selectedPass
+                  ? 'bg-black text-white'
+                  : 'bg-white text-black hover:bg-black hover:bg-opacity-30 hover:text-white'
+              }`}
+            >
+              Discovery Pass
             </button>
           </div>
 
@@ -279,11 +394,12 @@ export default function FeesPage() {
             </div>
           </div>
         )}
+
+        {selectedPass && discoveryPassInfo}
       </div>
     </div>
   );
 }
-
 
 //References:
 //Fee Information for Parks - https://parks.canada.ca/voyage-travel/tarifs-fees
