@@ -56,14 +56,13 @@ export default function DrawerMenu() {
         {user && user.publicMetadata.publicMetadata?.role === 'visitor' && (
           <>
             <a id="user-profile" className="menu-item text-white" href="/user-profile">Profile</a>
-            <a id="about" className="menu-item text-white" href="/about">Visitor About</a>
-            <a className="menu-item text-white" href="/parks" onClick={closeMenu}>View Parks</a>
+            <a id="about" className="menu-item text-white" href="/booking-hisotry">Booking History</a>
+            <a className="menu-item text-white" href="/Inbox" onClick={closeMenu}>Inbox</a>
           </>
         )}
 
         {user && user.publicMetadata.publicMetadata?.role === 'admin' && (
           <>
-            <a id="home" className="menu-item text-white" href="/">Admin Home</a>
             <a className="menu-item text-white" href="/user" onClick={closeMenu}>Manage Users</a>
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}>Manage Parks</a>
             <a className="menu-item text-white" href="/manage-events" onClick={closeMenu}>Manage Events</a>
