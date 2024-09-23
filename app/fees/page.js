@@ -1,159 +1,154 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import Header from "../components/header.js";
+import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
+import Header from '../components/header.js';
 
 export default function FeesPage() {
   const { isSignedIn } = useUser();
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedPark, setSelectedPark] = useState("");
-  const [selectedPass, setSelectedPass] = useState(false);
-  const [showShipping, setShowShipping] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedPark, setSelectedPark] = useState('');
 
   const albertaParks = [
-    "Banff National Park",
-    "Elk Island National Park",
-    "Jasper National Park",
-    "Waterton Lakes National Park",
+    'Banff National Park',
+    'Elk Island National Park',
+    'Jasper National Park',
+    'Waterton Lakes National Park',
   ];
 
   const bcParks = [
-    "Glacier National Park",
-    "Gulf Islands National Park Reserve",
-    "Gwaii Haanas National Park Reserve",
-    "Kootenay National Park",
-    "Mount Revelstoke National Park Reserve",
-    "Pacific Rim National Park Reserve",
-    "Yoho National Park",
+    'Glacier National Park',
+    'Gulf Islands National Park Reserve',
+    'Gwaii Haanas National Park Reserve',
+    'Kootenay National Park',
+    'Mount Revelstoke National Park Reserve',
+    'Pacific Rim National Park Reserve',
+    'Yoho National Park',
   ];
 
   const fees = {
-    "Banff National Park": {
+    'Banff National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
     },
-    "Elk Island National Park": {
+    'Elk Island National Park': {
       daily: {
-        adult: "$9.00",
-        senior: "$7.75",
-        youth: "Free",
-        family: "$17.50",
-        commercial: "$7.65",
+        adult: '$9.00',
+        senior: '$7.75',
+        youth: 'Free',
+        family: '$17.50',
+        commercial: '$7.65',
       },
       annualEarlyBird: {
-        adult: "$35.00",
-        senior: "$30.50",
-        youth: "Free",
-        family: "$87.25",
+        adult: '$35.00',
+        senior: '$30.50',
+        youth: 'Free',
+        family: '$87.25',
       },
       annual: {
-        adult: "$43.50",
-        senior: "$38.25",
-        youth: "Free",
-        family: "$87.25",
-        replacement: "$16.50",
+        adult: '$43.50',
+        senior: '$38.25',
+        youth: 'Free',
+        family: '$87.25',
+        replacement: '$16.50',
       },
     },
-    "Jasper National Park": {
+    'Jasper National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
     },
-    "Waterton Lakes National Park": {
+    'Waterton Lakes National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
       annual: {
-        adult: "$54.50",
-        senior: "$46.50",
-        youth: "Free",
-        family: "$109.00",
+        adult: '$54.50',
+        senior: '$46.50',
+        youth: 'Free',
+        family: '$109.00',
       },
     },
-    "Glacier National Park": {
+    'Glacier National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
       annual: {
-        adult: "$54.50",
-        senior: "$46.50",
-        youth: "Free",
-        family: "$109.00",
+        adult: '$54.50',
+        senior: '$46.50',
+        youth: 'Free',
+        family: '$109.00',
       },
     },
-    "Gulf Islands National Park Reserve": {
-      noFees:
-        "No entrance fee is required but fees apply for camping, backcountry use, mooring, and reservations.",
+    'Gulf Islands National Park Reserve': {
+      noFees: 'No entrance fee is required but fees apply for camping, backcountry use, mooring, and reservations.',
     },
-    "Gwaii Haanas National Park Reserve": {
-      noFees:
-        "No entrance fee is required but fees apply for excursions, camping, and film/photography.",
+    'Gwaii Haanas National Park Reserve': {
+      noFees: 'No entrance fee is required but fees apply for excursions, camping, and film/photography.',
     },
-    "Kootenay National Park": {
+    'Kootenay National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
     },
-    "Mount Revelstoke National Park Reserve": {
+    'Mount Revelstoke National Park Reserve': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
       annual: {
-        adult: "$54.50",
-        senior: "$46.50",
-        youth: "Free",
-        family: "$109.00",
+        adult: '$54.50',
+        senior: '$46.50',
+        youth: 'Free',
+        family: '$109.00',
       },
     },
-    "Pacific Rim National Park Reserve": {
+    'Pacific Rim National Park Reserve': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
       annual: {
-        adult: "$54.50",
-        senior: "$46.50",
-        youth: "Free",
-        family: "$109.00",
+        adult: '$54.50',
+        senior: '$46.50',
+        youth: 'Free',
+        family: '$109.00',
       },
     },
-    "Yoho National Park": {
+    'Yoho National Park': {
       daily: {
-        adult: "$11.00",
-        senior: "$9.50",
-        youth: "Free",
-        family: "$22.00",
-        commercial: "$9.35",
+        adult: '$11.00',
+        senior: '$9.50',
+        youth: 'Free',
+        family: '$22.00',
+        commercial: '$9.35',
       },
     },
   };
