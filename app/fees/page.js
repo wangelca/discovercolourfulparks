@@ -487,4 +487,4 @@ export default function FeesPage() {
 //References:
 //Fee Information for Parks - https://parks.canada.ca/voyage-travel/tarifs-fees
 //Image - https://themilepost.com/articles/five-things-to-do-in-banff-national-park/
-//Discovery Pass Information - https://www.commandesparcs-parksorders.ca/en/decouverte-discovery?_ga=2.124083406.553489718.1710794358-1329834248.1669915314
+//Discovery  Pass iInformation - https://www.commandesparcs-parksorders.ca/en/decouverte-discovery?_ga=2.124083406.553489718.1710794358-1329834248.1669915314
