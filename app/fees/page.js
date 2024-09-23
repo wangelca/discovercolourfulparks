@@ -153,6 +153,8 @@ export default function FeesPage() {
     },
   };
 
+  
+
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
       <Header />
@@ -262,7 +264,7 @@ export default function FeesPage() {
               )}
               {fees[selectedPark].annualEarlyBird && (
                 <div>
-                  <h4 className="font-semibold">Annual Early Bird:</h4>
+                  <h4 className="font-semibold">Annual Early Bird (December 1 - March 31):</h4>
                   <p>Adult: {fees[selectedPark].annualEarlyBird.adult}</p>
                   <p>Senior: {fees[selectedPark].annualEarlyBird.senior}</p>
                   <p>Youth: {fees[selectedPark].annualEarlyBird.youth}</p>
@@ -281,4 +283,10 @@ export default function FeesPage() {
     </div>
   );
 }
+
+
+//References:
+//Fee Information for Parks - https://parks.canada.ca/voyage-travel/tarifs-fees
+//Image - https://themilepost.com/articles/five-things-to-do-in-banff-national-park/
+//Discovery Pass Information - https://www.commandesparcs-parksorders.ca/en/decouverte-discovery?_ga=2.124083406.553489718.1710794358-1329834248.1669915314
 
