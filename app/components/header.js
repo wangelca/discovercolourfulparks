@@ -16,7 +16,7 @@ export default function Header() {
           <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
           <a href="/events" className="text-gray-700 hover:text-gray-900 transition">Events</a>
           <a href="/spots" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
-          <a href="/fees" className="text-gray-700 hover:text-gray-900 transition">Fees</a>
+          <a href="/fees" className="text-gray-700 hover:text-gray-900 transition">Admissions</a>
           <a href="/aboutus" className="text-gray-700 hover:text-gray-900 transition">About Us</a>
         </nav>
 
