@@ -14,11 +14,11 @@ model User {
   email          String   @unique
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt
-  password       String
+  firstName      String?
   lastName       String?
   phoneNumber    String?
   publicMetadata String?
-  firstName      String?
+
 
   @@map("users")
 }
