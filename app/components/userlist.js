@@ -70,6 +70,9 @@ export default function UserList() {
           <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">First Name</th>
           <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Last Name</th>
           <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Phone Number</th>
+          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Created at</th>
+          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Last update at</th>
+          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Profile</th>
         </tr>
         {/* Search inputs for filtering */}
         <tr className="block md:table-row">
@@ -137,6 +140,15 @@ export default function UserList() {
             </td>
             <td className="p-2 md:border md:border-gray-300 text-left block md:table-cell">
               {user.phoneNumber || 'N/A'}
+            </td>
+            <td className="p-2 md:border md:border-gray-300 text-left block md:table-cell">
+              {user.createdAt || 'N/A'}
+            </td>
+            <td className="p-2 md:border md:border-gray-300 text-left block md:table-cell">
+              {user.updatedAt || 'N/A'}
+            </td>
+            <td className="p-2 md:border md:border-gray-300 text-left block md:table-cell">
+              {user.publicMetadata || 'N/A'}
             </td>
           </tr>
         ))}
