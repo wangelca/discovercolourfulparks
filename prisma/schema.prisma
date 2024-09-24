@@ -8,24 +8,19 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  clerk_user_id String   @unique
-  username      String?
-  email         String   @unique
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt
-  password      String
+  id             Int      @id @default(autoincrement())
+  clerk_user_id  String   @unique
+  username       String?
+  email          String   @unique
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt
+  password       String
+  lastName       String?
+  phoneNumber    String?
+  publicMetadata String?
+  firstName      String?
 
   @@map("users")
-}
-
-model Admin {
-  adminId Int    @id @default(autoincrement())
-  name    String
-  email   String
-  role    String
-
-  @@map("admin")
 }
 
 model Park {
@@ -58,9 +53,9 @@ model Event {
   parkId        Int
   eventName     String
   eventLocation String
-  fee           Decimal
+  fee           Float
   description   String
-  discount      Decimal
+  discount      Float
   endDate       DateTime
   endTime       String
   startDate     DateTime
