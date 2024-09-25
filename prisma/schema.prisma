@@ -72,7 +72,8 @@ model Booking {
   spotId           Int?
   eventId          Int?
   bookingDate      DateTime
-  bookingTime      String
+  bookingStartTime      DateTime
+  bookingEndTime        DateTime
   calculatedAmount Decimal
   event            Event?   @relation(fields: [eventId], references: [eventId])
   spot             Spot?    @relation(fields: [spotId], references: [spotId])
