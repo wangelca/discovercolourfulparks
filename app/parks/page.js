@@ -1,7 +1,5 @@
 "use client";
-import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import Header from "../components/header";
 
 export default function Home() {
   // const { isSignedIn } = useUser(); // Check if the user is signed in
@@ -46,8 +44,6 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Header />
-
       <main className="container mx-auto px-6 py-12 flex flex-col">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Find a Park

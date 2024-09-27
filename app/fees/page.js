@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
-import Header from '../components/header.js';
+import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export default function FeesPage() {
   const { isSignedIn } = useUser();
@@ -155,8 +154,6 @@ export default function FeesPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Header />
-
       <div className="relative">
         <img
           src="/banff_fees.jpg"
