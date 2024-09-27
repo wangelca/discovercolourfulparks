@@ -20,6 +20,7 @@ export default function Spots() {
             <th>Hourly Rate</th>
             <th>Description</th>
             <th>Location</th>
+            <th>Details</th>
           </tr>
         </thead>
         <tbody>
@@ -30,6 +31,8 @@ export default function Spots() {
                 <td>{spot.spotHourlyRate}</td>
                 <td>{spot.spotDescription}</td>
                 <td>{spot.spotLocation}</td>
+                <td>
+                  <a href={`/spots/${spot.spotId}`}>View</a></td>
               </tr>
             ))
           ) : (

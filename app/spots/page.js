@@ -1,11 +1,8 @@
 'use client';
 
-import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
 import { useState } from 'react';
-import Header from "../components/header";
 
 export default function Home() {
-  const { isSignedIn } = useUser();
   const [activeFilter, setActiveFilter] = useState('Popular Spots');
 
   const handleFilterChange = (filter) => {
@@ -19,9 +16,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-white">
-      <Header/>
-      
+    <div className="relative flex flex-col min-h-screen bg-white">     
       <div className="relative w-screen flex justify-center py-12">
         <div className="relative w-full max-w-screen-xl">
           <img
@@ -33,7 +28,8 @@ export default function Home() {
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-4">
             <div className="flex space-x-4">
               <button
-                onClick={() => handleFilterChange('Popular Spots')}
+                onClick={() => handleFilterChange('Popular Spots')
+                }
                 className={`text-xl font-bold py-2 px-4 rounded-full transition ${activeFilter === 'Popular Spots' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:bg-gray-700`}
               >
                 Popular Spots
@@ -51,10 +47,15 @@ export default function Home() {
                 Sites and Attractions
               </button>
             </div>
+            {/*TO remove  after testing*/}
+            <div className="text-3xl font-extrabold text-white">
+          <a href="/spots/spots-list">Testing spot list</a> 
+        </div>
             <p className="text-white text-lg text-center max-w-lg">{descriptions[activeFilter]}</p>
           </div>
         </div>
       </div>
     </div>
+    
   );
 }

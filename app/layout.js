@@ -3,6 +3,7 @@
   import { ClerkProvider, SignedIn, SignedOut,  } from '@clerk/nextjs'
   import './globals.css'
   import DrawerMenu from './components/drawer'
+  import Header from './components/header'
 
 
   export default function RootLayout({ children }) {
@@ -10,6 +11,7 @@
       <ClerkProvider>
         <html lang="en">
           <body>
+          <Header/>
             <header>
               {/* Sign-in button for users not logged in */}
               <SignedOut>
