@@ -14,6 +14,9 @@
     "@clerk/express": "^0.1.3",
     "@clerk/nextjs": "^4.31.5",
     "@clerk/themes": "^2.1.29",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.1.1",
     "@prisma/client": "^5.20.0",
     "@stripe/stripe-js": "^4.5.0",
     "axios": "^1.7.7",
@@ -27,7 +30,9 @@
     "pg": "^8.12.0",
     "react": "^18",
     "react-burger-menu": "^3.0.9",
+    "react-datepicker": "^7.4.0",
     "react-dom": "^18",
+    "react-hook-form": "^7.53.0",
     "stripe": "^16.12.0"
   },
   "devDependencies": {
