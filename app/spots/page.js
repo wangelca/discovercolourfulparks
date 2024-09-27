@@ -1,10 +1,8 @@
 'use client';
 
-import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
 import { useState } from 'react';
 
 export default function Home() {
-  const { isSignedIn } = useUser();
   const [activeFilter, setActiveFilter] = useState('Popular Spots');
 
   const handleFilterChange = (filter) => {
@@ -18,39 +16,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-white">
-      <header className="bg-white shadow-lg">
-        <div className="container mx-auto flex justify-between items-center px-6 py-4">
-          <div className="text-3xl font-extrabold text-gray-800">
-            Discover Colourful Parks
-          </div>
-          
-          <nav className="hidden md:flex flex-grow justify-center space-x-8">
-            <a href="/parks" className="text-gray-700 hover:text-gray-900 transition">Parks</a>
-            <a href="/events" className="text-gray-700 hover:text-gray-900 transition">Events</a>
-            <a href="/spots" className="text-gray-700 hover:text-gray-900 transition">Spots</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">Fees</a>
-            <a href="/" className="text-gray-700 hover:text-gray-900 transition">About Us</a>
-          </nav>
-
-          <div>
-            {!isSignedIn ? (
-              <SignInButton redirectUrl="/login">
-                <button className={`bg-black text-white font-semibold py-2 px-4 rounded-full transition ${activeFilter === 'Popular Spots' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:bg-gray-700`}>
-                  Sign In
-                </button>
-              </SignInButton>
-            ) : (
-              <SignOutButton>
-                <button className="bg-black text-white font-semibold py-2 px-4 rounded-full transition hover:bg-gray-700">
-                  Sign Out
-                </button>
-              </SignOutButton>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <div className="relative flex flex-col min-h-screen bg-white">     
       <div className="relative w-screen flex justify-center py-12">
         <div className="relative w-full max-w-screen-xl">
           <img
@@ -62,7 +28,8 @@ export default function Home() {
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-4">
             <div className="flex space-x-4">
               <button
-                onClick={() => handleFilterChange('Popular Spots')}
+                onClick={() => handleFilterChange('Popular Spots')
+                }
                 className={`text-xl font-bold py-2 px-4 rounded-full transition ${activeFilter === 'Popular Spots' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:bg-gray-700`}
               >
                 Popular Spots
@@ -80,10 +47,15 @@ export default function Home() {
                 Sites and Attractions
               </button>
             </div>
+            {/*TO remove  after testing*/}
+            <div className="text-3xl font-extrabold text-white">
+          <a href="/spots/spots-list">Testing spot list</a> 
+        </div>
             <p className="text-white text-lg text-center max-w-lg">{descriptions[activeFilter]}</p>
           </div>
         </div>
       </div>
     </div>
+    
   );
 }

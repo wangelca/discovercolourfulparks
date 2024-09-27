@@ -8,13 +8,86 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  clerk_user_id String   @unique
-  username      String?
-  email         String   @unique
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt
-  password      String
+  id             Int      @id @default(autoincrement())
+  clerk_user_id  String   @unique
+  username       String?
+  email          String   @unique
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt
+  firstName      String?
+  lastName       String?
+  phoneNumber    String?
+  publicMetadata String?
+
 
   @@map("users")
+}
+
+model Park {
+  parkId      Int     @id @default(autoincrement())
+  name        String
+  description String
+  location    String
+  events      Event[]
+  spots       Spot[]
+
+  @@map("park")
+}
+
+model Spot {
+  spotId          Int       @id @default(autoincrement())
+  parkId          Int
+  spotName        String
+  spotDescription String
+  spotHourlyRate  Decimal
+  spotDiscount    Decimal
+  spotLocation    String
+  bookings        Booking[]
+  park            Park      @relation(fields: [parkId], references: [parkId])
+
+  @@map("spot")
+}
+
+model Event {
+  eventId       Int       @id @default(autoincrement())
+  parkId        Int
+  eventName     String
+  eventLocation String
+  fee           Float
+  description   String
+  discount      Float
+  endDate       DateTime
+  endTime       String
+  startDate     DateTime
+  startTime     String
+  bookings      Booking[]
+  park          Park      @relation(fields: [parkId], references: [parkId])
+
+  @@map("event")
+}
+
+model Booking {
+  bookingId        Int      @id @default(autoincrement())
+  id               Int
+  spotId           Int?
+  eventId          Int?
+  bookingDate      DateTime
+  bookingStartTime      DateTime
+  bookingEndTime        DateTime
+  calculatedAmount Decimal
+  event            Event?   @relation(fields: [eventId], references: [eventId])
+  spot             Spot?    @relation(fields: [spotId], references: [spotId])
+  payment          Payment?
+
+  @@map("booking")
+}
+
+model Payment {
+  paymentId     Int     @id @default(autoincrement())
+  bookingId     Int     @unique
+  id            Int
+  paymentStatus String
+  booking       Booking @relation(fields: [bookingId], references: [bookingId])
+
+  @@map("payment")
 }
