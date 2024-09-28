@@ -2,11 +2,7 @@
 
 import Image from 'next/image';
 
-import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
-
 export default function Home() {
-  const { isSignedIn } = useUser(); // Check if the user is signed in
-
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
       <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 bg-white">
@@ -27,7 +23,7 @@ export default function Home() {
             <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
               Explore the never-ending beauty of Canada`s national parks. Discover some of the most beautiful landscapes that occupy the Earth.
             </p>
-            <a href="/explore" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
+            <a href="/parks" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
               Explore Now
             </a>
           </div>
@@ -52,7 +48,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   Morraine Lake is a stunning turquoise lake, cradled by the Valley of the Ten Peaks, located in Banff National Park, Alberta, Canada.
                 </p>
-                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/spots/116" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +63,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   The Prince of Wales Hotel, located in the heart of Waterton Lakes National Park in Alberta, Canada, stands on the bluff overlooking Upper Waterton Lake.
                 </p>
-                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/spots/414" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

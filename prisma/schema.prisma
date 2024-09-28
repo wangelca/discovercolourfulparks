@@ -46,8 +46,7 @@ model Spot {
   bookings        Booking[] // Relation to Booking
   park            Park      @relation(fields: [parkId], references: [parkId])
   spotImageUrl      String[]
-  latitude        Decimal?
-  longitude       Decimal?
+  parameters      String?
 
   @@map("spot")
 }
