@@ -1,33 +1,57 @@
-import { authMiddleware } from "@clerk/nextjs/server";
+import {
+  ClerkMiddlewareAuth,
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export default authMiddleware({
-  // Define public routes that should not require authentication
-  publicRoutes: ["/", "/parks", "/events", "/spots", "/fees", "/about", "/explore", "/api/user", "/api/clerkSync"], 
+const isPublicRoute = createRouteMatcher([
+  "/parks(.*)",
+  "/events(.*)",
+  "/spots(.*)",
+  "/fees(.*)",
+  "/aboutus(.*)",
+  "/",
+  "/api(.*)",
+]);
 
-  // Ignore Clerk authentication on static assets and API routes
-  ignoredRoutes: [
-    "/((?!api|trpc))(_next.*|.+\\.[\\w]+$)", "/"// Exclude next.js static files and asset routes
-  ],
-    
-      // Custom afterAuth function to modify Clerk's default redirect behavior
-  afterAuth(auth, req) {
-    const { pathname } = req.nextUrl;
+const isAdminRoute = createRouteMatcher(["//user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)"]);
 
-    // Make sure the /api/clerkSync route is excluded from the auth checks
-    if (pathname.startsWith('/api/clerkSync')) {
-      return NextResponse.next(); // Allow access to /api/clerkSync
-    }
+const afterAuth = async (auth) => {
+  // Handle afterAuth logic here
+  const { userId } = auth();
+  return NextResponse.next();
+};
 
-    // Allow both signed-in and signed-out users to access public routes
-    if (!auth.isPublic && !auth.userId) {
-      return NextResponse.redirect(new URL("/", req.url)); // Redirect to homepage if not authenticated
-    }
-    return NextResponse.next(); // Proceed to next middleware or route
-  },
+export default clerkMiddleware((auth, request) => {
+  // Handle beforeAuth logic here
+  const { userId } = auth();
+
+  if (isAdminRoute(request)) {
+    auth().protect({
+      requireSession: true,
+      requireSessionCallback: (session) => {
+        if (session.user.publicMetadata.role !== "admin") {
+          return NextResponse.redirect("/login");
+        }
+      },
+    });
+  }
+
+  if (!isPublicRoute(request)) {
+    auth().protect();
+  }
+
+  // Call afterAuth function
+  return afterAuth(auth);
 });
 
 export const config = {
-  // Matcher configuration to apply middleware to necessary routes
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
+
+/*
+Reference: 
+https://clerk.com/docs/references/nextjs/clerk-middleware
+https://www.reddit.com/r/nextjs/comments/1d6mcah/the_new_clerk_middleware/
+*/
