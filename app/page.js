@@ -1,5 +1,5 @@
 'use client';
-import Header from './components/header';
+
 import Image from 'next/image';
 
 import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
@@ -9,8 +9,6 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Header/>
-
       <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 bg-white">
         <div className="relative h-[40vh] rounded-lg overflow-hidden">
           <Image
