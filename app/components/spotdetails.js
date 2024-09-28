@@ -10,10 +10,8 @@ export default function SpotDetails() {
 
   useEffect(() => {
     if (spotId) {
-      console.log('API Request URL:', `/api/spot/${spotId}`);
       axios.get(`/api/spot/${spotId}`)
         .then((response) => {
-          console.log('API Response:', response.data);
           setSpot(response.data);
         })
         .catch((error) => {
@@ -33,6 +31,19 @@ export default function SpotDetails() {
       <p><strong>Description:</strong> {spot.spotDescription}</p>
       <p><strong>Hourly Rate:</strong> ${spot.spotHourlyRate}</p>
       <p><strong>Discount:</strong> {spot.spotDiscount}%</p>
+
+<iframe
+  width="450"
+  height="250"
+  frameBorder="0"
+  style={{ border: 0 }}
+  referrerPolicy="no-referrer-when-downgrade"
+  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${spot.parameters}`}
+  allowFullScreen
+></iframe>
+
+
+
     </div>
   );
 }
