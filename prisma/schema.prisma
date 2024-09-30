@@ -8,17 +8,18 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  clerk_user_id  String   @unique
+  id             Int       @id @default(autoincrement())
+  clerk_user_id  String    @unique
   username       String?
-  email          String   @unique
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt
+  email          String    @unique
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt
   firstName      String?
   lastName       String?
   phoneNumber    String?
   publicMetadata String?
-
+  bookings       Booking[] // Added relation to Booking
+  payments       Payment[] // Added relation to Payment
 
   @@map("users")
 }
@@ -42,7 +43,7 @@ model Spot {
   spotHourlyRate  Decimal
   spotDiscount    Decimal
   spotLocation    String
-  bookings        Booking[]
+  bookings        Booking[] // Relation to Booking
   park            Park      @relation(fields: [parkId], references: [parkId])
   spotImageUrl      String[]
   parameters      String?
@@ -58,11 +59,11 @@ model Event {
   fee           Float
   description   String
   discount      Float
-  endDate       DateTime
-  endTime       String
   startDate     DateTime
   startTime     String
-  bookings      Booking[]
+  endDate       DateTime
+  endTime       String
+  bookings      Booking[] // Relation to Booking
   park          Park      @relation(fields: [parkId], references: [parkId])
 
   @@map("event")
@@ -70,16 +71,16 @@ model Event {
 
 model Booking {
   bookingId        Int      @id @default(autoincrement())
+  eventId          Int
   id               Int
-  spotId           Int?
-  eventId          Int?
+  spotId           Int // Relation to Spot
   bookingDate      DateTime
-  bookingStartTime      DateTime
-  bookingEndTime        DateTime
-  calculatedAmount Decimal
-  event            Event?   @relation(fields: [eventId], references: [eventId])
-  spot             Spot?    @relation(fields: [spotId], references: [spotId])
-  payment          Payment?
+  bookingStatus    String
+  bookingStartTime DateTime
+  event            Event    @relation(fields: [eventId], references: [eventId])
+  user             User     @relation(fields: [id], references: [id])
+  spot             Spot     @relation(fields: [spotId], references: [spotId]) // Relation to Spot
+  payment          Payment? // Relation to Payment
 
   @@map("booking")
 }
@@ -90,6 +91,7 @@ model Payment {
   id            Int
   paymentStatus String
   booking       Booking @relation(fields: [bookingId], references: [bookingId])
+  user          User    @relation(fields: [id], references: [id])
 
   @@map("payment")
 }
