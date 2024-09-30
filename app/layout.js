@@ -4,6 +4,7 @@
   import './globals.css'
   import DrawerMenu from './components/drawer'
   import Header from './components/header'
+import Footer from './components/footer'
 
 
   export default function RootLayout({ children }) {
@@ -22,6 +23,7 @@
             </header>
             
             <main>{children}</main>
+            <Footer/>
           </body>
         </html>
       </ClerkProvider>

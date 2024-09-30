@@ -1,10 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
+
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-primary: 'Dosis',   
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,7 +20,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary);
 }
 
 @layer utilities {
