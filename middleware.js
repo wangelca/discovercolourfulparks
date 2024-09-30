@@ -15,7 +15,7 @@ const isPublicRoute = createRouteMatcher([
   "/api(.*)",
 ]);
 
-const isAdminRoute = createRouteMatcher(["//user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)"]);
+const isAdminRoute = createRouteMatcher(["/user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)"]);
 
 const afterAuth = async (auth) => {
   // Handle afterAuth logic here
@@ -27,16 +27,17 @@ export default clerkMiddleware((auth, request) => {
   // Handle beforeAuth logic here
   const { userId } = auth();
 
-  if (isAdminRoute(request)) {
+  /*if (isAdminRoute(request)) {
     auth().protect({
       requireSession: true,
       requireSessionCallback: (session) => {
-        if (session.user.publicMetadata.role !== "admin") {
+        if (session.user.publicMetadata.role !== "Admin") {
           return NextResponse.redirect("/login");
         }
       },
     });
   }
+    */
 
   if (!isPublicRoute(request)) {
     auth().protect();
