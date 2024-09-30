@@ -47,6 +47,7 @@ model Spot {
   park            Park      @relation(fields: [parkId], references: [parkId])
   spotImageUrl      String[]
   parameters      String?
+  requiredbooking  Boolean @default(false)
 
   @@map("spot")
 }
@@ -60,11 +61,14 @@ model Event {
   description   String
   discount      Float
   startDate     DateTime
-  startTime     String
+  //startTime     String
   endDate       DateTime
-  endTime       String
+  //endTime       String
   bookings      Booking[] // Relation to Booking
   park          Park      @relation(fields: [parkId], references: [parkId])
+  eventImageUrl  String[]
+  parameters      String?
+  requiredbooking  Boolean @default(false)
 
   @@map("event")
 }
