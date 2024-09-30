@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import axios from 'axios';
-import Header from "../components/header";
 
 export default function ReportPage() {
   const [reportType, setReportType] = useState('');
