@@ -33,7 +33,8 @@
     "react-datepicker": "^7.4.0",
     "react-dom": "^18",
     "react-hook-form": "^7.53.0",
-    "stripe": "^16.12.0"
+    "stripe": "^16.12.0",
+    "tw-elements": "^2.0.0"
   },
   "devDependencies": {
     "eslint": "^8",
