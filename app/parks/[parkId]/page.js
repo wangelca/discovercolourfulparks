@@ -21,7 +21,7 @@ export default function ParkPage() {
         });
 
         // Fetch related spots
-        const spotsResponse = await fetch(`/api/spot?parkId=${parkId}`);
+        const spotsResponse = await fetch(`/api/spot?parkId=${parkId}}`);
         const spotsData = await spotsResponse.json();
         setRelatedSpots(spotsData);
 
@@ -73,9 +73,7 @@ export default function ParkPage() {
         <div className="h-[400px] w-full rounded-lg shadow-lg">
           {/* Google Maps Integration */}
           <iframe
-            src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
-              park.name
-            )}&zoom=10`}
+            src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${park.name}&zoom=10`}
             className="w-full h-full rounded-lg"
             allowFullScreen
           ></iframe>

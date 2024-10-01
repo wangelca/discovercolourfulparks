@@ -3,7 +3,6 @@ const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   const { spotId } = req.query;
-  console.log('Received spotId:', spotId); // Log the received spotId
 
   try {
     const spot = await prisma.spot.findUnique({
