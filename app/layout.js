@@ -5,6 +5,7 @@
   import DrawerMenu from './components/drawer'
   import Header from './components/header'
 import Footer from './components/footer'
+import BackToTopButton from './components/scroll-back-button'
 
 
   export default function RootLayout({ children }) {
@@ -12,7 +13,8 @@ import Footer from './components/footer'
       <ClerkProvider>
         <html lang="en">
           <body>
-          <Header/>
+          <Header/>    
+          <BackToTopButton/>      
             <header>
               {/* Sign-in button for users not logged in */}
               <SignedOut>
@@ -20,8 +22,7 @@ import Footer from './components/footer'
               <SignedIn>
                 <DrawerMenu />
               </SignedIn>
-            </header>
-            
+            </header>            
             <main>{children}</main>
             <Footer/>
           </body>
