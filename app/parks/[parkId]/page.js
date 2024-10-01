@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
+import PlaceGallery from "../../components/googlePhoto";
 
 export default function ParkPage() {
   const [park, setPark] = useState(null);
@@ -56,9 +57,10 @@ export default function ParkPage() {
           />
           <div className="ml-6">
             <p className="text-lg text-gray-700 mb-4">{park.description}</p>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-2">
               Location: <strong>{park.location}</strong>
             </p>
+            <PlaceGallery/> 
           </div>
         </div>
       </section>
@@ -72,7 +74,7 @@ export default function ParkPage() {
           {/* Google Maps Integration */}
           <iframe
             src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
-              park.parameters
+              park.name
             )}&zoom=10`}
             className="w-full h-full rounded-lg"
             allowFullScreen

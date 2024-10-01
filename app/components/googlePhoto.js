@@ -1,15 +1,26 @@
 import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useParams } from 'next/navigation';
 
 export default function PlaceGallery() {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [photos, setPhotos] = useState([]); // Store photos for the carousel
   const [currentIndex, setCurrentIndex] = useState(0); // Track the current photo index
-
+  const { parkId } = useParams(); // Get dynamic route params
+  const [park, setPark] = useState(null)
   
   useEffect(() => {
-    // Check if the google object is available (client-side only)
-    if (!window.google) {
+    if (parkId && !window.google) {
+
+        axios.get(`/api/park/${parkId}`)
+          .then((response) => {
+            setPark(response.data);
+          })
+          .catch((error) => {
+            console.error('Error fetching park details:', error);
+          });
+   
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
@@ -18,28 +29,27 @@ export default function PlaceGallery() {
         setIsGoogleLoaded(true); // Set the flag once Google Maps is loaded
       };
       document.head.appendChild(script);
+      
     } else {
       setIsGoogleLoaded(true); // If google is already available
     }
-  }, []);
+  }, [parkId]);
 
   useEffect(() => {
-    if (!isGoogleLoaded) return; // Only run after Google Maps is loaded
+    if (!isGoogleLoaded || !park) return; // Only run after Google Maps is loaded and park data is fetched
 
     async function init() {
         try {
           const { Place } = await google.maps.importLibrary('places');
           const place = new Place({
-            id: ParkPage.parameter
+            id: park.parameters
           });
   
           // Fetch the fields
           await place.fetchFields({ fields: ['displayName', 'photos', 'editorialSummary'] });
   
-          let heading = document.getElementById('heading');
-          let summary = document.getElementById('summary');
-  
-          heading.textContent = place.displayName || 'No Name Available';
+          let summary = document.getElementById('summary');  
+
           summary.textContent = place.editorialSummary || 'No Summary Available';
   
           // Check if photos are available
@@ -54,7 +64,7 @@ export default function PlaceGallery() {
       }
   
       init();
-    }, [isGoogleLoaded]);
+    }, [isGoogleLoaded,park]);
   
     // Handler for navigating to the next slide
     const nextSlide = () => {
@@ -69,7 +79,6 @@ export default function PlaceGallery() {
     return (
       <div className="place-gallery">
         {error && <p className="error">{error}</p>}
-        <h1 id="heading">Place Name</h1>
         <p id="summary">Place Summary</p>
   
         {/* Tailwind Carousel */}
@@ -140,11 +149,7 @@ export default function PlaceGallery() {
               </span>
             </button>
           </div>
-        </div>
-  
-        <style jsx>{`
-          /* Custom styling for the carousel can go here */
-        `}</style>
+        </div> 
       </div>
     );
   }
