@@ -27,10 +27,13 @@ model User {
 model Park {
   parkId      Int     @id @default(autoincrement())
   name        String
+  province    String?
   description String
   location    String
   events      Event[]
   spots       Spot[]
+  parkImageUrl    String[]
+  parameters      String?
 
   @@map("park")
 }
