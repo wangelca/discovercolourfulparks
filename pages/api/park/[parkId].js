@@ -2,18 +2,17 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  const { spotId } = req.query;
-
+  const { parkId } = req.query;
   try {
-    const spot = await prisma.spot.findUnique({
-      where: { spotId: parseInt(spotId, 10) },
+    const park = await prisma.park.findUnique({
+      where: { parkId: parseInt(parkId, 10) },
     });
 
-    if (!spot) {
-      return res.status(404).json({ message: 'Spot not found' });
+    if (!park) {
+      return res.status(404).json({ message: 'Park not found' });
     }
 
-    res.status(200).json(spot);
+    res.status(200).json(park);
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });

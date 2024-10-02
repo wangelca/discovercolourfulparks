@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
 
+
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); 
@@ -16,9 +17,9 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-lg">
-      <nav class="bg-white border-green-900 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
-        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-          <a href="/" class="flex items-center">
+      <nav className="bg-white border-green-900 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+          <a href="/" className="flex items-center">
             <Image
               src="/DCP-logo-whitebg.png"
               width={323}
@@ -27,7 +28,7 @@ export default function Header() {
               href="/"
             />
           </a>
-          <div class="flex items-center lg:order-2">
+          <div className="flex items-center lg:order-2">
             <div>
               {!isSignedIn ? (
                 <SignInButton redirectUrl="/">
