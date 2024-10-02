@@ -23,7 +23,7 @@ async def get_parks():
     return parks
 
 @app.get("/spots/")
-async def get_events():
+async def get_spots():
     spots = await prisma.spot.find_many()
     return spots
 
