@@ -2,10 +2,7 @@
 
 import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 0aaad5035400f497887486e0d67b2ac20967a5fe
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
 
