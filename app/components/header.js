@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
 
+
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); 
