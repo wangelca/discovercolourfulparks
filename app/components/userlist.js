@@ -11,36 +11,13 @@ export default function UserList() {
     const [searchLastName, setSearchLastName] = useState('');    
     const [searchPhone, setSearchPhone] = useState('');
 
-  // Fetch users from the API when the component mounts
+ 
   useEffect(() => {
-    async function fetchUsers() {
-      try {
-        //const clerkSync = await fetch("/api/clerkSync"); 
-        //const syncResult = await clerkSync.json();
-
-        //if (!clerkSync.ok) {
-        //  console.error("Error syncing Clerk users:", syncResult);
-        //  return;
-        //}
-
-        const response = await fetch("/api/users"); // Fetch from the API
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setUsers(data); // Update state with the fetched users
-        } else {
-          console.error("Expected array but received:", data);
-          setUsers([]); // Fallback to an empty array
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setUsers([]); // Fallback to an empty array
-      } finally {
-        setLoading(false); // Stop loading indicator
-      }
-    }
-
-    fetchUsers();
-  }, []); // Empty dependency array ensures it only runs once on mount
+    fetch('http://localhost:8000/get_users')
+      .then((response) => response.json())
+      .then((data) => {setUsers(data); setLoading(false);})
+      .catch((error) => console.error('Error fetching users:', error));
+  }, []);
 
     // Filter the users based on search inputs
     const filteredUsers = users.filter(user => 

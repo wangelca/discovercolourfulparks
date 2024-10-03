@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  userId             Int       @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   clerk_user_id  String    @unique
   username       String?
   email          String    @unique
@@ -21,7 +21,7 @@ model User {
   bookings       Booking[] // Added relation to Booking
   payments       Payment[] // Added relation to Payment
 
-  @@map("user")
+  @@map("users")
 }
 
 model Park {
@@ -79,13 +79,13 @@ model Event {
 model Booking {
   bookingId        Int      @id @default(autoincrement())
   eventId          Int
-  userId               Int
+  id               Int
   spotId           Int // Relation to Spot
   bookingDate      DateTime
   bookingStatus    String
   bookingStartTime DateTime
   event            Event    @relation(fields: [eventId], references: [eventId])
-  user             User     @relation(fields: [userId], references: [userId])
+  user             User     @relation(fields: [id], references: [id])
   spot             Spot     @relation(fields: [spotId], references: [spotId]) // Relation to Spot
   payment          Payment? // Relation to Payment
 
@@ -95,10 +95,10 @@ model Booking {
 model Payment {
   paymentId     Int     @id @default(autoincrement())
   bookingId     Int     @unique
-  userId            Int
+  id            Int
   paymentStatus String
   booking       Booking @relation(fields: [bookingId], references: [bookingId])
-  user          User    @relation(fields: [userId], references: [userId])
+  user          User    @relation(fields: [id], references: [id])
 
   @@map("payment")
 }
