@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Spots() {
   const [spots, setSpots] = useState([]); // Initialize with an empty array
 
   useEffect(() => {
-    fetch('/api/spot')
+    fetch('http://localhost:8000/spots')  // Update with your FastAPI endpoint
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error('Error fetching spots:', error));

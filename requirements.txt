@@ -1,0 +1,5 @@
+fastapi>=0.95.0
+uvicorn>=0.22.0
+prisma-client>=0.15.0
+psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0
