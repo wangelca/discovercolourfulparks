@@ -47,6 +47,7 @@ async def get_spots():
     async with Prisma() as db:
         spotsRes= await db.spot.find_many()
         return spotsRes
+    
 
 @app.get("/events")
 async def get_events():
