@@ -4,33 +4,28 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 bg-white">
+    <div className="relative flex flex-col min-h-screen bg-[url('/bowlake_landingpage.jpg')]">
+      <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 ;">
         <div className="relative h-[40vh] rounded-lg overflow-hidden">
-          <Image
+          {/*<Image
             src="/bowlake_landingpage.jpg"
             alt="Beautiful Lake View"
             className="object-cover w-full h-full rounded-lg"
             style={{ transform: 'scaleX(1.1)' }}
             width={1920}
             height={1080}
-          />
+          />*/}
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6 py-12 z-10">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Explore the World`s Most Beautiful Parks
+              Explore the World's Most Beautiful Parks
             </h1>
             <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
-              Explore the never-ending beauty of Canada`s national parks. Discover some of the most beautiful landscapes that occupy the Earth.
+              Explore the never-ending beauty of Canada's national parks. Discover some of the most beautiful landscapes that occupy the Earth.
             </p>
             <a href="/parks" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
               Explore Now
             </a>
-          </div>
-          <div className="absolute bottom-4 left-6 z-20">
-            <p className="bg-black bg-opacity-70 text-white text-xs leading-tight rounded-sm px-2 py-1">
-              Pinterest
-            </p>
           </div>
         </div>
       </div>
