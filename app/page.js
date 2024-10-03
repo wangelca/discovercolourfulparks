@@ -4,31 +4,20 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col min-h-screen bg-[url('/bowlake_landingpage.jpg')]">
-      <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 ;">
-        <div className="relative h-[40vh] rounded-lg overflow-hidden">
-          {/*<Image
-            src="/bowlake_landingpage.jpg"
-            alt="Beautiful Lake View"
-            className="object-cover w-full h-full rounded-lg"
-            style={{ transform: 'scaleX(1.1)' }}
-            width={1920}
-            height={1080}
-          />*/}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6 py-12 z-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Explore the World's Most Beautiful Parks
-            </h1>
-            <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
-              Explore the never-ending beauty of Canada's national parks. Discover some of the most beautiful landscapes that occupy the Earth.
+    <div>
+    <section className= "bg-top bg-no-repeat bg-[url('/bowlake_landingpage.jpg')] bg-gray-300 bg-blend-multiply bg-cover">
+         <div className="px-4 mx-auto max-w-screen-xl text-center py-24 lg:py-56">
+         <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-white md:text-5xl lg:text-6xl">Explore the World’s Most Beautiful Parks</h1>
+            <p className="mb-8 text-lg font-bold text-gray-200 lg:text-xl sm:px-16 lg:px-48">
+              Explore the never-ending beauty of Canada’s national parks. Discover some of the most beautiful landscapes that occupy the Earth.
             </p>
+            <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
             <a href="/parks" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
               Explore Now
             </a>
+            </div>
           </div>
-        </div>
-      </div>
+      </section>
 
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-6">
@@ -84,7 +73,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
   );
 }
 
