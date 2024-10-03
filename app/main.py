@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+prisma = Prisma()
+
 DATABASE_URL = "postgresql://postgres:2131@localhost:5432/ColorfulNationalParks"  # Update this with your DB details
 database = databases.Database(DATABASE_URL)
 
@@ -28,28 +30,24 @@ async def startup():
 async def shutdown():
     await database.disconnect()
 
-
-@app.get("/")
-async def read_root():
-    return {"message": "Hello World"}
-
 @app.get("/parks")
 async def get_parks():
     async with Prisma() as db:
         parksRes= await db.park.find_many()
         return parksRes
     
-@app.get("/users")
+@app.get("/get_users")
 async def get_users():
     async with Prisma() as db:
-        usersRes= await db.user.find_many()
-        return usersRes
+        users_res = await db.user.find_many()
+        return users_res
 
 @app.get("/spots")
 async def get_spots():
     async with Prisma() as db:
         spotsRes= await db.spot.find_many()
         return spotsRes
+    
 
 @app.get("/events")
 async def get_events():
