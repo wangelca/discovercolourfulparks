@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Spots() {
   const [spots, setSpots] = useState([]); // Initialize with an empty array
 
   useEffect(() => {
-    fetch('/api/spot')
+    fetch('http://localhost:8000/spots')  // Update with your FastAPI endpoint
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error('Error fetching spots:', error));
@@ -16,6 +16,7 @@ export default function Spots() {
       <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
+            <th>Image</th>
             <th>Spot Name</th>
             <th>Hourly Rate</th>
             <th>Description</th>
@@ -27,6 +28,15 @@ export default function Spots() {
           {spots.length > 0 ? (
             spots.map((spot) => (
               <tr key={spot.spotId}>
+                                <td>
+                  {spot.spotImageUrl && (
+                    <img
+                      src={spot.spotImageUrl}
+                      alt={`Image of ${spot.spotName}`}
+                      style={{ width: '100px', height: 'auto', borderRadius: '8px' }}
+                    />
+                  )}
+                </td>
                 <td>{spot.spotName}</td>
                 <td>{spot.spotHourlyRate}</td>
                 <td>{spot.spotDescription}</td>
