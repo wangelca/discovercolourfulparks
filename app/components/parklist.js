@@ -24,9 +24,11 @@ export default function Parks() {
 
       fetchParks();
     }, [selectedProvince]);
-    const filteredParks = parks.filter((park) =>
+    const filteredParks = Array.isArray(parks)
+  ? parks.filter((park) =>
       park.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    )
+  : [];
   
     if (loading) {
       return <p>Loading parks...</p>;
