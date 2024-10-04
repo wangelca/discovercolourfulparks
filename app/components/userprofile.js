@@ -60,42 +60,12 @@ export default function ProfilePage() {
       setError("Phone number must contain only digits.");
       return;
     }
-
     try {
       // Step 1: Update the profile in your database via Prisma API
       console.log("Updating local database...");
       const res = await axios.put(`/api/profile/${user.id}`, profileData);
       console.log("Local database updated:", res.data);
-
-      // Step 2: Sync changes with Clerk's User Management API
-      console.log("Syncing with Clerk...");
-      await clerk.users.updateUser(user.id, {
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        publicMetadata: { phoneNumber: profileData.phoneNumber }
-      });
-
-      // Step 3: Call clerkSync API to perform any additional synchronization
-      console.log("Calling clerkSync API...");
-      const clerkSyncResponse = await fetch("/api/clerkSync", {
-        method: "POST", // Ensure the correct HTTP method is used
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ userId: user.id }) // Send necessary data
-      });
-
-      // Handle the clerkSync API response
-      if (!clerkSyncResponse.ok) {
-        const syncResult = await clerkSyncResponse.json();
-        console.error("Error syncing Clerk users:", syncResult);
-        setError("Failed to sync with Clerk.");
-        return; // Exit if clerkSync failed
-      }
-
-      const syncResult = await clerkSyncResponse.json();
-      console.log("Clerk users synced successfully:", syncResult);
-
+      
       // If all steps succeed
       setSuccess(true);
       setError("");
