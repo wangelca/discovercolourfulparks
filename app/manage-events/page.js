@@ -1,4 +1,4 @@
-"use client"; // Mark this component as a Client Component
+"use client"; 
 
 import { useState, useEffect } from 'react';
 
@@ -6,7 +6,7 @@ export default function ManageEvents() {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    fetch('/api/bookings')  // Fetch all bookings from the API
+    fetch('/api/bookings')  
       .then(response => response.json())
       .then(data => setBookings(data))
       .catch(error => console.error('Error fetching bookings:', error));
