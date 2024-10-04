@@ -8,7 +8,7 @@ const clerkClient = createClerkClient({
 export default async function handler(req, res) {
   try {
     // Fetch all users from Clerk using the SDK
-    const userList = await clerkClient.users.getUserList();
+    const { data: userList } = await clerkClient.users.getUserList();
 
     if (!userList || userList.length === 0) {
       return res.status(200).json({ message: "No users found in Clerk." });
