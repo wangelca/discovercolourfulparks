@@ -48,12 +48,13 @@ model Spot {
   spotLocation    String
   bookings        Booking[] // Relation to Booking
   park            Park      @relation(fields: [parkId], references: [parkId])
-  spotImageUrl      String[]
+  spotImageUrl    String[]
   parameters      String?
-  requiredbooking  Boolean @default(false)
+  requiredbooking Boolean   @default(false)
 
   @@map("spot")
 }
+
 
 model Event {
   eventId       Int       @id @default(autoincrement())
