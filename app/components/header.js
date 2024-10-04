@@ -21,8 +21,8 @@ export default function Header() {
           <a href="/" className="flex items-center">
             <Image
               src="/DCP-logo-whitebg.png"
-              width={323}
-              height={162}
+              width={280}
+              height={125}
               alt="Logo"
               href="/"
             />
