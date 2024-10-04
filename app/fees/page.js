@@ -1,10 +1,5 @@
 'use client';
 
-<<<<<<< HEAD
-=======
-import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
->>>>>>> a4c79216975052569aa4765de00e518f6997dc2b
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Header from '../components/header.js';
