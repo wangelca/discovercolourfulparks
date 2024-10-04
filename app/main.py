@@ -36,6 +36,17 @@ async def get_parks():
         parksRes= await db.park.find_many()
         return parksRes
     
+@app.get("/parks/{parkId}")
+async def get_park(parkId: int):
+    async with Prisma() as db:
+        parkRes = await db.park.find_unique(where={"parkId": parkId})
+        
+        if not parkRes:
+            raise HTTPException(status_code=404, detail="Park not found")
+        
+        return parkRes
+
+    
 @app.get("/get_users")
 async def get_users():
     async with Prisma() as db:
@@ -48,6 +59,16 @@ async def get_spots():
         spotsRes= await db.spot.find_many()
         return spotsRes
     
+@app.get("/spots/{spotId}")
+async def get_spot(spotId: int):
+    async with Prisma() as db:
+        spotRes = await db.spot.find_unique(where={"spotId": spotId})
+        
+        if not spotRes:
+            raise HTTPException(status_code=404, detail="Spot not found")
+        
+        return spotRes
+    
 
 @app.get("/events")
 async def get_events():
@@ -55,6 +76,15 @@ async def get_events():
         eventsRes= await db.event.find_many()
         return eventsRes
     
+@app.get("/events/{eventId}")
+async def get_event(eventId: int):
+    async with Prisma() as db:
+        eventRes = await db.event.find_unique(where={"eventId": eventId})
+        
+        if not eventRes:
+            raise HTTPException(status_code=404, detail="Event not found")
+        
+        return eventRes       
 
 class Spot(BaseModel):
     id: int
