@@ -5,37 +5,45 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { eventId, id, spotId, bookingStartTime } = req.body;  
 
-
-    const userExists = await prisma.user.findUnique({ where: { id } });
-
-    if (!userExists) {
-      return res.status(400).json({ error: 'User does not exist' });
+    if (!eventId || !id || !spotId || !bookingStartTime) {
+      return res.status(400).json({ error: 'Missing required fields: eventId, userId (id), spotId, or bookingStartTime.' });
     }
 
-   
-    const spotExists = await prisma.spot.findUnique({ where: { spotId } });
 
-    if (!spotExists) {
-      return res.status(400).json({ error: 'Spot does not exist' });
+    const bookingStart = new Date(bookingStartTime);
+    if (isNaN(bookingStart.getTime())) {
+      return res.status(400).json({ error: 'Invalid booking start time format.' });
     }
 
     try {
+      const userExists = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+      if (!userExists) {
+        return res.status(400).json({ error: 'User does not exist.' });
+      }
+
+      const spotExists = await prisma.spot.findUnique({ where: { spotId: parseInt(spotId) } });
+      if (!spotExists) {
+        return res.status(400).json({ error: 'Spot does not exist.' });
+      }
+
+      // Create new booking
       const newBooking = await prisma.booking.create({
         data: {
-          eventId,
-          userId: id,  
-          spotId,
-          bookingDate: new Date(),
-          bookingStatus: 'confirmed',
-          bookingStartTime: new Date(bookingStartTime),
+          eventId: parseInt(eventId), 
+          id: parseInt(id),           
+          spotId: parseInt(spotId),  
+          bookingDate: new Date(),    
+          bookingStatus: 'confirmed', 
+          bookingStartTime: bookingStart, 
         },
       });
-      res.status(201).json({ success: true, booking: newBooking });
+
+      return res.status(201).json({ success: true, booking: newBooking });
     } catch (error) {
       console.error('Error creating booking:', error);
-      res.status(500).json({ success: false, error: 'Error creating booking' });
+      return res.status(500).json({ success: false, error: 'Error creating booking.' });
     }
   } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ message: 'Method not allowed. Please use POST.' });
   }
 }
