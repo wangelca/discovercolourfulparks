@@ -5,6 +5,10 @@ from typing import List, Optional
 import asyncpg  # assuming you are using PostgreSQL with FastAPI
 import databases
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import asyncio
+
+load_dotenv()
 
 
 app = FastAPI()
