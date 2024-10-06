@@ -22,23 +22,29 @@ export default function ParkPage() {
         const parkData = await response.json();
         setPark(parkData); 
 
-          // Fetch related spots
-          const spotsResponse = await fetch(`/api/spot?parkId=${parkId}`);
-          const spotsData = await spotsResponse.json();
-          setRelatedSpots(spotsData);
+        // Fetch related spots
+        const spotsResponse = await fetch(`http://localhost:8000/api/spots?parkId=${parkId}`);
+        if (!spotsResponse.ok) {
+          throw new Error('Failed to fetch spot data');
+        }
+        const spotsData = await spotsResponse.json();
+        setRelatedSpots(spotsData);
+        
+       // Fetch related events
+       const eventsResponse = await fetch(`http://localhost:8000/api/events?parkId=${parkId}`);
+       if (!eventsResponse.ok) {
+        throw new Error('Failed to fetch event data');
+      }
+       const eventsData = await eventsResponse.json();
+       setRelatedEvents(eventsData);
 
-          // Fetch related events
-          const eventsResponse = await fetch(`/api/event?parkId=${parkId}`);
-          const eventsData = await eventsResponse.json();
-          setRelatedEvents(eventsData);
-
-          setLoading(false);
+       setLoading(false);
       } catch (error) {
         console.error("Error fetching park data:", error);
         setLoading(false);
       }
-
     }
+
     fetchParkData();
   }, [parkId]);
 

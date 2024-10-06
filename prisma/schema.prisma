@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client-py"
+  //recursive_type_depth        = 5   // Use the recommended depth for Mypy compatibility
+  enable_experimental_decimal = true
 }
 
 datasource db {
@@ -43,8 +45,8 @@ model Spot {
   parkId          Int
   spotName        String
   spotDescription String
-  spotHourlyRate  Decimal
-  spotDiscount    Decimal
+  spotHourlyRate  Float
+  spotDiscount    Float
   spotLocation    String
   bookings        Booking[] // Relation to Booking
   park            Park      @relation(fields: [parkId], references: [parkId])
