@@ -18,7 +18,7 @@ export default function SpotsAdmin() {
         <h1 className="text-3xl font-bold">Spots Database</h1>
         <button
           onClick={() => router.push("/manage-spots/add-spot")}
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition"
+          className="bg-green-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-green-800 transition"
         >
           Add Spot
         </button>
