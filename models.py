@@ -59,15 +59,18 @@ class Event(Base):
     
     eventId = Column(Integer, primary_key=True, index=True)
     parkId = Column(Integer, ForeignKey('park.parkId'))
-    event_name = Column(String)
-    event_location = Column(String)
+    eventName = Column(String)
+    eventLocation = Column(String)
     fee = Column(Float)
     description = Column(String)
     discount = Column(Float)
-    start_date = Column(DateTime)
-    end_date = Column(DateTime)
+    startDate = Column(DateTime)
+    endDate = Column(DateTime)
+    eventImageUrl = Column(ARRAY(String))
+    parameters = Column(String, nullable=True)
+    requiredbooking = Column(Boolean, default=False)
     
-    park = relationship("Park", back_populates="events")  # Fix: Events belong to a park
+    park = relationship("Park", back_populates="events") 
     bookings = relationship("Booking", back_populates="event")
 
 

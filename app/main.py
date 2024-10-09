@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from database import database, SessionLocal
 from models import Park, Spot, Event, User
 from fastapi.middleware.cors import CORSMiddleware
+import datetime
 
 app = FastAPI()
 
@@ -50,8 +51,31 @@ class ParkReponse(BaseModel):
     class Config:
         orm_mode=True
 
+class EventReponse(BaseModel):
+    eventId: int
+    parkId: int
+    eventName: str
+    eventLocation: str
+    fee: float
+    description: str
+    discount: float
+    startDate: datetime
+    endDate: datetime
+    eventImageUrl: List[str]
+    parameters: Optional[str] = None
+    requiredbooking: bool    
+
+    class Config:
+        orm_mode=True
+        arbitrary_types_allowed = True
+
 @app.get("/parks", response_model=List[ParkReponse])
 async def get_parks(db: Session = Depends(get_db)):
-    parks = db.query(Park).all()  # Query all parks
+    parks = db.query(Park).all()
     return parks
+
+@app.get("/events", response_model=List[EventReponse])
+async def get_events(db: Session = Depends(get_db)):
+    events = db.query(Event).all()
+    return events
 

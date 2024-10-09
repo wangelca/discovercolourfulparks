@@ -2,11 +2,11 @@ from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from databases import Database
+from dotenv import load_dotenv
+import os
 
-# Database URL
-DATABASE_URL = "postgresql://postgres:2131@localhost:5432/ColorfulNationalParks"
-
-# For asynchronous database handling
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
 database = Database(DATABASE_URL)
 
 # SQLAlchemy metadata and engine creation
