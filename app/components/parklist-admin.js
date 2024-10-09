@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ParksAdmin() {
   const [parks, setParks] = useState([]); // Initialize with an empty array
+  const router = useRouter();
 
   useEffect(() => {
     fetch("http://localhost:8000/parks") // Update with your FastAPI endpoint
@@ -15,7 +17,7 @@ export default function ParksAdmin() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Parks Database</h1>
         <button
-          onClick={() => router.push("/add-park")}
+          onClick={() => router.push("/manage-parks/add-park")}
           className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition"
         >
           Add Park

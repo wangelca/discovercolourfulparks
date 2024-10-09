@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { set } from 'react-hook-form';
 
 export default function Parks() {
   const [searchQuery, setSearchQuery] = useState("");

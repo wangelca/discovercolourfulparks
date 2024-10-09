@@ -13,7 +13,7 @@ export default function PlaceGallery() {
   useEffect(() => {
     if (parkId && !window.google) {
 
-        axios.get(`/api/park/${parkId}`)
+        axios.get(`http://localhost:8000/parks/${parkId}`)
           .then((response) => {
             setPark(response.data);
           })

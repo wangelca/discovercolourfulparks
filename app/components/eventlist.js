@@ -22,12 +22,11 @@ export default function Events() {
   }), []);
 
   useEffect(() => {
-    fetch('/api/event')
+    fetch('http://localhost:8000/events')
       .then((response) => response.json())
       .then((data) => setEvents(data))
       .catch((error) => {
         console.error('Error fetching events:', error);
-        alert('Failed to fetch events. Please try again later.');
       });
   }, []);
 

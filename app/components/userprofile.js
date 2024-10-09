@@ -24,7 +24,7 @@ export default function ProfilePage() {
     if (!user) return;
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`/api/profile/${user.id}`); // Assuming user.id matches with clerk_user_id in DB
+        const response = await axios.get(`http://localhost:8000/users/${user.id}`); // Assuming user.id matches with clerk_user_id in DB
         const { firstName, lastName, phoneNumber } = response.data;
         setProfileData({
           firstName,
@@ -74,27 +74,6 @@ export default function ProfilePage() {
         lastName: profileData.lastName,
         publicMetadata: { phoneNumber: profileData.phoneNumber }
       });
-
-      // Step 3: Call clerkSync API to perform any additional synchronization
-      console.log("Calling clerkSync API...");
-      const clerkSyncResponse = await fetch("/api/clerkSync", {
-        method: "POST", // Ensure the correct HTTP method is used
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ userId: user.id }) // Send necessary data
-      });
-
-      // Handle the clerkSync API response
-      if (!clerkSyncResponse.ok) {
-        const syncResult = await clerkSyncResponse.json();
-        console.error("Error syncing Clerk users:", syncResult);
-        setError("Failed to sync with Clerk.");
-        return; // Exit if clerkSync failed
-      }
-
-      const syncResult = await clerkSyncResponse.json();
-      console.log("Clerk users synced successfully:", syncResult);
 
       // If all steps succeed
       setSuccess(true);
