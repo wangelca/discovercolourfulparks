@@ -8,17 +8,23 @@ import PlaceGallerySpot from './googlePhotoSpot';
 export default function SpotDetails() {
   const { spotId } = useParams(); // Get dynamic route params
   const [spot, setSpot] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (spotId) {
-      axios.get(`/api/spot/${spotId}`)
-        .then((response) => {
-          setSpot(response.data);
-        })
-        .catch((error) => {
-          console.error('Error fetching spot details:', error);
-        });
+    async function fetchSpotData() {
+      try {
+        const response = await fetch(`http://localhost:8000/spots/${spotId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch spot data");
+        }
+        const spotData = await response.json();
+        setSpot(spotData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching spot data:", error);
+      }
     }
+    fetchSpotData();
   }, [spotId]);
 
   if (!spot) {
