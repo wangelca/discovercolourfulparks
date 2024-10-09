@@ -1,18 +1,15 @@
-from fastapi import FastAPI, HTTPException, Query
-from prisma import Prisma
+from fastapi import FastAPI, HTTPException, Query, Depends
 from pydantic import BaseModel
 from typing import List, Optional
-import asyncpg  # assuming you are using PostgreSQL with FastAPI
-import databases
+from sqlalchemy.orm import Session
+from database import database, SessionLocal
+from models import Park, Spot, Event, User
 from fastapi.middleware.cors import CORSMiddleware
-
+import datetime
 
 app = FastAPI()
-prisma = Prisma()
 
-DATABASE_URL = "postgresql://postgres:2131@localhost:5432/ColorfulNationalParks"  # Update this with your DB details
-database = databases.Database(DATABASE_URL)
-
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React app runs here
@@ -21,87 +18,150 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+# Dependency to get the SQLAlchemy session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 @app.on_event("startup")
 async def startup():
     await database.connect()
-
 
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/parks")
-async def get_parks():
-    async with Prisma() as db:
-        parksRes= await db.park.find_many()
-        return parksRes
-    
-@app.get("/parks/{parkId}")
-async def get_park(parkId: int):
-    async with Prisma() as db:
-        parkRes = await db.park.find_unique(where={"parkId": parkId})
-        
-        if not parkRes:
-            raise HTTPException(status_code=404, detail="Park not found")
-        
-        return parkRes
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Colorful National Parks!"}
 
-    
-@app.get("/get_users")
-async def get_users():
-    async with Prisma() as db:
-        users_res = await db.user.find_many()
-        return users_res
-
-@app.get("/spots")
-async def get_spots():
-    async with Prisma() as db:
-        spotsRes= await db.spot.find_many()
-        return spotsRes
-    
-@app.get("/spots/{spotId}")
-async def get_spot(spotId: int):
-    async with Prisma() as db:
-        spotRes = await db.spot.find_unique(where={"spotId": spotId})
-        
-        if not spotRes:
-            raise HTTPException(status_code=404, detail="Spot not found")
-        
-        return spotRes
-    
-
-@app.get("/events")
-async def get_events():
-    async with Prisma() as db:
-        eventsRes= await db.event.find_many()
-        return eventsRes
-    
-@app.get("/events/{eventId}")
-async def get_event(eventId: int):
-    async with Prisma() as db:
-        eventRes = await db.event.find_unique(where={"eventId": eventId})
-        
-        if not eventRes:
-            raise HTTPException(status_code=404, detail="Event not found")
-        
-        return eventRes       
-
-class Spot(BaseModel):
-    id: int
+# Define a Pydantic model for Park, Spot, etc. if needed
+class ParkReponse(BaseModel):
+    parkId: int
     name: str
-    park_id: int
+    province: str
+    description: str
+    location: str
+    parkImageUrl: List[str]
+    parameters: str
 
-@app.get("/api/spot", response_model=List[Spot])
-async def get_spots(parkId: Optional[int] = Query(None, alias="parkId")):
-    query = "SELECT * FROM spots"  # Adjust to your table structure
-    if parkId is not None:
-        query += " WHERE park_id = :parkId"
-        values = {"parkId": parkId}
-    else:
-        values = {}
+    class Config:
+        orm_mode=True
 
-    try:
-        spots = await database.fetch_all(query=query, values=values)
-        return spots
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error fetching spots")
+class EventReponse(BaseModel):
+    eventId: int
+    parkId: int
+    eventName: str
+    eventLocation: str
+    fee: float
+    description: str
+    discount: float
+    startDate: datetime
+    endDate: datetime
+    eventImageUrl: List[str]
+    parameters: Optional[str] = None
+    requiredbooking: bool    
+
+    class Config:
+        orm_mode=True
+        arbitrary_types_allowed = True
+
+class SpotReponse(BaseModel):
+    spotId: int
+    parkId: int
+    spotName: str
+    spotDescription: str
+    spotHourlyRate: float
+    spotDiscount: float
+    spotLocation: str
+    spotImageUrl: Optional [List[str]] = None
+    parameters: Optional[str] = None
+    requiredbooking: bool
+
+    class Config:
+        orm_mode=True
+
+class UserReponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    created_at: datetime
+    updatedAt: datetime
+    firstName: str
+    lastName: str
+    phoneNumber: str
+    publicMetadata: str    
+
+    class Config:
+        orm_mode=True        
+        arbitrary_types_allowed = True
+
+@app.get("/parks", response_model=List[ParkReponse])
+async def get_parks(db: Session = Depends(get_db)):
+    parks = db.query(Park).all()
+    return parks
+
+@app.get("/events", response_model=List[EventReponse])
+async def get_events(db: Session = Depends(get_db)):
+    events = db.query(Event).all()
+    return events
+
+@app.get("/spots", response_model=List[SpotReponse])
+async def get_spots(db: Session = Depends(get_db)):
+    spots = db.query(Spot).all()
+    return spots
+
+@app.get("/users", response_model=List[UserReponse])
+async def get_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return users
+
+@app.get("/parks/{parkId}", response_model=ParkReponse)
+async def get_park(parkId: int, db: Session = Depends(get_db)):
+    park = db.query(Park).filter(Park.parkId == parkId).first()
+    if park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+    return park
+
+#filter the park by province
+@app.get("/parks/province/{selectedProvince}", response_model=List[ParkReponse])
+async def get_park_by_province(selectedProvince: str, db: Session = Depends(get_db)):
+    park = db.query(Park).filter(Park.province == selectedProvince).all()
+    if park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+    return park
+
+#get all spots in a park
+@app.get("/parks/{parkId}/spots", response_model=List[SpotReponse])
+async def get_park_spots(parkId: int, db: Session = Depends(get_db)):
+    park = db.query(Park).filter(Park.parkId == parkId).first()
+    if park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+    return park.spots
+
+@app.get("/events/{event_id}", response_model=EventReponse)
+async def get_event(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).filter(Event.eventId == event_id).first()
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event
+
+#get all events in a park
+@app.get("/parks/{parkId}/events", response_model=List[EventReponse])
+async def get_park_events(parkId: int, db: Session = Depends(get_db)):
+    park = db.query(Park).filter(Park.parkId == parkId).first()
+    if park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+    return park.events
+
+@app.get("/spots/{spot_id}", response_model=SpotReponse)
+async def get_spot(spot_id: int, db: Session = Depends(get_db)):
+    spot = db.query(Spot).filter(Spot.spotId == spot_id).first()
+    if spot is None:
+        raise HTTPException(status_code=404, detail="Spot not found")
+    return spot
+
+

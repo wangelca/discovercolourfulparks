@@ -1,5 +1,9 @@
-fastapi>=0.95.0
-uvicorn>=0.22.0
-prisma-client>=0.15.0
-psycopg2-binary>=2.9.0
-python-dotenv>=1.0.0
+fastapi
+uvicorn
+sqlalchemy
+databases
+psycopg2-binary
+alembic
+python-dotenv
+asyncpg 
+herok
