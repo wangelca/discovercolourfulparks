@@ -6,7 +6,7 @@ export default function SpotsAdmin() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/spots") // Update with your FastAPI endpoint
+    fetch("http://localhost:8000/spots") 
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error("Error fetching spots:", error));
@@ -24,11 +24,13 @@ export default function SpotsAdmin() {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+        <table className="min-w-full bg-white border text-xs border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-gray-100 text-left text-gray-600 font-semibold">
-              <th className="py-3 px-6">Image</th>
+            <tr className="bg-gray-700 text-left text-white font-semibold">
+              <th className="w-1/5 py-3 px-6">Image</th>
+              <th className="py-3 px-6">Spot ID</th>
               <th className="py-3 px-6">Spot Name</th>
+              <th className="py-3 px-6">Park ID</th>
               <th className="py-3 px-6">Hourly Rate</th>
               <th className="py-3 px-6">Description</th>
               <th className="py-3 px-6">Location</th>
@@ -43,16 +45,18 @@ export default function SpotsAdmin() {
                   key={spot.spotId}
                   className="border-t hover:bg-gray-50 transition"
                 >
-                  <td className="py-3 px-6">
+                  <td className="w-1/6 py-3 px-6">
                     {spot.spotImageUrl && (
                       <img
                         src={spot.spotImageUrl}
                         alt={`Image of ${spot.spotName}`}
-                        className="w-24 h-auto rounded-lg"
+                        className="w-auto h-auto rounded-lg "
                       />
                     )}
                   </td>
+                  <td className="py-3 px-6">{spot.spotId}</td>
                   <td className="py-3 px-6">{spot.spotName}</td>
+                  <td className="py-3 px-6">{spot.parkId}</td>
                   <td className="py-3 px-6">{spot.spotHourlyRate}</td>
                   <td className="py-3 px-6">{spot.spotDescription}</td>
                   <td className="py-3 px-6">{spot.spotLocation}</td>
