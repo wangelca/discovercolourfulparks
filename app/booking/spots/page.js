@@ -18,7 +18,7 @@ export default function Book() {
 
   useEffect(() => {
     // Fetch facilities
-    fetch('../api/spot')
+    fetch('http://localhost:8000/spots')
       .then(res => res.json())
       .then(data => setFacilities(data))
       .catch(error => console.error('Error fetching facilities:', error));

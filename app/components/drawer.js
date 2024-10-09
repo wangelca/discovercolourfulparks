@@ -63,7 +63,7 @@ export default function DrawerMenu() {
 
         {user && user.publicMetadata.publicMetadata?.role === 'admin' && (
           <>
-            <a className="menu-item text-white" href="/user" onClick={closeMenu}>Manage Users</a>
+            <a className="menu-item text-white" href="/manage-user" onClick={closeMenu}>Manage Users</a>
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}>Manage Parks</a>
             <a className="menu-item text-white" href="/manage-events" onClick={closeMenu}>Manage Events</a>
             <a className="menu-item text-white" href="/manage-spots" onClick={closeMenu}>Manage Spots</a>
