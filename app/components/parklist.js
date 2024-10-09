@@ -13,7 +13,7 @@ export default function Parks() {
   useEffect(() => {
     async function fetchParks() {
       try {
-        const response = await fetch(`/api/park?province=${selectedProvince}`);
+        const response = await fetch(`http://localhost:8000/parks/province/${selectedProvince}`);
         const data = await response.json();
         setParks(data); // Store fetched parks in state
         setLoading(false);

@@ -17,27 +17,30 @@ export default function ParkPage() {
       try {
         const response = await fetch(`http://localhost:8000/parks/${parkId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch park data');
+          throw new Error("Failed to fetch park data");
         }
         const parkData = await response.json();
-        setPark(parkData); 
+        setPark(parkData);
 
-          // Fetch related spots
-          const spotsResponse = await fetch(`/api/spot?parkId=${parkId}`);
-          const spotsData = await spotsResponse.json();
-          setRelatedSpots(spotsData);
+        // Fetch related spots
+        const spotsResponse = await fetch(
+          `http://localhost:8000/parks/${parkId}/spots`
+        );
+        const spotsData = await spotsResponse.json();
+        setRelatedSpots(spotsData);
 
-          // Fetch related events
-          const eventsResponse = await fetch(`/api/event?parkId=${parkId}`);
-          const eventsData = await eventsResponse.json();
-          setRelatedEvents(eventsData);
+        // Fetch related events
+        const eventsResponse = await fetch(
+          `http://localhost:8000/parks/${parkId}/events`
+        );
+        const eventsData = await eventsResponse.json();
+        setRelatedEvents(eventsData);
 
-          setLoading(false);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching park data:", error);
         setLoading(false);
       }
-
     }
     fetchParkData();
   }, [parkId]);
@@ -62,7 +65,7 @@ export default function ParkPage() {
             <p className="text-gray-600 mb-2">
               Location: <strong>{park.location}</strong>
             </p>
-            <PlaceGallery/> 
+            <PlaceGallery />
           </div>
         </div>
       </section>
@@ -95,8 +98,12 @@ export default function ParkPage() {
               style={{ height: "400px" }}
             >
               <img
-                src={spot.spotImageUrl[0]}
-                alt={spot.spotName}
+                src={
+                  spot.spotImageUrl && spot.spotImageUrl.length > 0
+                    ? spot.spotImageUrl[0]
+                    : "default-image-url.jpg"
+                }
+                alt={spot.spotName || "Spot image"}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4 flex-grow flex flex-col">
@@ -108,7 +115,7 @@ export default function ParkPage() {
                 </p>
                 <a
                   href={`/spots/${spot.spotId}`}
-                  className= "inline-flex items-center px-3 py-1.5 text-lg font-medium text-center text-black rounded-lg hover:bg-green-300  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  className="inline-flex items-center px-3 py-1.5 text-lg font-medium text-center text-black rounded-lg hover:bg-green-300  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 >
                   Spot Details
                   <svg
@@ -144,9 +151,8 @@ export default function ParkPage() {
               key={event.eventId}
               className="bg-white shadow-lg rounded-lg overflow-hidden"
             >
-                            <img
+              <img
                 src={event.eventImageUrl[0]}
-
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
@@ -157,9 +163,13 @@ export default function ParkPage() {
                 <p className="text-gray-600 mb-2">
                   Date: {new Date(event.startDate).toLocaleDateString()}
                 </p>
-                <a
-                  href={`/events/${event.eventId}`}>
-                <button type="button" class="text-yellow-500 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-bold rounded-lg px-5 py-2.5 text-center text-lg me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">View Event</button>
+                <a href={`/events/${event.eventId}`}>
+                  <button
+                    type="button"
+                    class="text-yellow-500 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-bold rounded-lg px-5 py-2.5 text-center text-lg me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900"
+                  >
+                    View Event
+                  </button>
                 </a>
               </div>
             </div>
