@@ -84,45 +84,40 @@ export default function Header() {
             } justify-between items-center w-full lg:flex lg:w-auto lg:order-1`}
             id="mobile-menu-2"
           >
-            <ul className="flex flex-col mt-4 text-xl font-medium lg:flex-row lg:space-x-8 lg:mt-0">
-              <li>  
+            <ul className="flex flex-col mt-4 text-xl font-bold lg:flex-row lg:space-x-8 lg:mt-0">
+              <li className="text-lg group relative w-max">  
                 <a
-                  href="/parks"
-                  className="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Parks
+                  href="/parks">
+                  <span>Parks</span>
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-indigo-600 group-hover:w-full"></span>                  
                 </a>
               </li>
-              <li>
+              <li className="text-lg group relative w-max">
                 <a
-                  href="/events"
-                  className="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Events
+                  href="/events">
+                  <span>Events</span>
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-blue-600 group-hover:w-full"></span>       
                 </a>
               </li>
-              <li>
+              <li className="text-lg group relative w-max">
                 <a
-                  href="/spots"
-                  className="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Spots
+                  href="/spots">
+                  <span>Spots</span>
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-green-600 group-hover:w-full"></span>       
                 </a>
               </li>
-              <li>
+              <li className="text-lg group relative w-max">
                 <a
-                  href="/fees"
-                  className="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  Admissions
+                  href="/fees">
+                  <span>Admissions</span>
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-orange-400 group-hover:w-full"></span>       
                 </a>
               </li>
-              <li>
+              <li className="text-lg group relative w-max">
                 <a
-                  href="/aboutus"
-                  className="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700"
-                >
-                  About Us
+                  href="/aboutus">
+                  <span>About Us</span>
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>       
                 </a>
               </li>
             </ul>
