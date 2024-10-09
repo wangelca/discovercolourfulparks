@@ -2,7 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import PlaceGallerySpot from './googlePhotoSpot';
 
 export default function SpotDetails() {
@@ -27,7 +26,7 @@ export default function SpotDetails() {
     fetchSpotData();
   }, [spotId]);
 
-  if (!spot) {
+  if (!spot || loading) {
     return <div>Loading...</div>;
   }
 
