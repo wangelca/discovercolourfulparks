@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import ImageUploadComponent from "../../components/image-upload.js";
 
 const AddSpotPage = () => {
   const [formData, setFormData] = useState({
@@ -56,43 +57,13 @@ const AddSpotPage = () => {
     });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const allowedFormats = ["image/jpeg", "image/png"];
-    const maxSize = 10 * 1024 * 1024;
-
-    if (!allowedFormats.includes(file.type)) {
-      setErrors({
-        ...errors,
-        spotImages: "Only JPEG and PNG formats are allowed",
-      });
-      return;
+  const handleFileChange = (file, error) => {
+    if (error) {
+      setErrors({ ...errors, spotImageUrl: error });
+    } else {
+      setFormData({ ...formData, spotImageUrl: file });
+      setErrors({ ...errors, spotImageUrl: null });
     }
-
-    if (file.size > maxSize) {
-      setErrors({ ...errors, spotImages: "File size should not exceed 10MB" });
-      return;
-    }
-
-    // Validate image resolution
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        if (img.width < 800 || img.height < 600) {
-          setErrors({
-            ...errors,
-            spotImages: "Image resolution should be at least 800x600 pixels",
-          });
-          return;
-        }
-        // If validation passes
-        setFormData({ ...formData, spotImages: [file] });  // Array with one image
-        setErrors({ ...errors, spotImages: null }); // Clear errors
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
   };
 
   const validateInput = () => {
@@ -118,7 +89,8 @@ const AddSpotPage = () => {
       newErrors.spotDiscount = "Discount must be between 0 and 9999";
     }
     if (!formData.spotLocation) newErrors.spotLocation = "Location is required";
-    if (!formData.spotImages) newErrors.spotImages = "Spot image is required";
+    if (!formData.spotImageUrl)
+      newErrors.spotImageUrl = "Spot image is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,9 +110,9 @@ const AddSpotPage = () => {
     formDataObj.append("spotDiscount", formData.spotDiscount);
     formDataObj.append("spotLocation", formData.spotLocation);
     formDataObj.append("requiredbooking", formData.requiredbooking);
-    if (formData.spotImages && formData.spotImages.length === 1) {
-      formDataObj.append("spotImageUrl", formData.spotImages[0]);  // Append one image
-    }
+    if (formData.spotImageUrl) {
+      formDataObj.append("spotImageUrl", formData.spotImageUrl);  // Append the uploaded image
+  }
 
     try {
       await axios.post("http://localhost:8000/spots/add", formDataObj, {
@@ -151,7 +123,6 @@ const AddSpotPage = () => {
       console.error("Failed to add spot", error);
     }
   };
-
 
   return (
     <div className="container mx-auto p-6">
@@ -283,18 +254,10 @@ const AddSpotPage = () => {
               )}
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Spot Image
-              </label>
-              <input
-                type="file"
-                name="spotImage"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+              <ImageUploadComponent
+                onFileChange={handleFileChange}
+                errors={errors.spotImages}
               />
-              {errors.spotImageUrl && (
-                <span className="text-red-500">{errors.spotImageUrl}</span>
-              )}
             </div>
 
             <div>
@@ -395,6 +358,6 @@ const AddSpotPage = () => {
       )}
     </div>
   );
-}
+};
 
 export default AddSpotPage;
