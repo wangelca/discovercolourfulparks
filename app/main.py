@@ -113,9 +113,31 @@ async def get_events(db: Session = Depends(get_db)):
     return events
 
 @app.get("/spots", response_model=List[SpotReponse])
-async def get_spots(db: Session = Depends(get_db)):
-    spots = db.query(Spot).all()
+async def get_spots(
+    db: Session = Depends(get_db),
+    min_hourly_rate: Optional[float] = Query(0),
+    max_hourly_rate: Optional[float] = Query(100),
+    park_id: Optional[List[int]] = Query(None)
+):
+    # Start with all spots
+    query = db.query(Spot)
+
+    # Filter by hourly rate range
+    query = query.filter(Spot.spotHourlyRate.between(min_hourly_rate, max_hourly_rate))
+
+    # Filter by multiple park IDs
+    if park_id:
+        query = query.filter(Spot.parkId.in_(park_id))
+
+    spots = query.all()
     return spots
+
+#fetch spot listing backup
+#@app.get("/spots", response_model=List[SpotReponse])
+#async def get_spots(db: Session = Depends(get_db)):
+#    spots = db.query(Spot).all()
+#    return spots
+
 
 @app.get("/users", response_model=List[UserReponse])
 async def get_users(db: Session = Depends(get_db)):
