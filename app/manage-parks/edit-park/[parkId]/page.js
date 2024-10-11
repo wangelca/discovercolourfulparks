@@ -12,6 +12,7 @@ export default function EditParkPage() {
     location: '',
     parameters: '',
   });
+  
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const router = useRouter();
@@ -19,24 +20,25 @@ export default function EditParkPage() {
 
   useEffect(() => {
     const fetchParkData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/parks/${parkId}`);
-        setFormData({
-          name: response.data.name,
-          province: response.data.province,
-          description: response.data.description,
-          location: response.data.location,
-          parameters: response.data.parameters,
-        });
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching park data:', error);
-        setIsLoading(false);
-      }
+        try {
+            const response = await axios.get(`http://localhost:8000/parks/${parkId}`);
+            setFormData({
+                name: response.data.name,
+                province: response.data.province,
+                description: response.data.description,
+                location: response.data.location,
+                parameters: response.data.parameters || '',
+            });
+            setIsLoading(false);
+        } catch (error) {
+            console.error('Error fetching park data:', error);
+            setIsLoading(false);
+        }
     };
 
     fetchParkData();
-  }, [parkId]);
+}, [parkId]);
+
 
   const handleInputChange = (e) => {
     setFormData({
@@ -59,17 +61,33 @@ export default function EditParkPage() {
     e.preventDefault();
     if (!validateInput()) return;
 
+    const updatedData = {
+        ...formData,
+        parkId: parkId,
+        parkImageUrl: formData.parkImageUrl || ["../default_image.jpg"]
+    };
+
     try {
-      await axios.put(`http://localhost:8000/parks/${parkId}`, formData);
+        const response = await axios.put(`http://localhost:8000/parks/${parkId}`, updatedData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        alert('Park updated successfully!');
+        router.push(`/parks/${parkId}`);
     } catch (error) {
-      console.error('Error updating park', error);
+        if (error.response) {
+            console.error('Error updating park:', error.response.data);
+            alert('Error updating park: ' + JSON.stringify(error.response.data));
+        } else {
+            console.error('Error updating park:', error.message);
+        }
     }
-  };
+};
 
-  if (isLoading) {
-    return <p>Loading park details...</p>;
-  }
-
+ 
+  
   return (
     <div className="container mx-auto p-6 bg-gray-100 shadow-md rounded-lg mt-12 mb-12 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Edit Park</h1>
@@ -148,7 +166,6 @@ export default function EditParkPage() {
     </div>
   );
 }
-
 
 
 
