@@ -68,11 +68,12 @@ export default function ParksAdmin() {
                   </td>
                   <td className="py-3 px-6">
                     <button
-                      onClick={() => router.push(`/edit-park/${[park].parkId}`)}
+                      onClick={() => router.push(`/edit-park/edit-park${[park].parkId}`)}
                       className="text-blue-600 hover:underline"
                     >
                       Edit
-                    </button>
+                    </button
+                    >
                   </td>
                 </tr>
               ))
