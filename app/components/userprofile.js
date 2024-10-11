@@ -25,6 +25,7 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/users/${user.id}`); // Assuming user.id matches with clerk_user_id in DB
+        const response = await axios.get(`http://localhost:8000/users/${user.id}`); // Assuming user.id matches with clerk_user_id in DB
         const { firstName, lastName, phoneNumber } = response.data;
         setProfileData({
           firstName,
@@ -60,6 +61,7 @@ export default function ProfilePage() {
       setError("Phone number must contain only digits.");
       return;
     }
+
     try {
       // Step 1: Update the profile in your database via Prisma API
       console.log("Updating local database...");

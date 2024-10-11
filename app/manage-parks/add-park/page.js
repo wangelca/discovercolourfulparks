@@ -71,7 +71,7 @@ const AddParkPage = () => {
   return (
     <div className="container mx-auto p-6">
       {!summary ? (
-        <form>
+        <form className="space-y-8">
           <div>
             <label>Name</label>
             <input
