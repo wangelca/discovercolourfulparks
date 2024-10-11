@@ -134,3 +134,10 @@ export default function Header() {
 {
   /*ChatGPT prompt:please draft the next.js code for mobile menu*/
 }
+
+{
+  /*Ref: https://flowbite.com/blocks/marketing/header/ */
+}
+{
+  /*ChatGPT prompt:please draft the next.js code for mobile menu*/
+}

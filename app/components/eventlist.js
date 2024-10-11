@@ -1,19 +1,17 @@
-"use client"; // Ensure this is at the top
+"use client"; 
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; // Make sure you're using `next/navigation` router
-import { format } from 'date-fns'; // For better date formatting
+import { useRouter } from 'next/navigation'; 
+import { format } from 'date-fns'; 
 
 export default function Events() {
   const [events, setEvents] = useState([]);
   const [loadingEventId, setLoadingEventId] = useState(null);
-  const router = useRouter(); // To use router for potential navigation
-  
+  const router = useRouter(); 
 
-  const id = 1; 
-  const spotId = 1; 
+  const id = 1;  // Replace with actual user ID dynamically (e.g., from Clerk authentication)
+  const spotId = 1; // Static spot ID for now, or replace with actual spotId dynamically
 
-  // Memoize eventImages to avoid unnecessary re-calculations
   const eventImages = useMemo(() => ({
     "Indigenous Voices": "https://wereintherockies.com/wp-content/uploads/2024/08/CBGiftshop.jpeg",
     "Art In Nature Trail": "https://banfflakelouise.bynder.com/m/911bfa88a9147f0/2000x1080_jpg-2023_Banff_ArtinNatureTrail_signage_RobertMassey%20(0).jpg",
@@ -36,11 +34,19 @@ export default function Events() {
       return;
     }
 
-    // Combine the event date and time to create a valid Date object
-    const [hours, minutesPeriod] = bookingStartTime.split(/[: ]/);
     const date = new Date(eventDate);
-    date.setHours((minutesPeriod.includes('PM') ? parseInt(hours) + 12 : hours) % 24); // Handle 12-hour format
-    date.setMinutes(minutesPeriod.includes('PM') ? parseInt(minutesPeriod.slice(0, 2)) : 0);
+
+    // Assuming bookingStartTime is in HH:MM AM/PM format:
+    const [hours, minutesPeriod] = bookingStartTime.split(/[: ]/);
+    const period = minutesPeriod.slice(-2);
+    const minutes = parseInt(minutesPeriod.slice(0, 2));
+
+    // Adjust hours for AM/PM
+    date.setHours(period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours));
+    date.setMinutes(minutes || 0);
+
+    // Ensure bookingStartTime is in ISO format (UTC time)
+    const isoBookingStartTime = date.toISOString();
 
     setLoadingEventId(eventId);
     try {
@@ -49,7 +55,7 @@ export default function Events() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ eventId, id, spotId, bookingStartTime: date.toISOString() }), 
+        body: JSON.stringify({ eventId, id, spotId, bookingStartTime: isoBookingStartTime }), 
       });
       const data = await response.json();
 

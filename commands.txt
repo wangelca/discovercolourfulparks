@@ -1,0 +1,7 @@
+For easy access:
+
+Install dependencies: pip install fastapi uvicorn sqlalchemy databases psycopg2-binary alembic python-dotenv asyncpg Pillow python-multipart
+Node modules installation - npm installation
+Run web application - npm run dev
+Uvicorn command to access the API - uvicorn app.main:app --reload
+Local host links to view database data: localhost:8000/spots, localhost:8000/events, localhost:8000/parks
