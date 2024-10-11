@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form
 from pydantic import BaseModel
+from typing import Optional
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from database import database, SessionLocal
@@ -7,6 +8,7 @@ from models import Park, Spot, Event, User
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from datetime import datetime
+from models import Park
 import os
 import shutil
 
@@ -101,6 +103,24 @@ class UserReponse(BaseModel):
     class Config:
         orm_mode=True        
         arbitrary_types_allowed = True
+        
+class ParkUpdateRequest(BaseModel):
+    name: str
+    province: str
+    description: str
+    location: str
+    parkImageUrl: Optional[List[str]] = None
+    parameters: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.get("/parks", response_model=List[ParkReponse])
 async def get_parks(db: Session = Depends(get_db)):
@@ -143,18 +163,23 @@ async def update_user(user_id: int, user: UserReponse, db: Session = Depends(get
 
 #update the park by parkId
 @app.put("/parks/{parkId}", response_model=ParkReponse)
-async def update_park(parkId: int, park: ParkReponse, db: Session = Depends(get_db)):
-    park = db.query(Park).filter(Park.parkId == parkId).first()
-    if park is None:
+async def update_park(parkId: int, park: ParkUpdateRequest, db: Session = Depends(get_db)):
+    db_park = db.query(Park).filter(Park.parkId == parkId).first()
+    if db_park is None:
         raise HTTPException(status_code=404, detail="Park not found")
-    park.name = park.name
-    park.province = park.province
-    park.description = park.description
-    park.location = park.location
-    park.parkImageUrl = park.parkImageUrl
-    park.parameters = park.parameters
+
+    db_park.name = park.name
+    db_park.province = park.province
+    db_park.description = park.description
+    db_park.location = park.location
+    db_park.parameters = park.parameters if park.parameters else db_park.parameters
+    db_park.parkImageUrl = park.parkImageUrl if park.parkImageUrl else db_park.parkImageUrl
+
     db.commit()
-    return park
+    db.refresh(db_park)
+
+    return db_park
+
 
 #add a new park
 @app.post("/parks/add", response_model=ParkReponse)
