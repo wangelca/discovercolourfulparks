@@ -26,7 +26,7 @@ export default function EventsAdmin() {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border text-xs border-gray-200 rounded-lg">
+        <table className="min-w-full bg-white opacity-80 border text-xs border-gray-200 rounded-lg">
           <thead>
             <tr className="bg-gray-700 text-left text-white font-semibold">
               <th className="w-1/10 py-3 px-3">Image</th>
