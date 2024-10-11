@@ -1,9 +1,9 @@
-  'use client'
+'use client'
 
-  import { ClerkProvider, SignedIn, SignedOut,  } from '@clerk/nextjs'
-  import './globals.css'
-  import DrawerMenu from './components/drawer'
-  import Header from './components/header'
+import { ClerkProvider, SignedIn, SignedOut,  } from '@clerk/nextjs'
+import './globals.css' 
+import DrawerMenu from './components/drawer'
+import Header from './components/header'
 import Footer from './components/footer'
 import BackToTopButton from './components/scroll-back-button'
 
@@ -23,7 +23,7 @@ import BackToTopButton from './components/scroll-back-button'
                 <DrawerMenu />
               </SignedIn>
             </header>            
-            <main>{children}</main>
+            <main className='bg-top bg-cover bg-no-repeat bg-[url(/bg/6558736.jpg)]'>{children}</main>
             <Footer/>
           </body>
         </html>

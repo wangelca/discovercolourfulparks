@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-function importAllImages(r) {
-  return r.keys().map(r);
-}
-
 export default function Home() {
   const images = [
     '/bg/bowlake_landingpage.jpg',
