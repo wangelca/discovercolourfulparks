@@ -317,7 +317,7 @@ async def create_spot(
 
 
 #get all events in a park 
-@app.get("/parks/{parkId}/events", response_model=List[EventReponse])
+@app.get("/parks/{parkId}/events", response_model=List[EventResponse])
 async def get_park_events(parkId: int, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if park is None:
