@@ -1,30 +1,31 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useUser, useClerk } from '@clerk/nextjs';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import { useUser} from "@clerk/nextjs";
+import axios from "axios";
 
 export default function ProfilePage() {
   const { user } = useUser(); // Get current user details from Clerk
-  const { clerk } = useClerk();
 
   const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    emailAddress: user?.primaryEmailAddress?.emailAddress || '', // Display email
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    emailAddress: user?.primaryEmailAddress?.emailAddress || "", // Display email
   });
 
   const [isEditing, setIsEditing] = useState(false); // Controls form edit state
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Fetch the user profile details from your database using Clerk's user.id
   useEffect(() => {
     if (!user) return;
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/users/${user.id}`); // Assuming user.id matches with clerk_user_id in DB
+        const response = await axios.get(
+          `http://localhost:8000/users/${user.id}`
+        ); // Assuming user.id matches with clerk_user_id in DB
         const { firstName, lastName, phoneNumber } = response.data;
         setProfileData({
           firstName,
@@ -51,39 +52,23 @@ export default function ProfilePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Reset success and error messages
-    setSuccess(false);
-    setError("");
-
     // Basic validation for phone number
     if (!/^\d+$/.test(profileData.phoneNumber)) {
       setError("Phone number must contain only digits.");
       return;
-    }
-
-    try {
-      // Step 1: Update the profile in your database via Prisma API
-      console.log("Updating local database...");
-      const res = await axios.put(`/api/profile/${user.id}`, profileData);
-      console.log("Local database updated:", res.data);
-
-      // Step 2: Sync changes with Clerk's User Management API
-      console.log("Syncing with Clerk...");
-      await clerk.users.updateUser(user.id, {
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        publicMetadata: { phoneNumber: profileData.phoneNumber }
-      });
-
-      // If all steps succeed
-      setSuccess(true);
+    }else{
+      // Reset success and error messages
+      setSuccess(false);
       setError("");
-      setIsEditing(false); // Exit edit mode
-
-    } catch (error) {
-      // Detailed error logging
-      console.error('Error during profile update process:', error);
-      setError("Failed to update profile.");
+      // Update the user profile in your database
+      try {
+        await axios.put(`http://localhost:8000/users/${user.id}`, profileData);
+        setSuccess(true);
+        setIsEditing(false); // Disable editing mode
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        setError("Failed to update profile data.");
+      }
     }
   };
 
@@ -91,8 +76,14 @@ export default function ProfilePage() {
     <div className="max-w-lg mx-auto my-8">
       <h2 className="text-2xl font-bold mb-6">My Profile</h2>
 
-      {error && <div className="bg-red-100 text-red-600 p-3 mb-4 rounded">{error}</div>}
-      {success && <div className="bg-green-100 text-green-600 p-3 mb-4 rounded">Profile updated successfully!</div>}
+      {error && (
+        <div className="bg-red-100 text-red-600 p-3 mb-4 rounded">{error}</div>
+      )}
+      {success && (
+        <div className="bg-green-100 text-green-600 p-3 mb-4 rounded">
+          Profile updated successfully!
+        </div>
+      )}
 
       {!isEditing ? (
         <table className="w-full mb-6 bg-white shadow-md rounded">
