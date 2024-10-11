@@ -42,7 +42,7 @@ def read_root():
     return {"message": "Welcome to Colorful National Parks!"}
 
 # Define a Pydantic model for Park, Spot, etc. if needed
-class ParkReponse(BaseModel):
+class ParkResponse(BaseModel):
     parkId: int
     name: str
     province: str
@@ -54,7 +54,7 @@ class ParkReponse(BaseModel):
     class Config:
         orm_mode=True
 
-class EventReponse(BaseModel):
+class EventResponse(BaseModel):
     eventId: int
     parkId: int
     eventName: str
@@ -72,7 +72,7 @@ class EventReponse(BaseModel):
         orm_mode=True
         arbitrary_types_allowed = True
 
-class SpotReponse(BaseModel):
+class SpotResponse(BaseModel):
     spotId: int
     parkId: int
     spotName: str
@@ -87,8 +87,9 @@ class SpotReponse(BaseModel):
     class Config:
         orm_mode=True
 
-class UserReponse(BaseModel):
+class UserResponse(BaseModel):
     id: int
+    clerk_user_id: str
     username: str
     email: str
     created_at: datetime
@@ -102,17 +103,30 @@ class UserReponse(BaseModel):
         orm_mode=True        
         arbitrary_types_allowed = True
 
-@app.get("/parks", response_model=List[ParkReponse])
+class BookingResponse(BaseModel):
+    bookingId: int
+    id: int
+    spotId: int
+    eventId: int
+    bookingDate: datetime
+    bookingStartTime: datetime
+    bookingStatus: str
+
+    class Config:
+        orm_mode=True
+        arbitrary_types_allowed = True
+
+@app.get("/parks", response_model=List[ParkResponse])
 async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
     return parks
 
-@app.get("/events", response_model=List[EventReponse])
+@app.get("/events", response_model=List[EventResponse])
 async def get_events(db: Session = Depends(get_db)):
     events = db.query(Event).all()
     return events
 
-@app.get("/spots", response_model=List[SpotReponse])
+@app.get("/spots", response_model=List[SpotResponse])
 async def get_spots(
     db: Session = Depends(get_db),
     min_hourly_rate: Optional[float] = Query(0),
@@ -133,28 +147,27 @@ async def get_spots(
     return spots
 
 #fetch spot listing backup
-#@app.get("/spots", response_model=List[SpotReponse])
+#@app.get("/spots", response_model=List[SpotResponse])
 #async def get_spots(db: Session = Depends(get_db)):
 #    spots = db.query(Spot).all()
 #    return spots
 
-
-@app.get("/users", response_model=List[UserReponse])
+@app.get("/users", response_model=List[UserResponse])
 async def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return users
 
-@app.get("/users/{user_id}", response_model=UserReponse)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@app.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.clerk_user_id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 #update the user by userId
-@app.put("/users/{user_id}", response_model=UserReponse)
-async def update_user(user_id: int, user: UserReponse, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@app.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(user_id: str, user: UserResponse, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.clerk_user_id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     user.firstName = user.firstName
@@ -163,9 +176,17 @@ async def update_user(user_id: int, user: UserReponse, db: Session = Depends(get
     db.commit()
     return user
 
+#get a user's bookings
+@app.get("/users/{user_id}/bookings", response_model=List[BookingResponse])
+async def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.bookings
+
 #update the park by parkId
-@app.put("/parks/{parkId}", response_model=ParkReponse)
-async def update_park(parkId: int, park: ParkReponse, db: Session = Depends(get_db)):
+@app.put("/parks/{parkId}", response_model=ParkResponse)
+async def update_park(parkId: int, park: ParkResponse, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if park is None:
         raise HTTPException(status_code=404, detail="Park not found")
@@ -179,15 +200,15 @@ async def update_park(parkId: int, park: ParkReponse, db: Session = Depends(get_
     return park
 
 #add a new park
-@app.post("/parks/add", response_model=ParkReponse)
-async def create_park(park: ParkReponse, db: Session = Depends(get_db)):
+@app.post("/parks/add", response_model=ParkResponse)
+async def create_park(park: ParkResponse, db: Session = Depends(get_db)):
     new_park = Park(parkId=park.parkId, name=park.name, province=park.province, description=park.description, location=park.location, parkImageUrl=park.parkImageUrl, parameters=park.parameters)
     db.add(new_park)
     db.commit()
     db.refresh(new_park)
     return new_park
 
-@app.get("/parks/{parkId}", response_model=ParkReponse)
+@app.get("/parks/{parkId}", response_model=ParkResponse)
 async def get_park(parkId: int, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if park is None:
@@ -195,7 +216,7 @@ async def get_park(parkId: int, db: Session = Depends(get_db)):
     return park
 
 #filter the park by province
-@app.get("/parks/province/{selectedProvince}", response_model=List[ParkReponse])
+@app.get("/parks/province/{selectedProvince}", response_model=List[ParkResponse])
 async def get_park_by_province(selectedProvince: str, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.province == selectedProvince).all()
     if park is None:
@@ -203,14 +224,14 @@ async def get_park_by_province(selectedProvince: str, db: Session = Depends(get_
     return park
 
 #get all spots in a park
-@app.get("/parks/{parkId}/spots", response_model=List[SpotReponse])
+@app.get("/parks/{parkId}/spots", response_model=List[SpotResponse])
 async def get_park_spots(parkId: int, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if park is None:
         raise HTTPException(status_code=404, detail="Park not found")
     return park.spots
 
-@app.get("/events/{event_id}", response_model=EventReponse)
+@app.get("/events/{event_id}", response_model=EventResponse)
 async def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.eventId == event_id).first()
     if event is None:
@@ -218,7 +239,7 @@ async def get_event(event_id: int, db: Session = Depends(get_db)):
     return event
 
 #add a new event
-@app.post("/events/add", response_model=EventReponse)
+@app.post("/events/add", response_model=EventResponse)
 async def create_spot(
     parkId: str = Form(...),
     eventName: str = Form(...),
@@ -296,14 +317,14 @@ async def create_spot(
 
 
 #get all events in a park 
-@app.get("/parks/{parkId}/events", response_model=List[EventReponse])
+@app.get("/parks/{parkId}/events", response_model=List[EventResponse])
 async def get_park_events(parkId: int, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if park is None:
         raise HTTPException(status_code=404, detail="Park not found")
     return park.events
 
-@app.get("/spots/{spotId}", response_model=SpotReponse)
+@app.get("/spots/{spotId}", response_model=SpotResponse)
 async def get_spot(spotId: int, db: Session = Depends(get_db)):
     spot = db.query(Spot).filter(Spot.spotId == spotId).first()
     if spot is None:
@@ -311,7 +332,7 @@ async def get_spot(spotId: int, db: Session = Depends(get_db)):
     return spot
 
 #add a new spot
-@app.post("/spots/add", response_model=SpotReponse)
+@app.post("/spots/add", response_model=SpotResponse)
 async def create_spot(
     parkId: str = Form(...),
     spotName: str = Form(...),
