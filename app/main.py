@@ -315,6 +315,7 @@ async def create_spot(
 
     return new_event
 
+
 #get all events in a park 
 @app.get("/parks/{parkId}/events", response_model=List[EventResponse])
 async def get_park_events(parkId: int, db: Session = Depends(get_db)):
