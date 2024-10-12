@@ -256,7 +256,7 @@ const AddSpotPage = () => {
             <div>
               <ImageUploadComponent
                 onFileChange={handleFileChange}
-                errors={errors.spotImages}
+                errors={errors.spotImageUrl}
               />
             </div>
 
@@ -264,7 +264,7 @@ const AddSpotPage = () => {
               <label className="inline-flex items-center mb-5 cursor-pointer">
                 <input
                   type="checkbox"
-                  name="requiredBooking"
+                  name="requiredbooking"
                   checked={formData.requiredbooking}
                   onChange={handleInputChange} // Keep your change handler
                   className="sr-only peer"

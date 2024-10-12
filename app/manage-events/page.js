@@ -15,7 +15,7 @@ export default function EventsAdmin() {
   }, []);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 mb-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Events Database</h1>
         <button
@@ -26,7 +26,7 @@ export default function EventsAdmin() {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white opacity-80 border text-xs border-gray-200 rounded-lg">
+        <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
           <thead>
             <tr className="bg-gray-700 text-left text-white font-semibold">
               <th className="w-1/10 py-3 px-3">Image</th>

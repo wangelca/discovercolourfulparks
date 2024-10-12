@@ -38,20 +38,20 @@ export default function UserList() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto p-6 mb-10">
     <h1 className="text-3xl font-bold text-center mb-8">User List</h1>
-    <div className="relative overflow-x-auto shadow-md rounded-lg bg-white dark:bg-gray-800">
-    <table className="min-w-full text-sm text-left text-gray-700 dark:text-gray-400">
-      <thead className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-        <tr className="border border-gray-300 md:border-none block md:table-row absolute -top-full md:top-auto -left-full md:left-auto md:relative">
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">User ID</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Email</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">First Name</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Last Name</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Phone Number</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Created at</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Last update at</th>
-          <th className="bg-gray-700 p-2 text-white font-bold md:border md:border-gray-300 text-left block md:table-cell">Profile</th>
+    <div className="overflow-x-auto">
+    <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
+    <thead>
+    <tr className="bg-gray-700 text-left text-white font-semibold">
+          <th >User ID</th>
+          <th >Email</th>
+          <th >First Name</th>
+          <th >Last Name</th>
+          <th >Phone Number</th>
+          <th >Created at</th>
+          <th >Last update at</th>
+          <th >Profile</th>
         </tr>
         {/* Search inputs for filtering */}
         <tr className="block md:table-row">

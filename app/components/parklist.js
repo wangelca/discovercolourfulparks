@@ -34,7 +34,7 @@ export default function Parks() {
     }
   
     return (
-      <div className="relative flex flex-col min-h-screen bg-gray-100">
+      <div className="relative flex flex-col min-h-screen ">
         <main className="container mx-auto px-6 py-12 flex flex-col">
           <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
             Find a Park
@@ -92,7 +92,7 @@ export default function Parks() {
                 <img
                   src={park.parkImageUrl[0]}
                   alt={park.name}
-                  className="w-1/3 h-auto object-cover"
+                  className="w-1/3 h-auto object-cover p-3"
                 />
                 <div className="p-4 w-2/3">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">
