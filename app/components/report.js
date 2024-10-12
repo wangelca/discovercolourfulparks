@@ -2,11 +2,24 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import { saveAs } from 'file-saver'; // Install file-saver to handle file downloads
 
 export default function ReportPage() {
   const [reportType, setReportType] = useState('');
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState('');
+
+  // Convert JSON to CSV and trigger download
+  const downloadCSV = (jsonData, reportType) => {
+    const headers = Object.keys(jsonData[0]);
+    const csvRows = [
+      headers.join(','), // header row first
+      ...jsonData.map(row => headers.map(header => row[header]).join(',')) // data rows
+    ].join('\n');
+
+    const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `${reportType}_report.csv`);
+  };
 
   // Fetch report data based on the selected type
   const fetchReport = async () => {
@@ -16,9 +29,9 @@ export default function ReportPage() {
     try {
       let response;
       if (reportType === 'userList') {
-        response = await axios.get('/api/reports/userList');
+        response = await axios.get('http://localhost:8000/users');
       } else if (reportType === 'spotRevenue') {
-        response = await axios.get('/api/reports/spotRevenue');
+        response = await axios.get('http://localhost:8000/spots'); // Correct endpoint for spot revenue
       }
 
       setReportData(response.data);
@@ -29,7 +42,6 @@ export default function ReportPage() {
   };
 
   return (
-
     <div className="max-w-4xl mx-auto my-8">
       <h2 className="text-2xl font-bold mb-4">Generate Reports</h2>
 
@@ -48,12 +60,22 @@ export default function ReportPage() {
       </div>
 
       {/* Button to generate report */}
-      <button
-        onClick={fetchReport}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Generate Report
-      </button>
+      <div className="flex space-x-4">
+        <button
+          onClick={fetchReport}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Generate Report
+        </button>
+        {reportData && (
+          <button
+            onClick={() => downloadCSV(reportData, reportType)}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Download CSV
+          </button>
+        )}
+      </div>
 
       {/* Display Report Data */}
       {error && <div className="text-red-600 mt-4">{error}</div>}
@@ -65,43 +87,21 @@ export default function ReportPage() {
           <table className="min-w-full bg-white shadow-md rounded">
             <thead>
               <tr>
-                {reportType === 'userList' && (
-                  <>
-                    <th className="px-4 py-2">ID</th>
-                    <th className="px-4 py-2">Name</th>
-                    <th className="px-4 py-2">Email</th>
-                    <th className="px-4 py-2">Phone Number</th>
-                  </>
-                )}
-                {reportType === 'spotRevenue' && (
-                  <>
-                    <th className="px-4 py-2">Spot Name</th>
-                    <th className="px-4 py-2">Total Bookings</th>
-                    <th className="px-4 py-2">Total Revenue</th>
-                  </>
-                )}
+                {/* Dynamically render table headers */}
+                {Object.keys(reportData[0]).map((key) => (
+                  <th key={key} className="px-4 py-2 border">{key}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {reportType === 'userList' &&
-                reportData.map((user) => (
-                  <tr key={user.id}>
-                    <td className="px-4 py-2">{user.id}</td>
-                    <td className="px-4 py-2">{user.firstName} {user.lastName}</td>
-                    <td className="px-4 py-2">{user.email}</td>
-                    <td className="px-4 py-2">{user.phoneNumber}</td>
-                  </tr>
-                ))}
-              {reportType === 'spotRevenue' &&
-                reportData.map((spot) => (
-                  <tr key={spot.id}>
-                    <td className="px-4 py-2">{spot.name}</td>
-                    <td className="px-4 py-2">{spot.booking.length}</td>
-                    <td className="px-4 py-2">
-                      {spot.booking.reduce((total, booking) => total + booking.amount, 0)}
-                    </td>
-                  </tr>
-                ))}
+              {/* Dynamically render table rows */}
+              {reportData.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {Object.values(row).map((value, colIndex) => (
+                    <td key={colIndex} className="px-4 py-2 border">{value}</td>
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
