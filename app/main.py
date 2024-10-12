@@ -240,38 +240,37 @@ async def get_event(event_id: int, db: Session = Depends(get_db)):
 
 #add a new event
 @app.post("/events/add", response_model=EventResponse)
-async def create_spot(
+async def create_event(
     parkId: str = Form(...),
     eventName: str = Form(...),
     description: str = Form(...),
     fee: float = Form(...),
     discount: float = Form(...),
     eventLocation: str = Form(...),
-    startDate: datetime = Form(...),
-    endDate: datetime = Form(...),
+    startDate: datetime = Form(...),  # Only handle one event at a time
+    endDate: datetime = Form(...),    # Only handle one event at a time
     requiredbooking: bool = Form(...),
     eventImageUrl: UploadFile = File(...),  # Accept one image as file input
     db: Session = Depends(get_db)
 ):
-    
-    #Fetch the highest eventId for this park
+    # Fetch the highest eventId for this park
     highest_event_id = db.query(Event).filter(Event.parkId == parkId).order_by(Event.eventId.desc()).first()
 
-    #Generate the new spotId
+    # Generate the new eventId
     if highest_event_id:
         new_event_id = highest_event_id.eventId + 1
     else:
-        # If no spots exist for this park, start with the parkId followed by 01
+        # If no events exist for this park, start with the parkId followed by 001
         new_event_id = int(f"{parkId}001")
 
     # Fetch the province from the park table based on the parkId
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if not park:
         raise HTTPException(status_code=404, detail="Park not found")
-    
+
     province = park.province  # Assuming province is a column in the park table
 
-    # Generate the parameters based on spotName and province
+    # Generate the parameters based on eventName and province
     formatted_event_name = eventName.replace(" ", "+").lower()  # Replace spaces with '+' and lowercase
     formatted_province = province.replace(" ", "+").lower()
     parameters = f"{formatted_event_name},{formatted_province}+canada"
@@ -287,11 +286,9 @@ async def create_spot(
     with open(image_path, "wb") as buffer:
         shutil.copyfileobj(eventImageUrl.file, buffer)
     
-    # Store the relative path as ".\\<filename>" for database
-    relative_image_path = f"..\\{eventImageUrl.filename}"  # Adjust the format here
-    image_paths.append(relative_image_path)  # Add the single image path to the array
+    relative_image_path = f"..\\{eventImageUrl.filename}"
+    image_paths.append(relative_image_path)
 
-    
     # Create new event object
     new_event = Event(
         eventId=new_event_id,
@@ -303,17 +300,18 @@ async def create_spot(
         eventLocation=eventLocation,
         startDate=startDate,
         endDate=endDate,
-        eventImageUrl=image_paths ,  # Save the image path in the database
+        eventImageUrl=image_paths,
         requiredbooking=requiredbooking,
         parameters=parameters
     )
     
-    # Save the spot object in the database
+    # Save the event object in the database
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
 
     return new_event
+
 
 
 #get all events in a park 

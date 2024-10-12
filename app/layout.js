@@ -12,7 +12,7 @@ import BackToTopButton from './components/scroll-back-button'
     return (
       <ClerkProvider>
         <html lang="en">
-          <body className='bg-bottom bg-fixed  bg-cover bg-no-repeat bg-[url(/bg/6558736.jpg)]'>
+          <body className='bg-top bg-fixed  bg-cover bg-no-repeat bg-[url(/bg/FOREST_BACKGROUND6_generated.jpg)]'>
           <Header/>    
           <BackToTopButton/>      
             <header>
