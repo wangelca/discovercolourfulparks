@@ -10,7 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 const AddEventPage = () => {
   const [formData, setFormData] = useState({
     parkId: "",
-    eventName: "",    
+    eventName: "",
     eventLocation: "",
     description: "",
     fee: "",
@@ -19,11 +19,21 @@ const AddEventPage = () => {
     startDate: "",
     endDate: "",
     requiredbooking: false,
+    isRoutine: false,
+    recurrenceType: "", // daily, weekly, or specificDays
+    recurrenceEndDate: "", // for daily or weekly recurrence
+    specificDays: [], // for specific days recurrence
   });
+
   const [errors, setErrors] = useState({});
   const [summary, setSummary] = useState(null);
   const [parks, setParks] = useState([]);
+  const [eventList, setEventList] = useState([]); // Add this to your useState hook
   const router = useRouter();
+
+  const handleSpecificDaysChange = (dates) => {
+    setFormData({ ...formData, specificDays: dates });
+  };
 
   useEffect(() => {
     const fetchParks = async () => {
@@ -95,56 +105,150 @@ const AddEventPage = () => {
       formData.discount > 9999 ||
       formData.discount > formData.fee
     ) {
-      newErrors.discount = "Discount must be between 0 and 9999, and less than fee";
+      newErrors.discount =
+        "Discount must be between 0 and 9999, and less than fee";
     }
     if (!formData.startDate) newErrors.startDate = "Start date is required";
     if (!formData.endDate) newErrors.endDate = "End date is required";
-    if (!formData.eventLocation) newErrors.eventLocation = "Location is required";
-    if (formData.startDate > formData.endDate) newErrors.startDate = "Start date must be before end date";
+    if (!formData.eventLocation)
+      newErrors.eventLocation = "Location is required";
+    if (formData.startDate > formData.endDate)
+      newErrors.startDate = "Start date must be before end date";
     if (!formData.eventImageUrl)
       newErrors.eventImageUrl = "Event image is required";
-    setErrors(newErrors); 
-    console.log("Validation errors:", newErrors);  // Log the errors to see if any exist
-     return Object.keys(newErrors).length === 0;
+    setErrors(newErrors);
+    console.log("Validation errors:", newErrors); // Log the errors to see if any exist
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleReview = () => {
-    if (validateInput()) {
-      setSummary(formData);
-      console.log("Summary Data:", formData);  // Log to see what data is being set
+    let generatedEventList = [];
+
+    // If routine event is selected
+    if (formData.isRoutine) {
+      if (formData.recurrenceType === "daily") {
+        let currentStartDate = new Date(formData.startDate);
+        let currentEndDate = new Date(formData.endDate);
+        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+
+        while (currentStartDate <= recurrenceEndDate) {
+          generatedEventList.push({
+            ...formData,
+            startDate: new Date(currentStartDate),
+            endDate: new Date(currentEndDate),
+          });
+          currentStartDate.setDate(currentStartDate.getDate() + 1); // Increment by one day
+          currentEndDate.setDate(currentEndDate.getDate() + 1); // Increment the end date too
+        }
+      } else if (formData.recurrenceType === "weekly") {
+        let currentStartDate = new Date(formData.startDate);
+        let currentEndDate = new Date(formData.endDate);
+        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+
+        while (currentStartDate <= recurrenceEndDate) {
+          generatedEventList.push({
+            ...formData,
+            startDate: new Date(currentStartDate),
+            endDate: new Date(currentEndDate),
+          });
+          currentStartDate.setDate(currentStartDate.getDate() + 7); // Increment by one week
+          currentEndDate.setDate(currentEndDate.getDate() + 7); // Increment the end date too
+        }
+      } else if (formData.recurrenceType === "specificDays") {
+        formData.specificDays.forEach((date) => {
+          generatedEventList.push({
+            ...formData,
+            startDate: new Date(date),
+            endDate: new Date(date),
+          });
+        });
+      }
+    } else {
+      // If it's not a recurring event, just add the single event
+      generatedEventList.push(formData);
     }
+
+    setEventList(generatedEventList); // Set the generated event list in state
+    setSummary(formData); // Show the review page
   };
 
   const handleSubmit = async () => {
+    let eventList = [];
 
-    const formDataObj = new FormData();
-    formDataObj.append("parkId", formData.parkId);
-    formDataObj.append("eventName", formData.eventName);
-    formDataObj.append("description", formData.description);
-    formDataObj.append("fee", formData.fee);
-    formDataObj.append("discount", formData.discount);
-    formDataObj.append("eventLocation", formData.eventLocation);
-    formDataObj.append("requiredbooking", formData.requiredbooking);
-    formDataObj.append("startDate", formData.startDate.toISOString().slice(0, 19));
-    formDataObj.append("endDate", formData.endDate.toISOString().slice(0, 19));
-    if (formData.eventImageUrl) {
-      formDataObj.append("eventImageUrl", formData.eventImageUrl);  // Append the uploaded image
-  }
+    // If routine event is selected
+    if (formData.isRoutine) {
+      if (formData.recurrenceType === "daily") {
+        let currentStartDate = new Date(formData.startDate);
+        let currentEndDate = new Date(formData.endDate);
+        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
 
+        while (currentStartDate <= recurrenceEndDate) {
+          eventList.push({
+            ...formData,
+            startDate: new Date(currentStartDate),
+            endDate: new Date(currentEndDate),
+          });
+          currentStartDate.setDate(currentStartDate.getDate() + 1); // Increment by one day
+          currentEndDate.setDate(currentEndDate.getDate() + 1); // Increment the end date too
+        }
+      } else if (formData.recurrenceType === "weekly") {
+        let currentStartDate = new Date(formData.startDate);
+        let currentEndDate = new Date(formData.endDate);
+        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+
+        while (currentStartDate <= recurrenceEndDate) {
+          eventList.push({
+            ...formData,
+            startDate: new Date(currentStartDate),
+            endDate: new Date(currentEndDate),
+          });
+          currentStartDate.setDate(currentStartDate.getDate() + 7); // Increment by one week
+          currentEndDate.setDate(currentEndDate.getDate() + 7); // Increment the end date too
+        }
+      } else if (formData.recurrenceType === "specificDays") {
+        formData.specificDays.forEach((date) => {
+          eventList.push({ ...formData, startDate: new Date(date) });
+        });
+      }
+    } else {
+      eventList.push(formData); // Non-routine event, just one event
+    }
+
+    // Submit all events to backend
     try {
-      await axios.post("http://localhost:8000/events/add", formDataObj, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      router.push("/manage-events"); 
+      for (let event of eventList) {
+        const formDataObj = new FormData();
+        formDataObj.append("parkId", event.parkId);
+        formDataObj.append("eventName", event.eventName);
+        formDataObj.append("description", event.description);
+        formDataObj.append("fee", event.fee);
+        formDataObj.append("discount", event.discount);
+        formDataObj.append("eventLocation", event.eventLocation);
+        formDataObj.append(
+          "startDate",
+          event.startDate.toISOString().slice(0, 19)
+        );
+        formDataObj.append("endDate", event.endDate.toISOString().slice(0, 19));
+        formDataObj.append("requiredbooking", event.requiredbooking);
+        if (event.eventImageUrl) {
+          formDataObj.append("eventImageUrl", event.eventImageUrl);
+        }
+
+        await axios.post("http://localhost:8000/events/add", formDataObj, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      router.push("/manage-events");
     } catch (error) {
-      console.error("Failed to add event", error);
+      console.error("Failed to add events", error);
     }
   };
 
   return (
     <div className="container mx-auto p-6">
       {!summary ? (
-        <form className="max-w-lg mx-auto">
+        <form className="max-w-lg mx-auto bg-white p-6 rounded-md bg-opacity-85">
           <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add an Event
           </h2>
@@ -152,7 +256,8 @@ const AddEventPage = () => {
             <div class="sm:col-span-2">
               <label
                 for="name"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">      
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
                 Event Name
               </label>
               <input
@@ -229,9 +334,7 @@ const AddEventPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="50"
               />
-              {errors.fee && (
-                <span className="text-red-500">{errors.fee}</span>
-              )}
+              {errors.fee && <span className="text-red-500">{errors.fee}</span>}
             </div>
 
             <div class="w-full">
@@ -258,13 +361,13 @@ const AddEventPage = () => {
                 Start Date & Time
               </label>
               <DatePicker
-              showIcon
-              selected={formData.startDate}
-              onChange={(date) => handleDateChange(date, "startDate")}
-              showTimeSelect
-              dateFormat="Pp"              
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-            />
+                showIcon
+                selected={formData.startDate}
+                onChange={(date) => handleDateChange(date, "startDate")}
+                showTimeSelect
+                dateFormat="Pp"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+              />
               {errors.startDate && (
                 <span className="text-red-500">{errors.startDate}</span>
               )}
@@ -274,13 +377,13 @@ const AddEventPage = () => {
                 End Date & Time
               </label>
               <DatePicker
-              showIcon
-              selected={formData.endDate}
-              onChange={(date) => handleDateChange(date, "endDate")}
-              showTimeSelect
-              dateFormat="Pp"              
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-            />
+                showIcon
+                selected={formData.endDate}
+                onChange={(date) => handleDateChange(date, "endDate")}
+                showTimeSelect
+                dateFormat="Pp"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+              />
               {errors.endDate && (
                 <span className="text-red-500">{errors.endDate}</span>
               )}
@@ -324,6 +427,77 @@ const AddEventPage = () => {
               </label>
             </div>
 
+            <div>
+              <label className="inline-flex items-center mb-5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isRoutine"
+                  checked={formData.isRoutine}
+                  onChange={handleInputChange}
+                  className="sr-only peer"
+                />
+                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  Is this a routine event?
+                </span>
+              </label>
+            </div>
+
+            <div>
+              {formData.isRoutine && (
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Recurrence Type
+                  </label>
+                  <select
+                    name="recurrenceType"
+                    value={formData.recurrenceType}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  >
+                    <option value="">Select recurrence type</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="specificDays">Specific Days</option>
+                  </select>
+
+                  {/* Show additional fields based on recurrence type */}
+                  {formData.recurrenceType === "daily" ||
+                  formData.recurrenceType === "weekly" ? (
+                    <div className="w-full mt-4">
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        End Date
+                      </label>
+                      <DatePicker
+                        selected={formData.recurrenceEndDate}
+                        onChange={(date) =>
+                          handleDateChange(date, "recurrenceEndDate")
+                        }
+                        dateFormat="yyyy-MM-dd"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      />
+                    </div>
+                  ) : null}
+
+                  {formData.recurrenceType === "specificDays" ? (
+                    <div className="w-full mt-4">
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Select Specific Days
+                      </label>
+                      <DatePicker
+                        selected={formData.specificDays}
+                        onChange={(date) => handleSpecificDaysChange(date)}
+                        dateFormat="yyyy-MM-dd"
+                        multiple
+                        inline
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
             <div class="flex items-center space-x-4">
               <button
                 type="button"
@@ -337,13 +511,58 @@ const AddEventPage = () => {
         </form>
       ) : (
         <div className="container mx-auto p-6">
-          <h1>Summary</h1>
-          To update the review layout
+          <h1 className="text-xl font-bold mb-4">Events Summary</h1>
+          {/* Display event details once */}
+          <p>
+            {formData.eventImageUrl && (
+              <img
+                src={URL.createObjectURL(formData.eventImageUrl)}
+                alt="Event"
+                className="w-full h-64 object-cover mt-4"
+              />
+            )}
+          </p>
+          <p>
+            <strong>Event Name:</strong> {formData.eventName}
+          </p>
+          <p>
+            <strong>Description:</strong> {formData.description}
+          </p>
+          <p>
+            <strong>Location:</strong> {formData.eventLocation}
+          </p>
+          <p>
+            <strong>Fee:</strong> {formData.fee}
+          </p>
+          <p>
+            <strong>Discount:</strong> {formData.discount}
+          </p>
+          <p>
+            <strong>Required Booking:</strong>{" "}
+            {formData.requiredbooking ? "Yes" : "No"}
+          </p>
+
+          {/* Display start and end dates separately */}
+          <h3>Event Dates:</h3>
+          {eventList.map((event, index) => (
+            <div key={index}>
+              <p>
+                <strong>Start Date:</strong>{" "}
+                {new Date(event.startDate).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>End Date:</strong>{" "}
+                {new Date(event.endDate).toLocaleDateString()}
+              </p>
+              <hr />
+            </div>
+          ))}
+
           <button
             onClick={handleSubmit}
-            className="btn bg-green-500 text-white"
+            className="btn bg-green-500 text-white px-6 py-2 mt-4"
           >
-            Confirm
+            Confirm All Events
           </button>
         </div>
       )}
