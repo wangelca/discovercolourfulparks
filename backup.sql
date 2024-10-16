@@ -221,7 +221,7 @@ CREATE TABLE public.spot (
     "parkId" integer NOT NULL,
     "spotName" text NOT NULL,
     "spotDescription" text NOT NULL,
-    "spotHourlyRate" double precision NOT NULL,
+    "spotAdmission" double precision NOT NULL,
     "spotDiscount" double precision NOT NULL,
     "spotLocation" text NOT NULL,
     "spotImageUrl" text[],
@@ -468,7 +468,7 @@ COPY public.payment ("paymentId", "bookingId", "paymentStatus", id) FROM stdin;
 -- Data for Name: spot; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.spot ("spotId", "parkId", "spotName", "spotDescription", "spotHourlyRate", "spotDiscount", "spotLocation", "spotImageUrl", parameters, requiredbooking) FROM stdin;
+COPY public.spot ("spotId", "parkId", "spotName", "spotDescription", "spotAdmission", "spotDiscount", "spotLocation", "spotImageUrl", parameters, requiredbooking) FROM stdin;
 311	3	Planetarium and Telescope Combo Tour	Discover the wonders of the night sky with our award-winning star-gazing tour package! Start your tour in the Planetarium Dome Theatre and explore local First Nations constellations, the Milky Way, and even the edge of the universe! 	72.45	26.25	1 Old Lodge Rd, Jasper, AB T0E 1E0, Canada	\N	\N	f
 312	3	Columbia Icefield Tour with Glacier Skywalk	Discover the Glacier Skywalk and Athabasca Glacier aboard an ice explorer vehicle equipped to handle the rugged ice landscape. Frequent tour departures and flexible scheduling mean you wonΓÇÖt be tied down to a single tour time; that means you can secure your tickets in advance then show up on your own schedule.	124.97	80.54	93 Icefields Pkwy, Jasper, AB T0E 1E0, Canada	\N	\N	f
 313	3	Guided Glacier Hike on The Athabasca with IceWalks	Enjoy the unique experience of walking on a glacier on this small-group tour. As your guide leads you across the majestic Athabasca Glacier in the Canadian Rockies you'll get insights into its many incredible ice formations such as crevasses, mill wells, meltwater streams, and icefalls. Equipment is provided and no technical climbing experience is required.	133.34	69.62	95446QCC+4P4, 95446QCC+4P	\N	\N	f
