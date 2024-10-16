@@ -17,7 +17,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updatedAt = Column(DateTime, onupdate=datetime.datetime.utcnow)
     
-    bookings = relationship("Booking", back_populates="user")
+    booking = relationship("Booking", back_populates="user")
     payments = relationship("Payment", back_populates="user")
 
 
@@ -43,15 +43,18 @@ class Spot(Base):
     parkId = Column(Integer, ForeignKey('park.parkId'))
     spotName = Column(String)
     spotDescription = Column(String)
-    spotHourlyRate = Column(Float)
+    spotAdmission = Column(Float)
     spotDiscount = Column(Float)
     spotLocation = Column(String)
     spotImageUrl = Column(ARRAY(String), nullable=True)
     parameters = Column(String, nullable=True)
     requiredbooking = Column(Boolean, default=False)
+    openingHour = Column(String)
+    closingHour = Column(String)
+    spotLimit = Column(Integer)
     
     park = relationship("Park", back_populates="spots")
-    bookings = relationship("Booking", back_populates="spot")
+    booking = relationship("Booking", back_populates="spot")
 
 
 class Event(Base):
@@ -71,11 +74,11 @@ class Event(Base):
     requiredbooking = Column(Boolean, default=False)
     
     park = relationship("Park", back_populates="events") 
-    bookings = relationship("Booking", back_populates="event")
+    booking = relationship("Booking", back_populates="event")
 
 
 class Booking(Base):
-    __tablename__ = 'bookings'
+    __tablename__ = 'booking'
     
     bookingId = Column(Integer, primary_key=True, index=True)
     eventId = Column(Integer, ForeignKey('event.eventId'))
@@ -83,11 +86,13 @@ class Booking(Base):
     spotId = Column(Integer, ForeignKey('spot.spotId'))
     bookingDate = Column(DateTime)
     bookingStatus = Column(String)
-    bookingStartTime = Column(DateTime)
+    adults = Column(Integer)
+    kids = Column(Integer)
+    totalFee = Column(Float)
     
-    user = relationship("User", back_populates="bookings")
-    event = relationship("Event", back_populates="bookings")
-    spot = relationship("Spot", back_populates="bookings")
+    user = relationship("User", back_populates="booking")
+    event = relationship("Event", back_populates="booking")
+    spot = relationship("Spot", back_populates="booking")
     payment = relationship("Payment", back_populates="booking", uselist=False)
 
 
@@ -95,7 +100,7 @@ class Payment(Base):
     __tablename__ = 'payments'
     
     paymentId = Column(Integer, primary_key=True, index=True)
-    bookingId = Column(Integer, ForeignKey('bookings.bookingId'))
+    bookingId = Column(Integer, ForeignKey('booking.bookingId'))
     id = Column(Integer, ForeignKey('user.id'))
     paymentStatus = Column(String)
     

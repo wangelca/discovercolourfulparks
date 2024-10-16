@@ -55,7 +55,7 @@ export default function SpotDetails() {
         </p>
         <p className="text-lg">
           <strong className="font-semibold">Hourly Rate:</strong> 
-          <span className="text-green-600 font-bold"> ${spot.spotHourlyRate}</span>
+          <span className="text-green-600 font-bold"> ${spot.spotAdmission}</span>
         </p>
         <p className="text-lg">
           <strong className="font-semibold">Discount:</strong> 

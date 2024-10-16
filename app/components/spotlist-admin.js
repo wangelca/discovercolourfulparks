@@ -57,7 +57,7 @@ export default function SpotsAdmin() {
                   <td className="py-3 px-6">{spot.spotId}</td>
                   <td className="py-3 px-6">{spot.spotName}</td>
                   <td className="py-3 px-6">{spot.parkId}</td>
-                  <td className="py-3 px-6">{spot.spotHourlyRate}</td>
+                  <td className="py-3 px-6">{spot.spotAdmission}</td>
                   <td className="py-3 px-6">{spot.spotDescription}</td>
                   <td className="py-3 px-6">{spot.spotLocation}</td>
                   <td className="py-3 px-6">

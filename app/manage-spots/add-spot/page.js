@@ -10,9 +10,12 @@ const AddSpotPage = () => {
     parkId: "",
     spotName: "",
     spotDescription: "",
-    spotHourlyRate: "",
+    spotAdmission: "",
     spotDiscount: "",
     spotLocation: "",
+    openingHour: "00:00:00",
+    closingHour: "23:59:00",
+    spotLimit: "99999999",
     spotImageUrl: null,
     requiredbooking: false,
   });
@@ -36,21 +39,6 @@ const AddSpotPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name === "spotHourlyRate" || name === "spotDiscount") {
-      if (value < 0 || value > 9999) {
-        setErrors({
-          ...errors,
-          [name]: `${
-            name === "spotHourlyRate" ? "Hourly rate" : "Discount"
-          } must be between 0 and 9999`,
-        });
-      } else {
-        setErrors({
-          ...errors,
-          [name]: null, // Clear error when within range
-        });
-      }
-    }
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
@@ -73,25 +61,43 @@ const AddSpotPage = () => {
     if (!formData.spotDescription)
       newErrors.spotDescription = "Description is required";
     if (
-      !formData.spotHourlyRate ||
-      isNaN(formData.spotHourlyRate) ||
-      formData.spotHourlyRate < 0 ||
-      formData.spotHourlyRate > 9999
+      !formData.spotAdmission ||
+      isNaN(formData.spotAdmission) ||
+      formData.spotAdmission < 0 ||
+      formData.spotAdmission > 1000
     ) {
-      newErrors.spotHourlyRate = "Hourly rate must be between 0 and 9999";
+      newErrors.spotAdmission = "Admission must be between 0 and 1000";
     }
     if (
       !formData.spotDiscount ||
       isNaN(formData.spotDiscount) ||
       formData.spotDiscount < 0 ||
-      formData.spotDiscount > 9999
+      formData.spotDiscount > 1000
     ) {
-      newErrors.spotDiscount = "Discount must be between 0 and 9999";
+      newErrors.spotDiscount = "Discount must be between 0 and 1000";
+    }
+    if (formData.spotAdmission < formData.spotDiscount) {
+      newErrors.spotDiscount = "Discount must be less than the admission price";
+    }
+    if (!formData.openingHour || !formData.closingHour) {
+      newErrors.openingHour = "Opening and closing hours are required";
+    } else if (formData.openingHour >= formData.closingHour) {
+      newErrors.openingHour = "Opening hour must be earlier than closing hour";
+      newErrors.closingHour = "Closing hour must be later than opening hour";
+    }
+    if (
+      !formData.spotLimit ||
+      formData.spotLimit < 1 ||
+      formData.spotLimit > 99999999
+    ) {
+      newErrors.spotLimit =
+        "Spot capacity should be between 1 to 99999999 (i.e no limit).";
     }
     if (!formData.spotLocation) newErrors.spotLocation = "Location is required";
     if (!formData.spotImageUrl)
       newErrors.spotImageUrl = "Spot image is required";
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -102,17 +108,23 @@ const AddSpotPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!validateInput()) {
+      return; // Prevent submission if validation fails
+    }
     const formDataObj = new FormData();
     formDataObj.append("parkId", formData.parkId);
     formDataObj.append("spotName", formData.spotName);
     formDataObj.append("spotDescription", formData.spotDescription);
-    formDataObj.append("spotHourlyRate", formData.spotHourlyRate);
+    formDataObj.append("spotAdmission", formData.spotAdmission);
     formDataObj.append("spotDiscount", formData.spotDiscount);
     formDataObj.append("spotLocation", formData.spotLocation);
     formDataObj.append("requiredbooking", formData.requiredbooking);
+    formDataObj.append("openingHour", formData.openingHour);
+    formDataObj.append("closingHour", formData.closingHour);
+    formDataObj.append("spotLimit", formData.spotLimit);
     if (formData.spotImageUrl) {
-      formDataObj.append("spotImageUrl", formData.spotImageUrl);  // Append the uploaded image
-  }
+      formDataObj.append("spotImageUrl", formData.spotImageUrl); // Append the uploaded image
+    }
 
     try {
       await axios.post("http://localhost:8000/spots/add", formDataObj, {
@@ -127,7 +139,7 @@ const AddSpotPage = () => {
   return (
     <div className="container mx-auto p-6">
       {!summary ? (
-        <form className="max-w-lg mx-auto">
+        <form className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
           <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add a spot
           </h2>
@@ -203,18 +215,18 @@ const AddSpotPage = () => {
                 for="hourlyRate"
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
-                Hourly Rate (in decimals)
+                Admission (in decimals)
               </label>
               <input
                 type="number"
-                name="spotHourlyRate"
-                value={formData.spotHourlyRate}
+                name="spotAdmission"
+                value={formData.spotAdmission}
                 onChange={handleInputChange}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="50"
               />
-              {errors.spotHourlyRate && (
-                <span className="text-red-500">{errors.spotHourlyRate}</span>
+              {errors.spotAdmission && (
+                <span className="text-red-500">{errors.spotAdmission}</span>
               )}
             </div>
 
@@ -230,6 +242,7 @@ const AddSpotPage = () => {
                 name="spotDiscount"
                 value={formData.spotDiscount}
                 onChange={handleInputChange}
+                defaultValue="0"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="0"
               />
@@ -237,7 +250,38 @@ const AddSpotPage = () => {
                 <span className="text-red-500">{errors.spotDiscount}</span>
               )}
             </div>
-
+            <div>
+              <label
+                for="openingHour"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                Opening Hour
+                <input
+                  type="time"
+                  name="openingHour"
+                  value={formData.openingHour}
+                  onChange={handleInputChange}
+                  className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  defaultValue="00:00"
+                ></input>
+              </label>
+            </div>
+            <div>
+              <label
+                for="closingHour"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                Closing Hour
+                <input
+                  type="time"
+                  name="closingHour"
+                  value={formData.closingHour}
+                  onChange={handleInputChange}
+                  className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  defaultValue="23:59"
+                ></input>
+              </label>
+            </div>
             <div class="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Spot Location
@@ -253,13 +297,31 @@ const AddSpotPage = () => {
                 <span className="text-red-500">{errors.spotLocation}</span>
               )}
             </div>
+            <div class="w-full">
+              <label
+                for="spotLimit"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                Spot Capacity
+              </label>
+              <input
+                type="number"
+                name="spotLimit"
+                value={formData.spotLimit}
+                onChange={handleInputChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                defaultValue={99999999}
+              />
+              {errors.spotLimit && (
+                <span className="text-red-500">{errors.spotLimit}</span>
+              )}
+            </div>
             <div>
               <ImageUploadComponent
                 onFileChange={handleFileChange}
                 errors={errors.spotImageUrl}
               />
             </div>
-
             <div>
               <label className="inline-flex items-center mb-5 cursor-pointer">
                 <input
@@ -275,7 +337,6 @@ const AddSpotPage = () => {
                 </span>
               </label>
             </div>
-
             <div class="flex items-center space-x-4">
               <button
                 type="button"
@@ -288,8 +349,8 @@ const AddSpotPage = () => {
           </div>
         </form>
       ) : (
-        <div className="container mx-auto p-6">
-          <h1>Summary</h1>
+        <div className="container mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
+          <h1 className="text-5xl font-bold text-gray-800 mb-4">Summary</h1>
           {/* Spot Content */}
           <div className="p-6">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
@@ -317,10 +378,10 @@ const AddSpotPage = () => {
                 {summary.spotDescription}
               </p>
               <p className="text-lg">
-                <strong className="font-semibold">Hourly Rate:</strong>
+                <strong className="font-semibold">Admission:</strong>
                 <span className="text-green-600 font-bold">
                   {" "}
-                  ${summary.spotHourlyRate}
+                  ${summary.spotAdmission}
                 </span>
               </p>
               <p className="text-lg">
@@ -330,27 +391,25 @@ const AddSpotPage = () => {
                   {summary.spotDiscount}%
                 </span>
               </p>
-              <p>
-                Required Booking: {summary.requiredbooking ? "True" : "False"}
+              <p className="text-lg">
+                <strong className="font-semibold">Required Booking: </strong>
+                {summary.requiredbooking ? "True" : "False"}
+              </p>
+              <p className="text-lg">
+                <strong className="font-semibold">Business Hour:</strong>{" "}
+                {summary.openingHour} - {summary.closingHour}
               </p>
             </div>
-            {/* Google Maps Embed */}
-            <div className="mt-6">
-              <iframe
-                width="100%"
-                height="300"
-                frameBorder="0"
-                style={{ border: 0, borderRadius: "12px" }}
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${summary.parameters}`}
-                allowFullScreen
-              ></iframe>
-            </div>
           </div>
-
+          <button
+            onClick={() => setSummary(null)}
+            className="btn bg-orange-500 text-white mx-3 p-3 rounded-sm"
+          >
+            Go Back
+          </button>
           <button
             onClick={handleSubmit}
-            className="btn bg-green-500 text-white"
+            className="btn bg-green-500 text-white mx-3 p-3 rounded-sm"
           >
             Confirm
           </button>
