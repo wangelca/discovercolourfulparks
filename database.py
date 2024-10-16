@@ -1,3 +1,5 @@
+# database.py
+
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -6,17 +8,18 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
-database = Database(DATABASE_URL)
 
-# SQLAlchemy metadata and engine creation
-metadata = MetaData()
+# Load the database URL from environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Initialize databases for async queries
+database = Database(DATABASE_URL)
 
 # Create SQLAlchemy engine for synchronous ORM interaction
 engine = create_engine(DATABASE_URL)
 
-# Session management
+# Initialize Base and sessionmaker for ORM
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for your models
+# Initialize declarative base (this automatically uses metadata)
 Base = declarative_base()
