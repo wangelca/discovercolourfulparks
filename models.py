@@ -24,7 +24,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, onupdate=datetime.utcnow)
     
-    bookings = relationship("Booking", back_populates="user")
+    booking = relationship("Booking", back_populates="user")
     payments = relationship("Payment", back_populates="user")
 
     def __repr__(self):
@@ -53,16 +53,20 @@ class Spot(Base):
     spotId = Column(Integer, primary_key=True, index=True)
     parkId = Column(Integer, ForeignKey('park.parkId'))
     spotName = Column(String)
-    spotDescription = Column(String)
-    spotHourlyRate = Column(Float, nullable=False)  
-    spotDiscount = Column(Float, nullable=True)
+    spotDescription = Column(String)  
+    spotAdmission = Column(Float)
+    spotDiscount = Column(Float)
+
     spotLocation = Column(String)
     spotImageUrl = Column(ARRAY(String), nullable=True)
     parameters = Column(String, nullable=True)
     requiredbooking = Column(Boolean, default=False)
+    openingHour = Column(String)
+    closingHour = Column(String)
+    spotLimit = Column(Integer)
     
     park = relationship("Park", back_populates="spots")
-    bookings = relationship("Booking", back_populates="spot")
+    booking = relationship("Booking", back_populates="spot")
 
     def __repr__(self):
         return f"<Spot(spotId={self.spotId}, spotName={self.spotName}, parkId={self.parkId})>"
@@ -84,26 +88,29 @@ class Event(Base):
     requiredbooking = Column(Boolean, default=False)
     
     park = relationship("Park", back_populates="events") 
-    bookings = relationship("Booking", back_populates="event")
+    booking = relationship("Booking", back_populates="event")
 
     def __repr__(self):
         return f"<Event(eventId={self.eventId}, eventName={self.eventName}, parkId={self.parkId})>"
 
 class Booking(Base):
-    __tablename__ = 'bookings'
+    __tablename__ = 'booking'
     
     bookingId = Column(Integer, primary_key=True, index=True)
-    eventId = Column(Integer, ForeignKey('event.eventId'))
+    eventId = Column(Integer, ForeignKey('event.eventId'), nullable=True)
     id = Column(Integer, ForeignKey('user.id'))
+
     spotId = Column(Integer, ForeignKey('spot.spotId'), nullable=True)  # Optional spot
     bookingDate = Column(DateTime, default=datetime.utcnow)
     bookingStatus = Column(String, default=BookingStatus.PENDING.value)
-    bookingStartTime = Column(DateTime)
     paymentAmount = Column(Float, nullable=True)  # Amount paid (or None for free events)
+    adults = Column(Integer)
+    kids = Column(Integer)
+
     
-    user = relationship("User", back_populates="bookings")
-    event = relationship("Event", back_populates="bookings")
-    spot = relationship("Spot", back_populates="bookings")
+    user = relationship("User", back_populates="booking")
+    event = relationship("Event", back_populates="booking")
+    spot = relationship("Spot", back_populates="booking")
     payment = relationship("Payment", back_populates="booking", uselist=False)
 
     def __repr__(self):
@@ -113,7 +120,7 @@ class Payment(Base):
     __tablename__ = 'payments'
     
     paymentId = Column(Integer, primary_key=True, index=True)
-    bookingId = Column(Integer, ForeignKey('bookings.bookingId'))
+    bookingId = Column(Integer, ForeignKey('booking.bookingId'))
     id = Column(Integer, ForeignKey('user.id'))
     paymentStatus = Column(String)
     
