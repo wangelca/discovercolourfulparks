@@ -1,12 +1,13 @@
+from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from database import database, SessionLocal
+from database import database, SessionLocal, Base, engine
 from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timeozone
 import os
 import shutil
 
@@ -29,19 +30,18 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Colorful National Parks!"}
+
 @app.on_event("startup")
-async def startup():
-    await database.connect()
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Colorful National Parks!"}
-
-# Define a Pydantic model for Park, Spot, etc.
 class ParkResponse(BaseModel):
     parkId: int
     name: str
@@ -61,7 +61,7 @@ class EventResponse(BaseModel):
     eventLocation: str
     fee: float
     description: str
-    discount: float
+    discount: Optional[float] = None
     startDate: datetime
     endDate: datetime
     eventImageUrl: List[str]
@@ -106,6 +106,129 @@ class UserResponse(BaseModel):
         orm_mode=True        
         arbitrary_types_allowed = True
         
+class EventBookingResponse(BaseModel):
+    bookingId: int
+    id: int  # User ID
+    eventId: int
+    bookingDate: datetime
+    bookingStartTime: datetime
+    bookingStatus: str
+    eventName: Optional[str]  # Including event name in the response, optional if event is missing
+    requiresPayment: bool
+    paymentAmount: Optional[float] = None  # Add payment amount if applicable
+
+    class Config:
+        orm_mode = True
+
+
+class BookingRequest(BaseModel):
+    eventId: int
+    id: int
+    bookingStartTime: Optional[datetime] = None  # Make bookingStartTime optional
+
+
+@app.post("/book", response_model=EventBookingResponse)
+async def book_event(booking: BookingRequest, db: Session = Depends(get_db)):
+    print(f"Booking data received: {booking}")
+
+    # Fetch user and event from the database
+    user = db.query(User).filter(User.id == booking.id).first()
+    event = db.query(Event).filter(Event.eventId == booking.eventId).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # If bookingStartTime is not provided, set it to the current time (or handle accordingly)
+    if not booking.bookingStartTime:
+        raise HTTPException(status_code=400, detail="Booking time must be provided.")
+
+    # Convert both bookingTime and event dates to naive datetime for comparison
+    booking_time_naive = booking.bookingStartTime.replace(tzinfo=None)
+    event_end_naive = event.endDate.replace(tzinfo=None)
+
+    # Validate that the booking time is in the future and before the event's end date
+    if booking_time_naive < datetime.now():
+        raise HTTPException(status_code=400, detail="Booking time cannot be in the past.")
+    
+    if booking_time_naive > event_end_naive:
+        raise HTTPException(status_code=400, detail="Booking time is after the event's end date.")
+
+    # Check if payment is required
+    requires_payment = event.fee > 0
+
+    # Proceed with creating the booking
+    new_booking = Booking(
+        eventId=booking.eventId,
+        id=booking.id,
+        bookingStartTime=booking.bookingStartTime,
+        bookingDate=datetime.now(timezone.utc),
+        bookingStatus="Pending",
+        paymentAmount=event.fee if requires_payment else 0.0  # Store payment amount
+    )
+
+    db.add(new_booking)
+    db.commit()
+    db.refresh(new_booking)
+
+    print(f"Booking created with ID: {new_booking.bookingId}")
+
+    # Build the response, including all the fields for BookingResponse
+    response = BookingResponse(
+        bookingId=new_booking.bookingId,
+        id=new_booking.id,
+        eventId=new_booking.eventId,
+        bookingDate=new_booking.bookingDate,
+        bookingStartTime=new_booking.bookingStartTime,
+        bookingStatus=new_booking.bookingStatus,
+        eventName=event.eventName,
+        requiresPayment=requires_payment,
+        paymentAmount=new_booking.paymentAmount if requires_payment else 0.0
+    )
+
+    # If payment is required, include a flag for frontend redirection to payment page
+    if requires_payment:
+        return response
+
+    # If no payment is required, return the full booking details
+    return response
+
+@app.get("/bookings/{booking_id}", response_model=BookingResponse)
+async def get_booking(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    event = db.query(Event).filter(Event.eventId == booking.eventId).first()
+
+    return BookingResponse(
+        bookingId=booking.bookingId,
+        id=booking.id,
+        eventId=booking.eventId,
+        bookingDate=booking.bookingDate,
+        bookingStartTime=booking.bookingStartTime,
+        bookingStatus=booking.bookingStatus,
+        eventName=event.eventName if event else "Unknown Event",
+        requiresPayment=booking.paymentAmount > 0,
+        paymentAmount=booking.paymentAmount if booking.paymentAmount else 0.0
+    )
+
+@app.get("/payment/{booking_id}")
+async def payment_page(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Here you can handle logic to redirect or present the payment page
+    return {
+        "message": f"Payment page for booking ID {booking_id}",
+        "amount_due": booking.paymentAmount
+    }
+
+
 class BookingResponse(BaseModel):
     bookingId: Optional[int] = None
     id: int
@@ -122,6 +245,7 @@ class BookingResponse(BaseModel):
         arbitrary_types_allowed = True
    
 # get all parks
+
 @app.get("/parks", response_model=List[ParkResponse])
 async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
