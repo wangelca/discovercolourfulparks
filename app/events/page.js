@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Calendar from "../components/calendar";
 import Events from "../components/eventlist";
-import EventBookingPage from "../booking/event/page"; // Import EventBookingPage
+import EventBookingPage from "./[eventId]/book/page"; // Import EventBookingPage
 
 export default function Home() {
   const [showCalendar, setShowCalendar] = useState(false); // State to toggle between Events and Calendar

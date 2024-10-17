@@ -7,7 +7,7 @@ from database import database, SessionLocal, Base, engine
 from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from datetime import date, datetime, time, timeozone
+from datetime import date, datetime, time, timezone
 import os
 import shutil
 
@@ -106,94 +106,48 @@ class UserResponse(BaseModel):
         orm_mode=True        
         arbitrary_types_allowed = True
         
-class EventBookingResponse(BaseModel):
-    bookingId: int
-    id: int  # User ID
-    eventId: int
-    bookingDate: datetime
-    bookingStartTime: datetime
-    bookingStatus: str
-    eventName: Optional[str]  # Including event name in the response, optional if event is missing
-    requiresPayment: bool
-    paymentAmount: Optional[float] = None  # Add payment amount if applicable
+class BookingResponse(BaseModel):
+    bookingId: Optional[int] = None
+    id: int
+    spotId: Optional[int] = None
+    eventId: Optional[int] = None
+    bookingDate: date
+    bookingStatus: Optional[str] = None
+    adults: int
+    kids: int
+    paymentAmount: float
 
     class Config:
-        orm_mode = True
+        orm_mode=True
+        arbitrary_types_allowed = True
 
 
-class BookingRequest(BaseModel):
-    eventId: int
-    id: int
-    bookingStartTime: Optional[datetime] = None  # Make bookingStartTime optional
-
-
-@app.post("/book", response_model=EventBookingResponse)
-async def book_event(booking: BookingRequest, db: Session = Depends(get_db)):
-    print(f"Booking data received: {booking}")
-
-    # Fetch user and event from the database
-    user = db.query(User).filter(User.id == booking.id).first()
-    event = db.query(Event).filter(Event.eventId == booking.eventId).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+@app.post("/event-bookings", response_model=BookingResponse)
+async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
     
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+    if isinstance(booking.bookingDate, str):
+        bookingDate = datetime.strptime(booking.bookingDate, '%Y-%m-%d').date()  # Parse into a date object
+    else:
+        bookingDate = booking.bookingDate
 
-    # If bookingStartTime is not provided, set it to the current time (or handle accordingly)
-    if not booking.bookingStartTime:
-        raise HTTPException(status_code=400, detail="Booking time must be provided.")
-
-    # Convert both bookingTime and event dates to naive datetime for comparison
-    booking_time_naive = booking.bookingStartTime.replace(tzinfo=None)
-    event_end_naive = event.endDate.replace(tzinfo=None)
-
-    # Validate that the booking time is in the future and before the event's end date
-    if booking_time_naive < datetime.now():
-        raise HTTPException(status_code=400, detail="Booking time cannot be in the past.")
-    
-    if booking_time_naive > event_end_naive:
-        raise HTTPException(status_code=400, detail="Booking time is after the event's end date.")
-
-    # Check if payment is required
-    requires_payment = event.fee > 0
-
-    # Proceed with creating the booking
+    # Create a new booking
     new_booking = Booking(
         eventId=booking.eventId,
-        id=booking.id,
-        bookingStartTime=booking.bookingStartTime,
-        bookingDate=datetime.now(timezone.utc),
-        bookingStatus="Pending",
-        paymentAmount=event.fee if requires_payment else 0.0  # Store payment amount
+        id=booking.id,  # User ID
+        bookingDate=booking.bookingDate,
+        bookingStatus="confirmed",
+        adults=booking.adults,
+        kids=booking.kids,
+        paymentAmount=booking.paymentAmount,
+        spotId=None  # No event ID for spot booking
     )
 
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
 
-    print(f"Booking created with ID: {new_booking.bookingId}")
-
-    # Build the response, including all the fields for BookingResponse
-    response = BookingResponse(
-        bookingId=new_booking.bookingId,
-        id=new_booking.id,
-        eventId=new_booking.eventId,
-        bookingDate=new_booking.bookingDate,
-        bookingStartTime=new_booking.bookingStartTime,
-        bookingStatus=new_booking.bookingStatus,
-        eventName=event.eventName,
-        requiresPayment=requires_payment,
-        paymentAmount=new_booking.paymentAmount if requires_payment else 0.0
-    )
-
-    # If payment is required, include a flag for frontend redirection to payment page
-    if requires_payment:
-        return response
-
-    # If no payment is required, return the full booking details
-    return response
+    # Return the new booking using BookingResponse
+    return new_booking    
 
 @app.get("/bookings/{booking_id}", response_model=BookingResponse)
 async def get_booking(booking_id: int, db: Session = Depends(get_db)):
@@ -208,9 +162,7 @@ async def get_booking(booking_id: int, db: Session = Depends(get_db)):
         id=booking.id,
         eventId=booking.eventId,
         bookingDate=booking.bookingDate,
-        bookingStartTime=booking.bookingStartTime,
         bookingStatus=booking.bookingStatus,
-        eventName=event.eventName if event else "Unknown Event",
         requiresPayment=booking.paymentAmount > 0,
         paymentAmount=booking.paymentAmount if booking.paymentAmount else 0.0
     )
@@ -228,24 +180,7 @@ async def payment_page(booking_id: int, db: Session = Depends(get_db)):
         "amount_due": booking.paymentAmount
     }
 
-
-class BookingResponse(BaseModel):
-    bookingId: Optional[int] = None
-    id: int
-    spotId: Optional[int] = None
-    eventId: Optional[int] = None
-    bookingDate: date
-    bookingStatus: Optional[str] = None
-    adults: int
-    kids: int
-    totalFee: float
-
-    class Config:
-        orm_mode=True
-        arbitrary_types_allowed = True
-   
 # get all parks
-
 @app.get("/parks", response_model=List[ParkResponse])
 async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
@@ -553,7 +488,7 @@ async def create_booking(booking: BookingResponse, db: Session = Depends(get_db)
         bookingStatus="confirmed",
         adults=booking.adults,
         kids=booking.kids,
-        totalFee=booking.totalFee,
+        paymentAmount=booking.paymentAmount,
         eventId=None  # No event ID for spot booking
     )
 

@@ -53,7 +53,6 @@ export default function ProfilePage() {
         setSuccess(true);
         setIsEditing(false); // Disable editing mode
       } catch (error) {
-        console.error("Error updating profile:", error);
         setError("Failed to update profile data.");
       }
     }
@@ -89,7 +88,7 @@ export default function ProfilePage() {
             </tr>
             <tr>
               <td className="px-4 py-2 font-semibold">Email Address:</td>
-              <td className="px-4 py-2">{profileData.emailAddress}</td>
+              <td className="px-4 py-2">{profileData.email}</td>
             </tr>
           </tbody>
         </table>
@@ -136,7 +135,7 @@ export default function ProfilePage() {
             <input
               type="email"
               name="emailAddress"
-              value={profileData.emailAddress}
+              value={profileData.email}
               className="w-full px-4 py-2 border rounded bg-gray-200"
               readOnly // Email cannot be edited
             />

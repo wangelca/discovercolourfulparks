@@ -56,7 +56,6 @@ class Spot(Base):
     spotDescription = Column(String)  
     spotAdmission = Column(Float)
     spotDiscount = Column(Float)
-
     spotLocation = Column(String)
     spotImageUrl = Column(ARRAY(String), nullable=True)
     parameters = Column(String, nullable=True)
@@ -78,7 +77,7 @@ class Event(Base):
     parkId = Column(Integer, ForeignKey('park.parkId'))
     eventName = Column(String)
     eventLocation = Column(String)
-    fee = Column(Float)  # Fee can be 0 for free events
+    fee = Column(Float)
     description = Column(String)
     discount = Column(Float)
     startDate = Column(DateTime)
@@ -99,14 +98,12 @@ class Booking(Base):
     bookingId = Column(Integer, primary_key=True, index=True)
     eventId = Column(Integer, ForeignKey('event.eventId'), nullable=True)
     id = Column(Integer, ForeignKey('user.id'))
-
     spotId = Column(Integer, ForeignKey('spot.spotId'), nullable=True)  # Optional spot
     bookingDate = Column(DateTime, default=datetime.utcnow)
     bookingStatus = Column(String, default=BookingStatus.PENDING.value)
     paymentAmount = Column(Float, nullable=True)  # Amount paid (or None for free events)
     adults = Column(Integer)
     kids = Column(Integer)
-
     
     user = relationship("User", back_populates="booking")
     event = relationship("Event", back_populates="booking")

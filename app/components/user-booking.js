@@ -1,78 +1,177 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 
 export default function UserBooking() {
-    const [profileData, setProfileData] = useState(null); // Profile data is now an object
-    const [bookings, setBookings] = useState([]); // Bookings is now an array
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null); // State for error handling
-    const { user } = useUser(); // Get current user details from Clerk
+  const [profileData, setProfileData] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // For search input
+  const [sortOrder, setSortOrder] = useState("date"); // For sorting
 
-    useEffect(() => {
-        if (!user) return; // Ensure user is loaded and signed in
-        
-        async function fetchProfileAndBookings() {
-            try {
-                // Fetch user profile
-                const profileResponse = await fetch(`http://localhost:8000/users/${user.id}`);
-                if (!profileResponse.ok) {
-                    throw new Error("Failed to fetch user profile data");
-                }
-                const profile = await profileResponse.json();
-                setProfileData(profile);
+  const { user } = useUser();
 
-                // Now fetch the bookings only when profile data is available
-                const bookingsResponse = await fetch(`http://localhost:8000/users/${profile.id}/bookings`);
-                if (!bookingsResponse.ok) {
-                    throw new Error("Failed to fetch booking data");
-                }
-                const bookingsData = await bookingsResponse.json();
-                setBookings(bookingsData); // Set the bookings array
+  useEffect(() => {
+    if (!user) return;
 
-            } catch (err) {
-                console.error("Error fetching data:", err);
-                setError("Could not load booking or profile details.");
-            } finally {
-                setLoading(false);
-            }
+    async function fetchProfileAndBookings() {
+      try {
+        const profileResponse = await fetch(
+          `http://localhost:8000/users/${user.id}`
+        );
+        if (!profileResponse.ok) {
+          throw new Error("Failed to fetch user profile data");
         }
+        const profile = await profileResponse.json();
+        setProfileData(profile);
 
-        // Trigger the combined fetching
-        fetchProfileAndBookings();
+        const bookingsResponse = await fetch(
+          `http://localhost:8000/users/${profile.id}/bookings`
+        );
+        if (!bookingsResponse.ok) {
+          throw new Error("Failed to fetch booking data");
+        }
+        const bookingsData = await bookingsResponse.json();
+        const detailedBookings = await Promise.all(
+          bookingsData.map(async (booking) => {
+            if (booking.spotId) {
+              const spotResponse = await fetch(
+                `http://localhost:8000/spots/${booking.spotId}`
+              );
+              if (!spotResponse.ok) {
+                throw new Error(
+                  `Failed to fetch spot details for booking ${booking.id}`
+                );
+              }
+              const spotDetails = await spotResponse.json();
+              return { ...booking, type: "spot", details: spotDetails };
+            } else if (booking.eventId) {
+              const eventResponse = await fetch(
+                `http://localhost:8000/events/${booking.eventId}`
+              );
+              if (!eventResponse.ok) {
+                throw new Error(
+                  `Failed to fetch event details for booking ${booking.id}`
+                );
+              }
+              const eventDetails = await eventResponse.json();
+              return { ...booking, type: "event", details: eventDetails };
+            } else {
+              return booking;
+            }
+          })
+        );
 
-    }, [user]); // Only run once when user is available
+        setBookings(detailedBookings);
+      } catch (err) {
+        setError("Could not load booking or profile details.");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    // Display booking details
-    return ( 
-        <div className="max-w-lg mx-auto my-8">
-            {/* The header is now always visible */}
-            <h2 className="text-2xl font-bold mb-6">Booking History</h2>
+    fetchProfileAndBookings();
+  }, [user]);
 
-            {loading ? (
-                <p className="text-center text-lg">Loading booking details...</p>
-            ) : error ? (
-                <p className="text-center text-red-500">{error}</p>
-            ) : bookings.length === 0 ? (
-                <p>No booking found.</p>
-            ) : (
-                <div className="relative flex flex-col min-h-screen">
-                    {bookings.map((booking) => (
-                        <section key={booking.id} className="container mx-auto px-6 py-12 shadow-lg rounded-lg mb-4">
-                            <h1 className="text-4xl font-bold text-gray-800 mb-6">{booking.name}</h1>
-                            <div className="flex">
-                                <div className="ml-6">
-                                    <p className="text-lg text-gray-700 mb-4">{booking.description}</p>
-                                    <p className="text-lg text-gray-700 mb-4">Date: {booking.date}</p>
-                                    <p className="text-lg text-gray-700 mb-4">Time: {booking.time}</p>
-                                    <p className="text-lg text-gray-700 mb-4">Location: {booking.location}</p>
-                                </div>
-                            </div>
-                        </section>
-                    ))}
+  // Filter bookings based on search query
+  const filteredBookings = bookings.filter((booking) =>
+    (booking.type === "spot"
+      ? booking.details.spotName
+      : booking.details.eventName
+    )
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+
+  // Sort bookings based on selected order
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    if (sortOrder === "date") {
+      return new Date(b.bookingDate) - new Date(a.bookingDate);
+    } else if (sortOrder === "amount") {
+      return b.paymentAmount - a.paymentAmount;
+    }
+    return 0;
+  });
+
+  return (
+    <div className="container max-w-lg mx-auto my-8 max-h-screen">
+      <h2 className="text-2xl font-bold mb-6">Booking History</h2>
+
+      {loading ? (
+        <p className="text-center text-lg">Loading booking details...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">{error}</p>
+      ) : bookings.length === 0 ? (
+        <p>No bookings found.</p>
+      ) : (
+        <div className="flex-grow overflow-y-auto max-h-[80vh] scroll-smooth scroll-m-2">
+          <div className="relative mb-4">
+            <input
+              type="text"
+              className="w-full h-12 rounded focus:outline-none px-3 focus:shadow-md"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <i className="fa fa-search absolute right-3 top-4 text-gray-300"></i>
+          </div>
+
+          <div className="mb-4">
+            <label className="mr-2">Sort by:</label>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="p-2 border rounded"
+            >
+              <option value="date">Booking Date</option>
+              <option value="amount">Payment Amount</option>
+            </select>
+          </div>
+
+          {sortedBookings.map((booking) => (
+            <section
+              key={booking.id}
+              className="container mx-auto px-6 shadow-lg rounded-lg mb-4"
+            >
+              <div className="max-w-md mx-auto bg-white bg-opacity-60 shadow-lg rounded-lg overflow-hidden md:max-w-lg">
+                <div className="w-full p-4">
+                  <ul>
+                    <li
+                      key={booking.id}
+                      className="flex justify-between items-center bg-gray-500 bg-opacity-45 mt-2 p-2 hover:shadow-lg rounded cursor-pointer transition"
+                    >
+                      <div className="flex flex-col ml-2">
+                        <span className="font-medium text-lg text-black">
+                          {booking.type === "spot"
+                            ? booking.details.spotName
+                            : booking.details.eventName}
+                        </span>
+                        <span className="text-gray-900">
+                          {booking.bookingDate}
+                        </span>
+                        <span className="text-sm text-black font-bold">
+                          ${booking.paymentAmount}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col items-center">
+                        <span className="text-gray-900">
+                          {booking.adults} Adults
+                        </span>
+                        <span className="text-gray-900">
+                          {booking.kids} Kids
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
-            )}
+              </div>
+            </section>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 }

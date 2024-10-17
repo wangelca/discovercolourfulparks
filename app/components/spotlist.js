@@ -130,7 +130,10 @@ export default function Spots() {
             </h6>
             <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200 w-full">
               {parks.map((park) => (
-                <li key={park.parkId} className="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                <li
+                  key={park.parkId}
+                  className="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
                   <input
                     id={`park-${park.parkId}`}
                     type="checkbox"
@@ -169,10 +172,16 @@ export default function Spots() {
               </div>
               <div className="p-4">
                 <h2 className="text-lg font-semibold mb-2">{spot.spotName}</h2>
-                {spot.spotAdmission > 0? (
-                <p className="text-gray-700">
-                  <strong>Admission: $</strong> {spot.spotAdmission}
-                </p>):(<div> <strong>No booking is required.</strong></div>)}
+                {spot.spotAdmission > 0 ? (
+                  <p className="text-gray-700">
+                    <strong>Admission: $</strong> {spot.spotAdmission}
+                  </p>
+                ) : (
+                  <div>
+                    {" "}
+                    <strong>Free</strong>
+                  </div>
+                )}
                 <p className="text-gray-600 mt-2 line-clamp-2">
                   {spot.spotDescription}
                 </p>
@@ -188,19 +197,21 @@ export default function Spots() {
                 {/* Add a button to route to booking page if requiredbooking is true */}
                 {spot.requiredbooking ? (
                   <button
-    onClick={() => {
-      if (!isSignedIn) {
-        alert("Please sign in to continue booking.");
-        window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
-      } else {
-        window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
-      }
-    }}
-    className="mt-4 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
-  >
-    Book Now
-  </button>
-                ):(<div></div>)}
+                    onClick={() => {
+                      if (!isSignedIn) {
+                        alert("Please sign in to continue booking.");
+                        window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
+                      } else {
+                        window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
+                      }
+                    }}
+                    className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                  >
+                    Book Now
+                  </button>
+                ) : (
+                  <div></div>
+                )}
               </div>
             </div>
           ))

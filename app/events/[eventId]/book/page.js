@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
-export default function BookingPage({}) {
-  const { spotId } = useParams(); // Get dynamic route params
+export default function EventBookingPage({}) {
+  const { eventId } = useParams(); // Get dynamic route params
   const { isLoaded, isSignedIn, user } = useUser(); // Access loading and sign-in state
-  const [spot, setSpot] = useState(null);
+  const [event, setEvent] = useState(null);
   const [adults, setAdults] = useState(0);
   const [kids, setKids] = useState(0);
   const [bookingDate, setBookingDate] = useState("");
@@ -17,19 +17,36 @@ export default function BookingPage({}) {
     firstName: "",
     lastName: "",
     phoneNumber: "",
-    emailAddress:  "",
+    emailAddress: "",
   });
   const [adultError, setAdultError] = useState("");
   const [kidError, setKidError] = useState("");
   const [dateError, setDateError] = useState("");
 
+  const formatEventDate = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    // Format the date and time separately
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+  
+    const formattedDate = start.toLocaleDateString(undefined, dateOptions);
+    const formattedStartTime = start.toLocaleTimeString(undefined, timeOptions);
+    const formattedEndTime = end.toLocaleTimeString(undefined, timeOptions);
+  
+    // Return formatted date and time
+    return `${formattedDate}, ${formattedStartTime} - ${formattedEndTime}`;
+  };
+  
+
   useEffect(() => {
-    // Fetch spot details
-    fetch(`http://localhost:8000/spots/${spotId}`)
+    // Fetch event details
+    fetch(`http://localhost:8000/events/${eventId}`)
       .then((res) => res.json())
-      .then((data) => setSpot(data))
-      .catch((error) => console.error("Error fetching spot:", error));
-  }, [spotId]);
+      .then((data) => setEvent(data))
+      .catch((error) => console.error("Error fetching event:", error));
+  }, [eventId]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user) return; // Ensure user is loaded and signed in
@@ -42,30 +59,22 @@ export default function BookingPage({}) {
   }, [user, isLoaded, isSignedIn]);
 
   useEffect(() => {
-    if (spot) {
+    if (event) {
       calculateFee();
     }
   }, [adults, kids]);
 
   const calculateFee = () => {
-    if (!spot) {
-      return; // Return early if spot is not yet loaded
-    }
-  
-    const gst = 0.05;
-    const totalPersons = adults + kids;
-  
-    if (totalPersons > spot.spotLimit) {
-      setError("Number of persons exceeds the limit for this spot.");
+    if (!event) {
       return;
     }
-  
-    const feeWithoutGst = adults * spot.spotAdmission; // Only adults are charged
+
+    const gst = 0.05;
+    const feeWithoutGst = adults * event.fee; // Only adults are charged
     const gstAmount = feeWithoutGst * gst;
     const total = feeWithoutGst + gstAmount;
     setPaymentAmount(total); // Update the total fee
-  }; 
-
+  };
 
   const handleConfirmBooking = () => {
     let hasError = false;
@@ -85,56 +94,69 @@ export default function BookingPage({}) {
       setKidError("");
     }
 
-    if (new Date(bookingDate) < new Date()) {
-      setDateError("Booking date cannot be earlier than today.");
-      hasError = true;
-    } else if (!bookingDate) {
+    if (!bookingDate) {
       setDateError("Please select a booking date.");
       hasError = true;
     } else {
-      setDateError("");
+      // Convert the booking date string to a Date object
+      const bookingDateObj = new Date(bookingDate);
+  
+      // Convert event startDate and endDate to Date objects
+      const eventStartDate = new Date(event.startDate.split('T')[0]); // Extract date without time
+      const eventEndDate = new Date(event.endDate.split('T')[0]); // Extract date without time
+  
+      // Compare dates (ignoring time)
+      if (bookingDateObj < eventStartDate || bookingDateObj > eventEndDate) {
+        setDateError("Booking date must be within the event date range.");
+        hasError = true;
+      } else if (bookingDateObj < new Date().setHours(0, 0, 0, 0)) {
+        setDateError("Booking date cannot be in the past.");
+        hasError = true;
+      } else {
+        setDateError("");
+      }
     }
 
     if (hasError) return;
 
     const bookingData = {
-        spotId: spot.spotId,
-        id: profileData.id,  // Corresponds to userId
-        bookingDate: new Date(bookingDate),  // Make sure this is in a correct datetime format
-        adults,
-        kids,
-        paymentAmount,
-      };
-      
-      fetch("http://localhost:8000/spot-bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bookingData),
+      eventId: event.eventId,
+      id: profileData.id, // Corresponds to userId
+      bookingDate: new Date(bookingDate), // Make sure this is in a correct datetime format
+      adults,
+      kids,
+      paymentAmount,
+    };
+
+    fetch("http://localhost:8000/event-bookings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bookingData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        alert("Booking confirmed! A confirmation email will be sent.");
+        push("/events");
       })
-        .then((res) => res.json())
-        .then((data) => {          
-          alert("Booking confirmed! A confirmation email will be sent.");
-          push("/spots"); // Redirect to spots page after successful booking
-        })
-        .catch((error) => console.error("Error confirming booking:", error));      
+      .catch((error) => console.error("Error confirming booking:", error));
   };
 
   return (
     <div className="container mx-auto p-6">
       <div className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
-        {spot ? (
+        {event ? (
           <div>
-            <h1 className="text-3xl font-bold mb-4">Book {spot.spotName}</h1>
+            <h1 className="text-3xl font-bold mb-4">Book {event.eventName}</h1>
             <p>
-              <strong>Location:</strong> {spot.spotLocation}
+              <strong>Location:</strong> {event.eventLocation}
             </p>
             <p>
-              <strong>Admission Fee:</strong> ${spot.spotAdmission}
+              <strong>Admission Fee:</strong> ${event.fee}
             </p>
             <p>
-              <strong>Limit:</strong> {spot.spotLimit} persons
+              <strong>Event Date:</strong> {formatEventDate(event.startDate, event.endDate)}
             </p>
 
             <div className="mt-6">
@@ -156,9 +178,8 @@ export default function BookingPage({}) {
                     setAdults(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2"
+                  className="border rounded p-2 m-2"
                   min={0}
-                  max={spot.spotLimit}
                 />
                 {adultError && <p className="p-2 bg-red-500 shadow-info-3">{adultError}</p>}
               </p>
@@ -171,9 +192,8 @@ export default function BookingPage({}) {
                     setKids(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2"
+                  className="border rounded p-2 m-2"
                   min={0}
-                  max={spot.spotLimit}
                 />
                 {kidError && <p className="p-2 bg-red-500 shadow-info-3">{kidError}</p>}
               </p>
@@ -183,8 +203,9 @@ export default function BookingPage({}) {
                   type="date"
                   value={bookingDate}
                   onChange={(e) => setBookingDate(e.target.value)}
-                  className="border rounded p-2"
-                  min={new Date()} // Prevents past dates from being selected
+                  className="border rounded p-2 m-2"
+                  min={event.startDate} // Prevents past dates from being selected
+                  max={event.endDate} // Prevents booking after event end date
                 />
                 {dateError && <p className="p-2 bg-red-500 shadow-info-3">{dateError}</p>}
               </p>
@@ -194,20 +215,17 @@ export default function BookingPage({}) {
                 {paymentAmount.toFixed(2)}
               </p>
             </div>
-
-            {error && <p className="p-2 bg-red-500 shadow-info-3">{error}</p>}
-
-            <div className="mt-6">  
+            <div className="mt-6">
               <button
                 onClick={handleConfirmBooking}
-                className="bg-green-500 text-white py-2 px-4 rounded"
+                className="bg-green-500 text-white py-2 px-4 rounded self-center"
               >
                 Validation and Confirm Booking
               </button>
             </div>
           </div>
         ) : (
-          <p>Loading spot details...</p>
+          <p>Loading event details...</p>
         )}
       </div>
     </div>

@@ -50,9 +50,9 @@ export default function ParkPage() {
   }
 
   return (
-    <div className="relative flex flex-col min-h-screen">
+    <div className="relative flex flex-col min-h-screen p-6">
       {/* Park Details Section */}
-      <section className="container mx-auto px-6 py-12 shadow-lg rounded-lg">
+      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
         <h1 className="text-4xl font-bold text-gray-800 mb-6">{park.name}</h1>
         <div className="flex">
           <img
@@ -71,7 +71,7 @@ export default function ParkPage() {
       </section>
 
       {/* Google Maps Section */}
-      <section className="container mx-auto px-6 py-12">
+      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
         <h2 className="text-3xl font-semibold text-gray-800 mb-6">
           Location Map
         </h2>
@@ -86,7 +86,7 @@ export default function ParkPage() {
       </section>
 
       {/* Related Spots Section */}
-      <section className="container mx-auto px-6 py-12 bg-gray-50">
+      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
         <h2 className="text-3xl font-semibold text-gray-800 mb-6">
           Related Spots
         </h2>
@@ -141,7 +141,7 @@ export default function ParkPage() {
       </section>
 
       {/* Related Events Section */}
-      <section className="container mx-auto px-6 py-12">
+      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
         <h2 className="text-3xl font-semibold text-gray-800 mb-6">
           Upcoming Events
         </h2>
