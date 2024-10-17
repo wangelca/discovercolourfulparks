@@ -1,31 +1,36 @@
-from pydantic import BaseModel
-from typing import Optional
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
-class SpotReviewBase(BaseModel):
-    spot_id: int
-    user_id: int
-    rating: int
-    review: Optional[str] = None
+Base = declarative_base()
 
-class EventReviewBase(BaseModel):
-    event_id: int
-    user_id: int
-    rating: int
-    review: Optional[str] = None
+class Event(Base):
+    __tablename__ = 'events'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    location = Column(String)
+    description = Column(Text)
+    reviews = relationship("Review", back_populates="park")
 
-class SpotReviewCreate(SpotReviewBase):
-    pass
+class Spot(Base):
+    __tablename__ = 'spots'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(Text)
+    reviews = relationship("Review", back_populates="spot")
 
-class EventReviewCreate(EventReviewBase):
-    pass
+class Review(Base):
+    __tablename__ = 'reviews'
+    id = Column(Integer, primary_key=True, index=True)
+    rating = Column(Float)
+    comment = Column(Text)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    spot_id = Column(Integer, ForeignKey('spots.id'), nullable=True)
+    event = relationship("Event", back_populates="reviews")
+    spot = relationship("Spot", back_populates="reviews")
 
-class SpotReview(SpotReviewBase):
-    id: int
-    created_at: str
-    updated_at: str
 
-class EventReview(EventReviewBase):
-    id: int
-    created_at: str
-    updated_at: str
+
+
+
 
