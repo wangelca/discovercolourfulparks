@@ -1,12 +1,13 @@
+from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from database import database, SessionLocal
+from database import database, SessionLocal, Base, engine
 from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timezone
 import os
 import shutil
 
@@ -29,19 +30,18 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Colorful National Parks!"}
+
 @app.on_event("startup")
-async def startup():
-    await database.connect()
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Colorful National Parks!"}
-
-# Define a Pydantic model for Park, Spot, etc.
 class ParkResponse(BaseModel):
     parkId: int
     name: str
@@ -61,7 +61,7 @@ class EventResponse(BaseModel):
     eventLocation: str
     fee: float
     description: str
-    discount: float
+    discount: Optional[float] = None
     startDate: datetime
     endDate: datetime
     eventImageUrl: List[str]
@@ -115,12 +115,71 @@ class BookingResponse(BaseModel):
     bookingStatus: Optional[str] = None
     adults: int
     kids: int
-    totalFee: float
+    paymentAmount: float
 
     class Config:
         orm_mode=True
         arbitrary_types_allowed = True
-   
+
+
+@app.post("/event-bookings", response_model=BookingResponse)
+async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
+    
+    if isinstance(booking.bookingDate, str):
+        bookingDate = datetime.strptime(booking.bookingDate, '%Y-%m-%d').date()  # Parse into a date object
+    else:
+        bookingDate = booking.bookingDate
+
+    # Create a new booking
+    new_booking = Booking(
+        eventId=booking.eventId,
+        id=booking.id,  # User ID
+        bookingDate=booking.bookingDate,
+        bookingStatus="confirmed",
+        adults=booking.adults,
+        kids=booking.kids,
+        paymentAmount=booking.paymentAmount,
+        spotId=None  # No event ID for spot booking
+    )
+
+    db.add(new_booking)
+    db.commit()
+    db.refresh(new_booking)
+
+    # Return the new booking using BookingResponse
+    return new_booking    
+
+@app.get("/bookings/{booking_id}", response_model=BookingResponse)
+async def get_booking(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    event = db.query(Event).filter(Event.eventId == booking.eventId).first()
+
+    return BookingResponse(
+        bookingId=booking.bookingId,
+        id=booking.id,
+        eventId=booking.eventId,
+        bookingDate=booking.bookingDate,
+        bookingStatus=booking.bookingStatus,
+        requiresPayment=booking.paymentAmount > 0,
+        paymentAmount=booking.paymentAmount if booking.paymentAmount else 0.0
+    )
+
+@app.get("/payment/{booking_id}")
+async def payment_page(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Here you can handle logic to redirect or present the payment page
+    return {
+        "message": f"Payment page for booking ID {booking_id}",
+        "amount_due": booking.paymentAmount
+    }
+
 # get all parks
 @app.get("/parks", response_model=List[ParkResponse])
 async def get_parks(db: Session = Depends(get_db)):
@@ -429,7 +488,7 @@ async def create_booking(booking: BookingResponse, db: Session = Depends(get_db)
         bookingStatus="confirmed",
         adults=booking.adults,
         kids=booking.kids,
-        totalFee=booking.totalFee,
+        paymentAmount=booking.paymentAmount,
         eventId=None  # No event ID for spot booking
     )
 

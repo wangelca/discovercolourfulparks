@@ -11,7 +11,7 @@ export default function BookingPage({}) {
   const [adults, setAdults] = useState(0);
   const [kids, setKids] = useState(0);
   const [bookingDate, setBookingDate] = useState("");
-  const [totalFee, setTotalFee] = useState(0);
+  const [paymentAmount, setPaymentAmount] = useState(0);
   const [error, setError] = useState("");
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -63,7 +63,7 @@ export default function BookingPage({}) {
     const feeWithoutGst = adults * spot.spotAdmission; // Only adults are charged
     const gstAmount = feeWithoutGst * gst;
     const total = feeWithoutGst + gstAmount;
-    setTotalFee(total); // Update the total fee
+    setPaymentAmount(total); // Update the total fee
   }; 
 
 
@@ -103,7 +103,7 @@ export default function BookingPage({}) {
         bookingDate: new Date(bookingDate),  // Make sure this is in a correct datetime format
         adults,
         kids,
-        totalFee,
+        paymentAmount,
       };
       
       fetch("http://localhost:8000/spot-bookings", {
@@ -114,9 +114,9 @@ export default function BookingPage({}) {
         body: JSON.stringify(bookingData),
       })
         .then((res) => res.json())
-        .then((data) => {
-          console.log("Booking confirmed:", data);
-          alert("Booking confirmed! A confirmation email has been sent.");
+        .then((data) => {          
+          alert("Booking confirmed! A confirmation email will be sent.");
+          push("/spots"); // Redirect to spots page after successful booking
         })
         .catch((error) => console.error("Error confirming booking:", error));      
   };
@@ -160,7 +160,7 @@ export default function BookingPage({}) {
                   min={0}
                   max={spot.spotLimit}
                 />
-                {adultError && <p className="text-red-500">{adultError}</p>}
+                {adultError && <p className="p-2 bg-red-500 shadow-info-3">{adultError}</p>}
               </p>
               <p>
                 <label>Kids (below 12):</label>
@@ -175,7 +175,7 @@ export default function BookingPage({}) {
                   min={0}
                   max={spot.spotLimit}
                 />
-                {kidError && <p className="text-red-500">{kidError}</p>}
+                {kidError && <p className="p-2 bg-red-500 shadow-info-3">{kidError}</p>}
               </p>
               <p>
                 <label>Booking Date:</label>
@@ -186,21 +186,21 @@ export default function BookingPage({}) {
                   className="border rounded p-2"
                   min={new Date()} // Prevents past dates from being selected
                 />
-                {dateError && <p className="text-red-500">{dateError}</p>}
+                {dateError && <p className="p-2 bg-red-500 shadow-info-3">{dateError}</p>}
               </p>
 
               <p>
                 <strong>Total Fee (include 5% GST):</strong> $
-                {totalFee.toFixed(2)}
+                {paymentAmount.toFixed(2)}
               </p>
             </div>
 
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="p-2 bg-red-500 shadow-info-3">{error}</p>}
 
             <div className="mt-6">  
               <button
                 onClick={handleConfirmBooking}
-                className="bg-yellow-500 text-white py-2 px-4 rounded ml-4"
+                className="bg-green-500 text-white py-2 px-4 rounded"
               >
                 Validation and Confirm Booking
               </button>
