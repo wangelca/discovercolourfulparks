@@ -1,12 +1,13 @@
+from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from database import database, SessionLocal
-from models import Park, Spot, Event, User
+from database import database, SessionLocal, Base, engine
+from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from datetime import datetime
+from datetime import date, datetime, time, timezone
 import os
 import shutil
 
@@ -29,19 +30,18 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Colorful National Parks!"}
+
 @app.on_event("startup")
-async def startup():
-    await database.connect()
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Colorful National Parks!"}
-
-# Define a Pydantic model for Park, Spot, etc. if needed
 class ParkResponse(BaseModel):
     parkId: int
     name: str
@@ -61,7 +61,7 @@ class EventResponse(BaseModel):
     eventLocation: str
     fee: float
     description: str
-    discount: float
+    discount: Optional[float] = None
     startDate: datetime
     endDate: datetime
     eventImageUrl: List[str]
@@ -77,12 +77,15 @@ class SpotResponse(BaseModel):
     parkId: int
     spotName: str
     spotDescription: str
-    spotHourlyRate: float
+    spotAdmission: float
     spotDiscount: float
     spotLocation: str
     spotImageUrl: Optional [List[str]] = None
     parameters: Optional[str] = None
     requiredbooking: bool
+    openingHour: time
+    closingHour: time
+    spotLimit: int
 
     class Config:
         orm_mode=True
@@ -102,30 +105,94 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode=True        
         arbitrary_types_allowed = True
-
+        
 class BookingResponse(BaseModel):
-    bookingId: int
+    bookingId: Optional[int] = None
     id: int
-    spotId: int
-    eventId: int
-    bookingDate: datetime
-    bookingStartTime: datetime
-    bookingStatus: str
+    spotId: Optional[int] = None
+    eventId: Optional[int] = None
+    bookingDate: date
+    bookingStatus: Optional[str] = None
+    adults: int
+    kids: int
+    paymentAmount: float
 
     class Config:
         orm_mode=True
         arbitrary_types_allowed = True
 
+
+@app.post("/event-bookings", response_model=BookingResponse)
+async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
+    
+    if isinstance(booking.bookingDate, str):
+        bookingDate = datetime.strptime(booking.bookingDate, '%Y-%m-%d').date()  # Parse into a date object
+    else:
+        bookingDate = booking.bookingDate
+
+    # Create a new booking
+    new_booking = Booking(
+        eventId=booking.eventId,
+        id=booking.id,  # User ID
+        bookingDate=booking.bookingDate,
+        bookingStatus="confirmed",
+        adults=booking.adults,
+        kids=booking.kids,
+        paymentAmount=booking.paymentAmount,
+        spotId=None  # No event ID for spot booking
+    )
+
+    db.add(new_booking)
+    db.commit()
+    db.refresh(new_booking)
+
+    # Return the new booking using BookingResponse
+    return new_booking    
+
+@app.get("/bookings/{booking_id}", response_model=BookingResponse)
+async def get_booking(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    event = db.query(Event).filter(Event.eventId == booking.eventId).first()
+
+    return BookingResponse(
+        bookingId=booking.bookingId,
+        id=booking.id,
+        eventId=booking.eventId,
+        bookingDate=booking.bookingDate,
+        bookingStatus=booking.bookingStatus,
+        requiresPayment=booking.paymentAmount > 0,
+        paymentAmount=booking.paymentAmount if booking.paymentAmount else 0.0
+    )
+
+@app.get("/payment/{booking_id}")
+async def payment_page(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.bookingId == booking_id).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Here you can handle logic to redirect or present the payment page
+    return {
+        "message": f"Payment page for booking ID {booking_id}",
+        "amount_due": booking.paymentAmount
+    }
+
+# get all parks
 @app.get("/parks", response_model=List[ParkResponse])
 async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
     return parks
 
+# get all events
 @app.get("/events", response_model=List[EventResponse])
 async def get_events(db: Session = Depends(get_db)):
     events = db.query(Event).all()
     return events
 
+# get spots based on parkId and admission rate range
 @app.get("/spots", response_model=List[SpotResponse])
 async def get_spots(
     db: Session = Depends(get_db),
@@ -137,7 +204,7 @@ async def get_spots(
     query = db.query(Spot)
 
     # Filter by hourly rate range
-    query = query.filter(Spot.spotHourlyRate.between(min_hourly_rate, max_hourly_rate))
+    query = query.filter(Spot.spotAdmission.between(min_hourly_rate, max_hourly_rate))
 
     # Filter by multiple park IDs
     if park_id:
@@ -146,25 +213,21 @@ async def get_spots(
     spots = query.all()
     return spots
 
-#fetch spot listing backup
-#@app.get("/spots", response_model=List[SpotResponse])
-#async def get_spots(db: Session = Depends(get_db)):
-#    spots = db.query(Spot).all()
-#    return spots
-
+# get all users
 @app.get("/users", response_model=List[UserResponse])
 async def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return users
 
-@app.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.clerk_user_id == user_id).first()
+# get users by userId
+@app.get("/users/{clerk_user_id}", response_model=UserResponse)
+async def get_user(clerk_user_id: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.clerk_user_id == clerk_user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-#update the user by userId
+#update the user by userId (individual profile page)
 @app.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, user: UserResponse, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.clerk_user_id == user_id).first()
@@ -182,7 +245,7 @@ async def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return user.bookings
+    return user.booking
 
 #update the park by parkId
 @app.put("/parks/{parkId}", response_model=ParkResponse)
@@ -208,6 +271,7 @@ async def create_park(park: ParkResponse, db: Session = Depends(get_db)):
     db.refresh(new_park)
     return new_park
 
+# get a park by parkId
 @app.get("/parks/{parkId}", response_model=ParkResponse)
 async def get_park(parkId: int, db: Session = Depends(get_db)):
     park = db.query(Park).filter(Park.parkId == parkId).first()
@@ -231,6 +295,7 @@ async def get_park_spots(parkId: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Park not found")
     return park.spots
 
+#get event details by eventId
 @app.get("/events/{event_id}", response_model=EventResponse)
 async def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.eventId == event_id).first()
@@ -312,8 +377,6 @@ async def create_event(
 
     return new_event
 
-
-
 #get all events in a park 
 @app.get("/parks/{parkId}/events", response_model=List[EventResponse])
 async def get_park_events(parkId: int, db: Session = Depends(get_db)):
@@ -322,6 +385,7 @@ async def get_park_events(parkId: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Park not found")
     return park.events
 
+# get spot details by spotId
 @app.get("/spots/{spotId}", response_model=SpotResponse)
 async def get_spot(spotId: int, db: Session = Depends(get_db)):
     spot = db.query(Spot).filter(Spot.spotId == spotId).first()
@@ -335,10 +399,13 @@ async def create_spot(
     parkId: str = Form(...),
     spotName: str = Form(...),
     spotDescription: str = Form(...),
-    spotHourlyRate: float = Form(...),
+    spotAdmission: float = Form(...),
     spotDiscount: float = Form(...),
     spotLocation: str = Form(...),
+    openingHour: str = Form (...),
+    closingHour: str= Form(...),
     requiredbooking: bool = Form(...),
+    spotLimit: int = Form(...),
     spotImageUrl: UploadFile = File(...),  # Accept one image as file input
     db: Session = Depends(get_db)
 ):
@@ -351,7 +418,7 @@ async def create_spot(
         new_spot_id = highest_spot_id.spotId + 1
     else:
         # If no spots exist for this park, start with the parkId followed by 01
-        new_spot_id = int(f"{parkId}01")
+        new_spot_id = int(f"{parkId}001")
 
     # Fetch the province from the park table based on the parkId
     park = db.query(Park).filter(Park.parkId == parkId).first()
@@ -367,13 +434,8 @@ async def create_spot(
 
     # Validate file format
     if spotImageUrl.content_type not in ["image/jpeg", "image/png"]:
-        raise HTTPException(status_code=400, detail="Invalid image format. Only JPEG and PNG are allowed.")
-    
-
-    
-    if spotImageUrl.content_type not in ["image/jpeg", "image/png"]:
-        raise HTTPException(status_code=400, detail="Invalid image format. Only JPEG and PNG are allowed.")
-    
+        raise HTTPException(status_code=400, detail="Invalid image format. Only JPEG and PNG are allowed.")    
+   
     # Save the image to the public directory
     image_paths = []    
     image_path = os.path.join("public", spotImageUrl.filename).replace("\\", "/")
@@ -384,7 +446,6 @@ async def create_spot(
     # Store the relative path as ".\\<filename>" for database
     relative_image_path = f"..\\{spotImageUrl.filename}"  # Adjust the format here
     image_paths.append(relative_image_path)  # Add the single image path to the array
-
     
     # Create new spot object
     new_spot = Spot(
@@ -392,11 +453,14 @@ async def create_spot(
         parkId=parkId,
         spotName=spotName,
         spotDescription=spotDescription,
-        spotHourlyRate=spotHourlyRate,
+        spotAdmission=spotAdmission,
         spotDiscount=spotDiscount,
         spotLocation=spotLocation,
         spotImageUrl=image_paths ,  # Save the image path in the database
+        openingHour=openingHour,
+        closingHour=closingHour,
         requiredbooking=requiredbooking,
+        spotLimit=spotLimit,
         parameters=parameters
     )
     
@@ -407,3 +471,30 @@ async def create_spot(
 
     return new_spot
 
+# add a new spot booking
+@app.post("/spot-bookings", response_model=BookingResponse)
+async def create_booking(booking: BookingResponse, db: Session = Depends(get_db)):
+
+    if isinstance(booking.bookingDate, str):
+        bookingDate = datetime.strptime(booking.bookingDate, '%Y-%m-%d').date()  # Parse into a date object
+    else:
+        bookingDate = booking.bookingDate
+
+    # Create a new booking
+    new_booking = Booking(
+        spotId=booking.spotId,
+        id=booking.id,  # User ID
+        bookingDate=booking.bookingDate,
+        bookingStatus="confirmed",
+        adults=booking.adults,
+        kids=booking.kids,
+        paymentAmount=booking.paymentAmount,
+        eventId=None  # No event ID for spot booking
+    )
+
+    db.add(new_booking)
+    db.commit()
+    db.refresh(new_booking)
+
+    # Return the new booking using BookingResponse
+    return new_booking

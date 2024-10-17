@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export default function Spots() {
   const [spots, setSpots] = useState([]); // Initialize with an empty array
-  const [hourlyRateRange, setHourlyRateRange] = useState([0, 9999]); // Initial range of hourly rate
+  const [hourlyRateRange, setHourlyRateRange] = useState([0, 500]); // Initial range of hourly rate
   const [selectedParkIds, setSelectedParkIds] = useState([]); // Stores selected park IDs
   const [parks, setParks] = useState([]); // Store parks fetched from the API
   const [showDropdown, setShowDropdown] = useState(false); // State to toggle dropdown
+  const { isSignedIn } = useUser(); // Check if the user is signed in
 
   // Function to fetch filtered spots
   const fetchSpots = () => {
@@ -63,15 +65,15 @@ export default function Spots() {
       <h1 className="text-3xl font-bold mb-6">Spots</h1>
       {/* Filter Section */}
       <div className="flex mb-6 border-2 w-3/5 rounded-2xl bg-gray-100 shadow-2 p-3">
-        {/* Hourly Rate Slider */}
+        {/* Admission Fee Slider */}
         <div className="w-1/2 px-5 border-amber-200 border-r-3 ">
           <label className="block text-sm font-medium text-gray-700">
-            Hourly Rate Range
+            Admission Fee Range
           </label>
           <input
             type="range"
             min="0"
-            max="9999"
+            max="500"
             step="1"
             value={hourlyRateRange[1]} // Bind the value to the max value of the range
             onChange={(e) =>
@@ -128,7 +130,10 @@ export default function Spots() {
             </h6>
             <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200 w-full">
               {parks.map((park) => (
-                <li key={park.parkId} className="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                <li
+                  key={park.parkId}
+                  className="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
                   <input
                     id={`park-${park.parkId}`}
                     type="checkbox"
@@ -167,9 +172,16 @@ export default function Spots() {
               </div>
               <div className="p-4">
                 <h2 className="text-lg font-semibold mb-2">{spot.spotName}</h2>
-                <p className="text-gray-700">
-                  <strong>Hourly Rate: </strong> {spot.spotHourlyRate}
-                </p>
+                {spot.spotAdmission > 0 ? (
+                  <p className="text-gray-700">
+                    <strong>Admission: $</strong> {spot.spotAdmission}
+                  </p>
+                ) : (
+                  <div>
+                    {" "}
+                    <strong>Free</strong>
+                  </div>
+                )}
                 <p className="text-gray-600 mt-2 line-clamp-2">
                   {spot.spotDescription}
                 </p>
@@ -182,6 +194,24 @@ export default function Spots() {
                 >
                   View Details
                 </a>
+                {/* Add a button to route to booking page if requiredbooking is true */}
+                {spot.requiredbooking ? (
+                  <button
+                    onClick={() => {
+                      if (!isSignedIn) {
+                        alert("Please sign in to continue booking.");
+                        window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
+                      } else {
+                        window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
+                      }
+                    }}
+                    className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                  >
+                    Book Now
+                  </button>
+                ) : (
+                  <div></div>
+                )}
               </div>
             </div>
           ))

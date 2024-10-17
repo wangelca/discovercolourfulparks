@@ -20,26 +20,13 @@ export default function ProfilePage() {
 
   // Fetch the user profile details from your database using Clerk's user.id
   useEffect(() => {
-    if (!user) return;
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/users/${user.id}`
-        ); // Assuming user.id matches with clerk_user_id in DB
-        const { firstName, lastName, phoneNumber } = response.data;
-        setProfileData({
-          firstName,
-          lastName,
-          phoneNumber,
-          emailAddress: user?.primaryEmailAddress?.emailAddress,
-        });
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        setError("Failed to fetch profile data.");
-      }
-    };
-
-    fetchProfile();
+    if (!user) return; 
+    fetch(`http://localhost:8000/users/${user.id}`)
+      .then((res) => res.json())
+      .then((data) => setProfileData(data))
+      .catch((error) =>
+        console.error("Error fetching profile detaisl:", error)
+      );
   }, [user]);
 
   // Handle form input changes
@@ -66,7 +53,6 @@ export default function ProfilePage() {
         setSuccess(true);
         setIsEditing(false); // Disable editing mode
       } catch (error) {
-        console.error("Error updating profile:", error);
         setError("Failed to update profile data.");
       }
     }
@@ -102,7 +88,7 @@ export default function ProfilePage() {
             </tr>
             <tr>
               <td className="px-4 py-2 font-semibold">Email Address:</td>
-              <td className="px-4 py-2">{profileData.emailAddress}</td>
+              <td className="px-4 py-2">{profileData.email}</td>
             </tr>
           </tbody>
         </table>
@@ -149,7 +135,7 @@ export default function ProfilePage() {
             <input
               type="email"
               name="emailAddress"
-              value={profileData.emailAddress}
+              value={profileData.email}
               className="w-full px-4 py-2 border rounded bg-gray-200"
               readOnly // Email cannot be edited
             />
