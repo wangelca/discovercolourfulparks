@@ -1,30 +1,30 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { createReview } from './reviews'; 
 
-const ReviewForm = ({ type, id }) => {
-  const [rating, setRating] = useState(1);
-  const [review, setReview] = useState("");
+const ReviewForm = ({ event_id, spotId }) => {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = type === "spot" ? `/spots/reviews/` : `/events/reviews/`;
-    try {
-      await axios.post(url, { [`${type}_id`]: id, rating, review });
-      alert("Review submitted successfully!");
-    } catch (error) {
-      console.error("Error submitting review", error);
-    }
+    await createReview({ rating, comment, event_id: event_Id, spot_id: spotId });
+    setRating(0);
+    setComment("");
+    alert("Review submitted!");
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>Rating:
-        <input type="number" value={rating} onChange={e => setRating(e.target.value)} min="1" max="5" />
-      </label>
-      <label>Review:
-        <textarea value={review} onChange={e => setReview(e.target.value)} />
-      </label>
-      <button type="submit">Submit Review</button>
+      <h3>Leave a Review</h3>
+      <div>
+        <label>Rating: </label>
+        <input type='number' value={rating} onChange={e => setRating(e.target.value)} min="0" max="5" step="0.5" />
+      </div>
+      <div>
+        <label>Comment: </label>
+        <textarea value={comment} onChange={e => setComment(e.target.value)} />
+      </div>
+      <button type='submit'>Submit</button>
     </form>
   );
 };
