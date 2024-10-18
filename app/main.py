@@ -377,6 +377,29 @@ async def create_event(
 
     return new_event
 
+#update an event by eventId
+@app.put("/events/{eventId}", response_model=EventResponse)
+async def update_event(eventId: int, event: EventResponse, db: Session = Depends(get_db)):
+    db_event = db.query(Event).filter(Event.eventId == eventId).first()
+    if db_event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Update the event fields with the data coming from the request
+    db_event.eventName = event.eventName
+    db_event.description = event.description
+    db_event.fee = event.fee
+    db_event.discount = event.discount
+    db_event.eventLocation = event.eventLocation
+    db_event.startDate = event.startDate
+    db_event.endDate = event.endDate
+    db_event.eventImageUrl = event.eventImageUrl
+    db_event.parameters = event.parameters
+    db_event.requiredbooking = event.requiredbooking
+    
+    db.commit()  # Commit the changes to the database
+    db.refresh(db_event)  # Refresh the instance with the new data
+    return event
+
 #get all events in a park 
 @app.get("/parks/{parkId}/events", response_model=List[EventResponse])
 async def get_park_events(parkId: int, db: Session = Depends(get_db)):
