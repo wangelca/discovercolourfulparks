@@ -26,7 +26,7 @@ export default function ParksAdmin() {
       <div className="overflow-x-auto">
       <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-gray-700 text-left text-white font-semibold">
+            <tr className="bg-gray-700 text-left text-white font-semibold text-medium">
               <th className="w-1/5 py-3 px-6">Image</th>
               <th className="py-3 px-6">Park Name</th>
               <th className="py-3 px-6">Province</th>
