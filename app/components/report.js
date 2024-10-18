@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { saveAs } from 'file-saver'; // Install file-saver to handle file downloads
+import { jsPDF } from 'jspdf'; // For PDF export
+import 'jspdf-autotable'; // For table export in PDF
 
 export default function ReportPage() {
   const [reportType, setReportType] = useState('');
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Convert JSON to CSV and trigger download
   const downloadCSV = (jsonData, reportType) => {
@@ -21,18 +25,44 @@ export default function ReportPage() {
     saveAs(blob, `${reportType}_report.csv`);
   };
 
+  // Export dashboard as PDF
+  const exportDashboardAsPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Spot Revenue Report', 14, 16);
+    doc.autoTable({
+      head: [['Spot ID', 'Spot Name', 'Event ID', 'Event Name', 'Total Revenue']],
+      body: reportData.map(row => [
+        row.spot_id,
+        row.spot_name,
+        row.event_id,
+        row.event_name,
+        row.total_revenue
+      ]),
+    });
+    doc.save('Spot_Revenue_Report.pdf');
+  };
+
   // Fetch report data based on the selected type
   const fetchReport = async () => {
     setError('');
     setReportData(null);
 
-    try {
-      let response;
-      if (reportType === 'userList') {
-        response = await axios.get('http://localhost:8000/users');
-      } else if (reportType === 'spotRevenue') {
-        response = await axios.get('http://localhost:8000/spots'); // Correct endpoint for spot revenue
-      }
+  try {
+    let response;
+    if (reportType === 'userList') {
+      response = await axios.get('http://localhost:8000/users');
+    } else if (reportType === 'spotList') {
+      response = await axios.get('http://localhost:8000/spots');
+    } else if (reportType === 'eventList') {
+      response = await axios.get('http://localhost:8000/events');
+    } else if (reportType === 'bookingList') {
+      response = await axios.get('http://localhost:8000/bookings');
+    } else if (reportType === 'spotRevenue') {
+      // Use the startDate and endDate when fetching spot revenue
+      response = await axios.get('http://localhost:8000/spot-revenue', {
+        params: { start_date: startDate, end_date: endDate },
+      });
+    }
 
       setReportData(response.data);
     } catch (error) {
@@ -42,7 +72,7 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto my-8">
+    <div className="w-full my-8 px-6">
       <h2 className="text-2xl font-bold mb-4">Generate Reports</h2>
 
       {/* Dropdown to select report type */}
@@ -50,14 +80,42 @@ export default function ReportPage() {
         <label className="block text-gray-700">Select Report Type</label>
         <select
           value={reportType}
-          onChange={(e) => setReportType(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
+          onChange={(e) => {setReportType(e.target.value), setError('')}}
+          className="w-1/2 px-4 py-2 border rounded"
         >
           <option value="">Select a report</option>
           <option value="userList">User List</option>
+          <option value="spotList">Spot List</option>
+          <option value="eventList">Event List</option>
+          <option value="bookingList">Booking List</option>
           <option value="spotRevenue">Spot Revenue List</option>
         </select>
       </div>
+
+ {/* Date range input */}
+ {reportType === 'spotRevenue' && (
+        <>
+          <div className="mb-4">
+            <label className="block text-gray-700">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-1/2 px-4 py-2 border rounded"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-1/2 px-4 py-2 border rounded"
+            />
+          </div>
+        </>
+      )}
 
       {/* Button to generate report */}
       <div className="flex space-x-4">
@@ -78,13 +136,14 @@ export default function ReportPage() {
       </div>
 
       {/* Display Report Data */}
-      {error && <div className="text-red-600 mt-4">{error}</div>}
+      {error && <div className="bg-red-600 mt-4">{error}</div>}
 
       {reportData && (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Report Results</h3>
 
-          <table className="min-w-full bg-white shadow-md rounded">
+          <div className="overflow-x-auto">
+            <table className="min-w-full max-w-screen bg-white shadow-md rounded">
             <thead>
               <tr>
                 {/* Dynamically render table headers */}
@@ -104,6 +163,7 @@ export default function ReportPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
