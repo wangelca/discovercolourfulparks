@@ -31,12 +31,13 @@ export default function EventBookingPage({}) {
     const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
   
-    const formattedDate = start.toLocaleDateString(undefined, dateOptions);
+    const formattedstartDate = start.toLocaleDateString(undefined, dateOptions);
+    const formattedendtDate = end.toLocaleDateString(undefined, dateOptions);
     const formattedStartTime = start.toLocaleTimeString(undefined, timeOptions);
     const formattedEndTime = end.toLocaleTimeString(undefined, timeOptions);
   
     // Return formatted date and time
-    return `${formattedDate}, ${formattedStartTime} - ${formattedEndTime}`;
+    return `${formattedstartDate}, ${formattedStartTime} - ${formattedendtDate}, ${formattedEndTime}`;
   };
   
 
