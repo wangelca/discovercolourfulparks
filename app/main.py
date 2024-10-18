@@ -530,7 +530,6 @@ async def create_booking(booking: BookingResponse, db: Session = Depends(get_db)
     # Return the new booking using BookingResponse
     return new_booking
 
-
 # Generate revenue report for bookings
 @app.get("/spot-revenue")
 async def get_spot_revenue(
@@ -560,3 +559,4 @@ async def get_spot_revenue(
         "event_name": r.event_name,
         "total_revenue": r.total_revenue
     } for r in revenue_data])
+

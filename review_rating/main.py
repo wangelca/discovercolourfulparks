@@ -1,3 +1,4 @@
+# references : ChatGPT: create the afstAPI routes to submit reviews and retrieve them
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .models import Park, Spot, Review
