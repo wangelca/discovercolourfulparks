@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { push } from "react-burger-menu";
+import { useRouter } from "next/navigation";
 
 export default function UserBooking() {
   const [profileData, setProfileData] = useState(null);
@@ -10,7 +12,7 @@ export default function UserBooking() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState(""); // For search input
   const [sortOrder, setSortOrder] = useState("date"); // For sorting
-
+  const router = useRouter();
   const { user } = useUser();
 
   useEffect(() => {
@@ -135,9 +137,23 @@ export default function UserBooking() {
               key={booking.id}
               className="container mx-auto px-6 shadow-lg rounded-lg mb-4"
             >
-              <div className="max-w-md mx-auto bg-white bg-opacity-60 shadow-lg rounded-lg overflow-hidden md:max-w-lg">
+              <div
+                className="max-w-md mx-auto bg-white bg-opacity-60 shadow-lg rounded-lg overflow-hidden md:max-w-lg"
+                //route the event or spot details page
+                onClick={() =>
+                  router.push(
+                    booking.type === "spot"
+                      ? `/spots/${booking.spotId}`
+                      : `/events/${booking.eventId}`
+                  )
+                }
+              >
                 <div className="w-full p-4">
                   <ul>
+                    <div className="mx-auto bg-green-500 bg-opacity-70">
+                      {" "}
+                      <span>ID: {booking.bookingId} </span>
+                    </div>
                     <li
                       key={booking.id}
                       className="flex justify-between items-center bg-gray-500 bg-opacity-45 mt-2 p-2 hover:shadow-lg rounded cursor-pointer transition"
@@ -149,10 +165,10 @@ export default function UserBooking() {
                             : booking.details.eventName}
                         </span>
                         <span className="text-gray-900">
-                          {booking.bookingDate}
+                          Event/ Booking Date: {booking.bookingDate}
                         </span>
                         <span className="text-sm text-black font-bold">
-                          ${booking.paymentAmount}
+                          Paid: ${booking.paymentAmount}
                         </span>
                       </div>
 

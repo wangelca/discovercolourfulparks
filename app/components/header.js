@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs";
+import {
+  useUser,
+  SignInButton,
+  SignOutButton,
+  UserButton,
+} from "@clerk/nextjs";
 import Image from "next/image";
-
 
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); 
-
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMenuToggle = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
- 
 
   return (
     <header className="bg-white shadow-lg">
@@ -31,17 +33,18 @@ export default function Header() {
           <div className="flex items-center lg:order-2">
             <div>
               {!isSignedIn ? (
-                <SignInButton redirectUrl="/">
+                <SignInButton redirectUrl="/" mode='modal'> 
                   <button className="bg-green-800 text-white text-xl font-semibold py-2.5 px-6 rounded-full transition hover:bg-gray-700 mx-2">
                     Sign In
                   </button>
                 </SignInButton>
               ) : (
-                <SignOutButton>
-                  <button className="bg-black text-white text-xl font-semibold py-2.5 px-6 rounded-full transition hover:bg-gray-700">
-                    Sign Out
-                  </button>
-                </SignOutButton>
+                <UserButton
+                  appearance={{
+                    userButtonPopoverActionButton:
+                      "bg-slate-500 hover:bg-slate-400 text-sm",
+                  }}
+                />
               )}
             </div>
             <button
@@ -85,39 +88,34 @@ export default function Header() {
             id="mobile-menu-2"
           >
             <ul className="flex flex-col mt-4 text-xl font-bold lg:flex-row lg:space-x-8 lg:mt-0">
-              <li className="text-lg group relative w-max">  
-                <a
-                  href="/parks">
+              <li className="text-lg group relative w-max">
+                <a href="/parks">
                   <span>Parks</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-indigo-600 group-hover:w-full"></span>                  
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-indigo-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
-                <a
-                  href="/events">
+                <a href="/events">
                   <span>Events</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-blue-600 group-hover:w-full"></span>       
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-blue-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
-                <a
-                  href="/spots">
+                <a href="/spots">
                   <span>Spots</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-green-600 group-hover:w-full"></span>       
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-green-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
-                <a
-                  href="/fees">
+                <a href="/fees">
                   <span>Admissions</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-orange-400 group-hover:w-full"></span>       
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-orange-400 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
-                <a
-                  href="/aboutus">
+                <a href="/aboutus">
                   <span>About Us</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>       
+                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>
                 </a>
               </li>
             </ul>
@@ -135,9 +133,4 @@ export default function Header() {
   /*ChatGPT prompt:please draft the next.js code for mobile menu*/
 }
 
-{
-  /*Ref: https://flowbite.com/blocks/marketing/header/ */
-}
-{
-  /*ChatGPT prompt:please draft the next.js code for mobile menu*/
-}
+
