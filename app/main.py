@@ -3,9 +3,11 @@ from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Fo
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import database, SessionLocal, Base, engine
 from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
 import os
@@ -148,6 +150,12 @@ async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
 
     # Return the new booking using BookingResponse
     return new_booking    
+
+#get all bookings
+@app.get("/bookings", response_model=List[BookingResponse])
+async def get_bookings(db: Session = Depends(get_db)):
+    bookings = db.query(Booking).all()
+    return bookings
 
 @app.get("/bookings/{booking_id}", response_model=BookingResponse)
 async def get_booking(booking_id: int, db: Session = Depends(get_db)):
@@ -521,3 +529,34 @@ async def create_booking(booking: BookingResponse, db: Session = Depends(get_db)
 
     # Return the new booking using BookingResponse
     return new_booking
+
+# Generate revenue report for bookings
+@app.get("/spot-revenue")
+async def get_spot_revenue(
+    start_date: date = Query(...), 
+    end_date: date = Query(...), 
+    db: Session = Depends(get_db)
+):
+    revenue_data = (
+        db.query(
+            Booking.spotId,
+            Spot.spotName.label("spot_name"),
+            Booking.eventId,
+            Event.eventName.label("event_name"),
+            func.sum(Booking.paymentAmount).label("total_revenue")
+        )
+        .join(Spot, Spot.spotId == Booking.spotId, isouter=True)
+        .join(Event, Event.eventId == Booking.eventId, isouter=True)
+        .filter(Booking.bookingDate.between(start_date, end_date))
+        .group_by(Booking.spotId, Spot.spotName, Booking.eventId, Event.eventName)  # Group by spotName and eventName
+        .all()
+    )
+    
+    return JSONResponse(content=[{
+        "spot_id": r.spotId,
+        "spot_name": r.spot_name,
+        "event_id": r.eventId,
+        "event_name": r.event_name,
+        "total_revenue": r.total_revenue
+    } for r in revenue_data])
+

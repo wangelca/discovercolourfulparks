@@ -156,7 +156,7 @@ export default function BookingPage({}) {
                     setAdults(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2"
+                  className="border rounded p-2  m-2"
                   min={0}
                   max={spot.spotLimit}
                 />
@@ -171,7 +171,7 @@ export default function BookingPage({}) {
                     setKids(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2"
+                  className="border rounded p-2  m-2"
                   min={0}
                   max={spot.spotLimit}
                 />
@@ -183,7 +183,7 @@ export default function BookingPage({}) {
                   type="date"
                   value={bookingDate}
                   onChange={(e) => setBookingDate(e.target.value)}
-                  className="border rounded p-2"
+                  className="border rounded p-2  m-2"
                   min={new Date()} // Prevents past dates from being selected
                 />
                 {dateError && <p className="p-2 bg-red-500 shadow-info-3">{dateError}</p>}
