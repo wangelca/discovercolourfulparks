@@ -1,3 +1,4 @@
+# references : chatGPT: define the pydantic models for request validation
 from pydantic import BaseModel
 from typing import Optional
 

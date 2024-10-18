@@ -1,3 +1,4 @@
+# references : https://www.javatpoint.com/connect-to-a-postgresql-database-server
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
