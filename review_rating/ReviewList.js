@@ -1,3 +1,4 @@
+// references : chatGPT: to display reviews for an event or spot
 import React, {useEffect, useState} from 'react';
 import { getEventReviews, getSpotReviews } from './reviews';
 
