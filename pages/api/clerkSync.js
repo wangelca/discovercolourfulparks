@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { createClerkClient } from "@clerk/nextjs/server";
 
-const prisma = new PrismaClient();
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
@@ -10,10 +8,7 @@ export default async function handler(req, res) {
   try {
     // Fetch all users from Clerk using the SDK
 
-    const { data: userList } = await clerkClient.users.getUserList();
-
     const response = await clerkClient.users.getUserList();
-
 
     // Assuming the user list is nested in `response.data` or similar
     const userList = response.users || response.data || [];

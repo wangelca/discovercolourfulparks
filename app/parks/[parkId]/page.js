@@ -153,6 +153,7 @@ export default function ParkPage() {
             >
               <img
                 src={event.eventImageUrl[0]}
+                alt={event.eventName || "Event image"}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
