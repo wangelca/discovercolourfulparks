@@ -193,7 +193,7 @@ export default function EventBookingPage({}) {
                     setKids(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2 m-2"
+                  className="border rounded p-2 m-2 align-right"
                   min={0}
                 />
                 {kidError && <p className="p-2 bg-red-500 shadow-info-3">{kidError}</p>}
