@@ -82,6 +82,7 @@ class SpotResponse(BaseModel):
     spotAdmission: float
     spotDiscount: float
     spotLocation: str
+    category: Optional[str] = None
     spotImageUrl: Optional [List[str]] = None
     parameters: Optional[str] = None
     requiredbooking: bool
@@ -433,6 +434,7 @@ async def create_spot(
     spotAdmission: float = Form(...),
     spotDiscount: float = Form(...),
     spotLocation: str = Form(...),
+    category: str = Form(...),
     openingHour: str = Form (...),
     closingHour: str= Form(...),
     requiredbooking: bool = Form(...),
@@ -487,6 +489,7 @@ async def create_spot(
         spotAdmission=spotAdmission,
         spotDiscount=spotDiscount,
         spotLocation=spotLocation,
+        category=category,
         spotImageUrl=image_paths ,  # Save the image path in the database
         openingHour=openingHour,
         closingHour=closingHour,

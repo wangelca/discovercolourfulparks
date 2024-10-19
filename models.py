@@ -57,6 +57,7 @@ class Spot(Base):
     spotAdmission = Column(Float)
     spotDiscount = Column(Float)
     spotLocation = Column(String)
+    category = Column(String)
     spotImageUrl = Column(ARRAY(String), nullable=True)
     parameters = Column(String, nullable=True)
     requiredbooking = Column(Boolean, default=False)

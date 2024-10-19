@@ -13,6 +13,7 @@ const AddSpotPage = () => {
     spotAdmission: "",
     spotDiscount: "",
     spotLocation: "",
+    category: "",
     openingHour: "00:00:00",
     closingHour: "23:59:00",
     spotLimit: "99999999",
@@ -94,6 +95,7 @@ const AddSpotPage = () => {
         "Spot capacity should be between 1 to 99999999 (i.e no limit).";
     }
     if (!formData.spotLocation) newErrors.spotLocation = "Location is required";
+    if (!formData.category) newErrors.category = "Category is required";
     if (!formData.spotImageUrl)
       newErrors.spotImageUrl = "Spot image is required";
     setErrors(newErrors);
@@ -118,6 +120,7 @@ const AddSpotPage = () => {
     formDataObj.append("spotAdmission", formData.spotAdmission);
     formDataObj.append("spotDiscount", formData.spotDiscount);
     formDataObj.append("spotLocation", formData.spotLocation);
+    formDataObj.append("category", formData.category);
     formDataObj.append("requiredbooking", formData.requiredbooking);
     formDataObj.append("openingHour", formData.openingHour);
     formDataObj.append("closingHour", formData.closingHour);
@@ -185,7 +188,7 @@ const AddSpotPage = () => {
                 ))}
               </select>
               {errors.parkId && (
-                <span className="text-red-500">{errors.parkId}</span>
+                <span className="bg-red-500">{errors.parkId}</span>
               )}
             </div>
 
@@ -206,7 +209,7 @@ const AddSpotPage = () => {
                 placeholder="Write a description here"
               />
               {errors.spotDescription && (
-                <span className="text-red-500">{errors.spotDescription}</span>
+                <span className="bg-red-500">{errors.spotDescription}</span>
               )}
             </div>
 
@@ -226,7 +229,7 @@ const AddSpotPage = () => {
                 placeholder="50"
               />
               {errors.spotAdmission && (
-                <span className="text-red-500">{errors.spotAdmission}</span>
+                <span className="bg-red-500">{errors.spotAdmission}</span>
               )}
             </div>
 
@@ -247,7 +250,7 @@ const AddSpotPage = () => {
                 placeholder="0"
               />
               {errors.spotDiscount && (
-                <span className="text-red-500">{errors.spotDiscount}</span>
+                <span className="bg-red-500">{errors.spotDiscount}</span>
               )}
             </div>
             <div>
@@ -294,7 +297,32 @@ const AddSpotPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
               />
               {errors.spotLocation && (
-                <span className="text-red-500">{errors.spotLocation}</span>
+                <span className="bg-red-500">{errors.spotLocation}</span>
+              )}
+            </div>
+            <div class="w-full">
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Spot category
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              >
+                <option value="">Select a spot category</option>
+                  <option key="Popular Spots" value="Popular Spots">
+                    Popular Spots
+                  </option>
+                  <option key="Activities" value="Activities">
+                    Activities
+                  </option>
+                  <option key="Sites and Attractions" value="Sites and Attractions">
+                  Sites and Attractions
+                  </option>                    
+              </select>
+              {errors.spotLocation && (
+                <span className="bg-red-500">{errors.spotLocation}</span>
               )}
             </div>
             <div class="w-full">
@@ -313,7 +341,7 @@ const AddSpotPage = () => {
                 defaultValue={99999999}
               />
               {errors.spotLimit && (
-                <span className="text-red-500">{errors.spotLimit}</span>
+                <span className="bg-red-500">{errors.spotLimit}</span>
               )}
             </div>
             <div>
@@ -374,22 +402,22 @@ const AddSpotPage = () => {
                 {summary.spotLocation}
               </p>
               <p className="text-lg">
+                <strong className="font-semibold">Category:</strong>{" "}
+                {summary.category}
+              </p>
+              <p className="text-lg">
                 <strong className="font-semibold">Description:</strong>{" "}
                 {summary.spotDescription}
               </p>
               <p className="text-lg">
                 <strong className="font-semibold">Admission:</strong>
-                <span className="text-green-600 font-bold">
                   {" "}
                   ${summary.spotAdmission}
-                </span>
               </p>
               <p className="text-lg">
-                <strong className="font-semibold">Discount:</strong>
-                <span className="text-red-600 font-bold">
-                  {" "}
-                  {summary.spotDiscount}%
-                </span>
+                <strong className="font-semibold">Discounted Price:</strong>
+                    {" "}
+                  {summary.spotDiscount}%      
               </p>
               <p className="text-lg">
                 <strong className="font-semibold">Required Booking: </strong>
