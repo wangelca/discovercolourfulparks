@@ -113,26 +113,13 @@ export default function ParkPage() {
                 <p className="text-gray-700 flex-grow overflow-hidden line-clamp-2">
                   {spot.spotDescription}
                 </p>
-                <a
-                  href={`/spots/${spot.spotId}`}
-                  className="inline-flex items-center px-3 py-1.5 text-lg font-medium text-center text-black rounded-lg hover:bg-green-300  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  Spot Details
-                  <svg
-                    className="rtl:rotate-180 w-4 h-4 ml-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 10"
+                <a href={`/spots/${spot.spotId}`}>
+                  <button
+                    type="button"
+                    className="text-yellow-500 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-bold rounded-lg px-5 py-2.5 text-center text-lg me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900"
                   >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M1 5h12m0 0L9 1m4 4L9 9"
-                    />
-                  </svg>
+                    View Spot
+                  </button>
                 </a>
               </div>
             </div>

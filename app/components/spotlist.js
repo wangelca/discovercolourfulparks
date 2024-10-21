@@ -166,7 +166,7 @@ export default function Spots() {
                   <img
                     src={spot.spotImageUrl}
                     alt={`Image of ${spot.spotName}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover p-2"
                   />
                 )}
               </div>
