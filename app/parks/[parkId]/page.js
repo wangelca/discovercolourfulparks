@@ -119,7 +119,7 @@ export default function ParkPage() {
                 >
                   Spot Details
                   <svg
-                    class="rtl:rotate-180 w-4 h-4 ml-2"
+                    className="rtl:rotate-180 w-4 h-4 ml-2"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -167,7 +167,7 @@ export default function ParkPage() {
                 <a href={`/events/${event.eventId}`}>
                   <button
                     type="button"
-                    class="text-yellow-500 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-bold rounded-lg px-5 py-2.5 text-center text-lg me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900"
+                    className="text-yellow-500 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-bold rounded-lg px-5 py-2.5 text-center text-lg me-2 mb-2 dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900"
                   >
                     View Event
                   </button>

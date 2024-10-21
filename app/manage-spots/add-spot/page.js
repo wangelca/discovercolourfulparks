@@ -143,14 +143,14 @@ const AddSpotPage = () => {
     <div className="container mx-auto p-6">
       {!summary ? (
         <form className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add a spot
           </h2>
-          <div class="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
-            <div class="sm:col-span-2">
+          <div className="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
+            <div className="sm:col-span-2">
               <label
                 for="name"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Spot Name
               </label>
@@ -159,7 +159,7 @@ const AddSpotPage = () => {
                 name="spotName"
                 value={formData.spotName}
                 onChange={handleInputChange}
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="Type spot name"
               />
               {errors.spotName && (
@@ -167,10 +167,10 @@ const AddSpotPage = () => {
               )}
             </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="category"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Related Park ID
               </label>
@@ -192,7 +192,7 @@ const AddSpotPage = () => {
               )}
             </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="description"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -213,10 +213,10 @@ const AddSpotPage = () => {
               )}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="hourlyRate"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Admission (in decimals)
               </label>
@@ -233,10 +233,10 @@ const AddSpotPage = () => {
               )}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="discount"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Discount (in decimals)
               </label>
@@ -256,7 +256,7 @@ const AddSpotPage = () => {
             <div>
               <label
                 for="openingHour"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Opening Hour
                 <input
@@ -272,7 +272,7 @@ const AddSpotPage = () => {
             <div>
               <label
                 for="closingHour"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Closing Hour
                 <input
@@ -285,7 +285,7 @@ const AddSpotPage = () => {
                 ></input>
               </label>
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Spot Location
               </label>
@@ -300,7 +300,7 @@ const AddSpotPage = () => {
                 <span className="bg-red-500">{errors.spotLocation}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Spot category
               </label>
@@ -325,10 +325,10 @@ const AddSpotPage = () => {
                 <span className="bg-red-500">{errors.spotLocation}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="spotLimit"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Spot Capacity
               </label>
@@ -365,7 +365,7 @@ const AddSpotPage = () => {
                 </span>
               </label>
             </div>
-            <div class="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={handleReview}

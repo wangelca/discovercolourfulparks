@@ -249,14 +249,14 @@ const AddEventPage = () => {
     <div className="container mx-auto p-6">
       {!summary ? (
         <form className="max-w-lg mx-auto bg-white p-6 rounded-md bg-opacity-85">
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add an Event
           </h2>
-          <div class="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
-            <div class="sm:col-span-2">
+          <div className="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
+            <div className="sm:col-span-2">
               <label
                 for="name"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Event Name
               </label>
@@ -265,7 +265,7 @@ const AddEventPage = () => {
                 name="eventName"
                 value={formData.eventName}
                 onChange={handleInputChange}
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="Type event name"
               />
               {errors.eventName && (
@@ -273,10 +273,10 @@ const AddEventPage = () => {
               )}
             </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="category"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Related Park ID
               </label>
@@ -298,7 +298,7 @@ const AddEventPage = () => {
               )}
             </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="description"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -319,10 +319,10 @@ const AddEventPage = () => {
               )}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="fee"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Fee (in decimals)
               </label>
@@ -337,10 +337,10 @@ const AddEventPage = () => {
               {errors.fee && <span className="text-red-500">{errors.fee}</span>}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="discount"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Discount (in decimals)
               </label>
@@ -356,7 +356,7 @@ const AddEventPage = () => {
                 <span className="text-red-500">{errors.discount}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Start Date & Time
               </label>
@@ -372,7 +372,7 @@ const AddEventPage = () => {
                 <span className="text-red-500">{errors.startDate}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 End Date & Time
               </label>
@@ -389,7 +389,7 @@ const AddEventPage = () => {
               )}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Event Location
               </label>
@@ -498,7 +498,7 @@ const AddEventPage = () => {
               )}
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={handleReview}
