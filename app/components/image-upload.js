@@ -36,7 +36,7 @@ const ImageUploadComponent = ({ onFileChange, errors }) => {
 
   return (
     <div>
-      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+      <label className="add-form-label">
         Upload Image
       </label>
       <input
@@ -44,7 +44,7 @@ const ImageUploadComponent = ({ onFileChange, errors }) => {
         onChange={handleFileChange}
         className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
       />
-      {errors && <span className="bg-red-500">{errors}</span>}
+      {errors && <span className="error-message">{errors}</span>}
       {selectedImage && (
         <div className="mt-4">
           <img src={selectedImage} alt="Preview" className="w-full h-64 object-cover" />

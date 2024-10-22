@@ -160,7 +160,7 @@ export default function BookingPage({}) {
                   min={0}
                   max={spot.spotLimit}
                 />
-                {adultError && <p className="p-2 bg-red-500 shadow-info-3">{adultError}</p>}
+                {adultError && <p className="p-2 error-message shadow-info-3">{adultError}</p>}
               </p>
               <p>
                 <label>Kids (below 12):</label>
@@ -175,7 +175,7 @@ export default function BookingPage({}) {
                   min={0}
                   max={spot.spotLimit}
                 />
-                {kidError && <p className="p-2 bg-red-500 shadow-info-3">{kidError}</p>}
+                {kidError && <p className="p-2 error-message shadow-info-3">{kidError}</p>}
               </p>
               <p>
                 <label>Booking Date:</label>
@@ -186,7 +186,7 @@ export default function BookingPage({}) {
                   className="border rounded p-2  m-2"
                   min={new Date()} // Prevents past dates from being selected
                 />
-                {dateError && <p className="p-2 bg-red-500 shadow-info-3">{dateError}</p>}
+                {dateError && <p className="p-2 error-message shadow-info-3">{dateError}</p>}
               </p>
 
               <p>
@@ -195,7 +195,7 @@ export default function BookingPage({}) {
               </p>
             </div>
 
-            {error && <p className="p-2 bg-red-500 shadow-info-3">{error}</p>}
+            {error && <p className="p-2 error-message shadow-info-3">{error}</p>}
 
             <div className="mt-6">  
               <button

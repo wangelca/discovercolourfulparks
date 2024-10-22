@@ -6,8 +6,10 @@ import axios from "axios";
 import ImageUploadComponent from "../../components/image-upload.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import useEventValidation from "@/app/components/eventValidation.js";
+import ValidationComponent from "../../components/validationUtils.js";
+import { eventValidationRules } from "../../components/validationRules";
 import GenerateDescriptionComponent from "@/app/components/genDescription.js";
+import ErrorAlert from "@/app/components/errorAlert.js";
 
 const AddEventPage = () => {
   const [formData, setFormData] = useState({
@@ -27,12 +29,16 @@ const AddEventPage = () => {
     specificDays: [], // for specific days recurrence
   });
 
-  const [errors, setErrors] = useState({});
   const [summary, setSummary] = useState(null);
   const [parks, setParks] = useState([]);
-  const [eventList, setEventList] = useState([]); 
+  const [eventList, setEventList] = useState([]);
   const [selectedPark, setSelectedPark] = useState(null);
   const router = useRouter();
+  const validationRules = eventValidationRules;
+  const { errors, validate } = ValidationComponent({
+    formData,
+    validationRules,
+  });
 
   const handleSpecificDaysChange = (dates) => {
     setFormData({ ...formData, specificDays: dates });
@@ -87,95 +93,60 @@ const AddEventPage = () => {
     }
   };
 
-  const validateInput = () => {
-    const newErrors = {};
-    if (!formData.parkId) newErrors.parkId = "Park ID is required";
-    if (!formData.eventName) newErrors.eventName = "Event name is required";
-    if (!formData.description)
-      newErrors.description = "Description is required";
-    if (
-      !formData.fee ||
-      isNaN(formData.fee) ||
-      formData.fee < 0 ||
-      formData.fee > 9999
-    ) {
-      newErrors.fee = "Fee must be between 0 and 9999";
-    }
-    if (
-      !formData.discount ||
-      isNaN(formData.discount) ||
-      formData.discount < 0 ||
-      formData.discount > 9999 ||
-      formData.discount > formData.fee
-    ) {
-      newErrors.discount =
-        "Discount must be between 0 and 9999, and less than fee";
-    }
-    if (!formData.startDate) newErrors.startDate = "Start date is required";
-    if (!formData.endDate) newErrors.endDate = "End date is required";
-    if (!formData.eventLocation)
-      newErrors.eventLocation = "Location is required";
-    if (formData.startDate > formData.endDate)
-      newErrors.startDate = "Start date must be before end date";
-    if (!formData.eventImageUrl)
-      newErrors.eventImageUrl = "Event image is required";
-    setErrors(newErrors);
-    console.log("Validation errors:", newErrors); // Log the errors to see if any exist
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleReview = () => {
-    if (validateInput()) {
-      setSummary(formData);
-    let generatedEventList = [];
+    const newErrors = validate();
 
-    // If routine event is selected
-    if (formData.isRoutine) {
-      if (formData.recurrenceType === "daily") {
-        let currentStartDate = new Date(formData.startDate);
-        let currentEndDate = new Date(formData.endDate);
-        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+    if (Object.keys(newErrors).length === 0) {
+      let generatedEventList = [];
 
-        while (currentStartDate <= recurrenceEndDate) {
-          generatedEventList.push({
-            ...formData,
-            startDate: new Date(currentStartDate),
-            endDate: new Date(currentEndDate),
+      // If routine event is selected
+      if (formData.isRoutine) {
+        if (formData.recurrenceType === "daily") {
+          let currentStartDate = new Date(formData.startDate);
+          let currentEndDate = new Date(formData.endDate);
+          const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+
+          while (currentStartDate <= recurrenceEndDate) {
+            generatedEventList.push({
+              ...formData,
+              startDate: new Date(currentStartDate),
+              endDate: new Date(currentEndDate),
+            });
+            currentStartDate.setDate(currentStartDate.getDate() + 1); // Increment by one day
+            currentEndDate.setDate(currentEndDate.getDate() + 1); // Increment the end date too
+          }
+        } else if (formData.recurrenceType === "weekly") {
+          let currentStartDate = new Date(formData.startDate);
+          let currentEndDate = new Date(formData.endDate);
+          const recurrenceEndDate = new Date(formData.recurrenceEndDate);
+
+          while (currentStartDate <= recurrenceEndDate) {
+            generatedEventList.push({
+              ...formData,
+              startDate: new Date(currentStartDate),
+              endDate: new Date(currentEndDate),
+            });
+            currentStartDate.setDate(currentStartDate.getDate() + 7); // Increment by one week
+            currentEndDate.setDate(currentEndDate.getDate() + 7); // Increment the end date too
+          }
+        } else if (formData.recurrenceType === "specificDays") {
+          formData.specificDays.forEach((date) => {
+            generatedEventList.push({
+              ...formData,
+              startDate: new Date(date),
+              endDate: new Date(date),
+            });
           });
-          currentStartDate.setDate(currentStartDate.getDate() + 1); // Increment by one day
-          currentEndDate.setDate(currentEndDate.getDate() + 1); // Increment the end date too
         }
-      } else if (formData.recurrenceType === "weekly") {
-        let currentStartDate = new Date(formData.startDate);
-        let currentEndDate = new Date(formData.endDate);
-        const recurrenceEndDate = new Date(formData.recurrenceEndDate);
-
-        while (currentStartDate <= recurrenceEndDate) {
-          generatedEventList.push({
-            ...formData,
-            startDate: new Date(currentStartDate),
-            endDate: new Date(currentEndDate),
-          });
-          currentStartDate.setDate(currentStartDate.getDate() + 7); // Increment by one week
-          currentEndDate.setDate(currentEndDate.getDate() + 7); // Increment the end date too
-        }
-      } else if (formData.recurrenceType === "specificDays") {
-        formData.specificDays.forEach((date) => {
-          generatedEventList.push({
-            ...formData,
-            startDate: new Date(date),
-            endDate: new Date(date),
-          });
-        });
+      } else {
+        // If it's not a recurring event, just add the single event
+        generatedEventList.push(formData);
       }
-    } else {
-      // If it's not a recurring event, just add the single event
-      generatedEventList.push(formData);
-    }
 
-    setEventList(generatedEventList); // Set the generated event list in state
-    setSummary(formData); // Show the review page
-  }};
+      setEventList(generatedEventList); // Set the generated event list in state
+      setSummary(formData); // Show the review page
+    }
+  };
 
   const handleSubmit = async () => {
     let eventList = [];
@@ -253,36 +224,25 @@ const AddEventPage = () => {
   return (
     <div className="container mx-auto p-6">
       {!summary ? (
-        <form className="max-w-lg mx-auto bg-white p-6 rounded-md bg-opacity-85">
-          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+        <form className="max-w-2xl mx-auto bg-white p-6 rounded-md bg-opacity-60">
+          <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add an Event
-          </h2>
+          </h1>
           <div className="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
             <div className="sm:col-span-2">
-              <label
-                for="name"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                Event Name
-              </label>
+              <label className="add-form-label">Event Name</label>
               <input
                 type="text"
                 name="eventName"
                 value={formData.eventName}
                 onChange={handleInputChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="add-form-input-field"
                 placeholder="Type event name"
               />
-              {errors.eventName && (
-                <span className="bg-red-500">{errors.eventName}</span>
-              )}
             </div>
 
             <div className="sm:col-span-2">
-              <label
-                for="category"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
+              <label for="category" className="add-form-label">
                 Related Park ID
               </label>
               <select
@@ -291,10 +251,12 @@ const AddEventPage = () => {
                 onChange={(e) => {
                   handleInputChange(e);
                   // Convert e.target.value to the same type as park.parkId if necessary
-                  const selectedParkName = parks.find((park) => park.parkId.toString() === e.target.value)?.name;
+                  const selectedParkName = parks.find(
+                    (park) => park.parkId.toString() === e.target.value
+                  )?.name;
                   setSelectedPark(selectedParkName);
                 }}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="add-form-input-field"
               >
                 <option value="">Select a park</option>
                 {parks.map((park) => (
@@ -303,16 +265,10 @@ const AddEventPage = () => {
                   </option>
                 ))}
               </select>
-              {errors.parkId && (
-                <span className="bg-red-500">{errors.parkId}</span>
-              )}
             </div>
 
             <div className="sm:col-span-2">
-              <label
-                for="description"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
+              <label for="description" className="add-form-label">
                 Event Description
               </label>
               <textarea
@@ -324,10 +280,7 @@ const AddEventPage = () => {
                 className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="Write a description here"
               />
-              {errors.description && (
-                <span className="bg-red-500">{errors.description}</span>
-              )}
-                            <GenerateDescriptionComponent
+              <GenerateDescriptionComponent
                 entityName={formData.eventName}
                 parkName={selectedPark || "National park in Canada"} // Pass the park's name, not ID
                 entityType="event"
@@ -338,10 +291,7 @@ const AddEventPage = () => {
             </div>
 
             <div className="w-full">
-              <label
-                for="fee"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
+              <label for="fee" className="add-form-label">
                 Fee (in decimals)
               </label>
               <input
@@ -349,17 +299,13 @@ const AddEventPage = () => {
                 name="fee"
                 value={formData.fee}
                 onChange={handleInputChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="add-form-input-field"
                 placeholder="50"
               />
-              {errors.fee && <span className="bg-red-500">{errors.fee}</span>}
             </div>
 
             <div className="w-full">
-              <label
-                for="discount"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
+              <label for="discount" className="add-form-label">
                 Discount (in decimals)
               </label>
               <input
@@ -367,60 +313,43 @@ const AddEventPage = () => {
                 name="discount"
                 value={formData.discount}
                 onChange={handleInputChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="add-form-input-field"
                 placeholder="0"
               />
-              {errors.discount && (
-                <span className="bg-red-500">{errors.discount}</span>
-              )}
             </div>
             <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Start Date & Time
-              </label>
+              <label className="add-form-label">Start Date & Time</label>
               <DatePicker
                 showIcon
                 selected={formData.startDate}
                 onChange={(date) => handleDateChange(date, "startDate")}
                 showTimeSelect
                 dateFormat="Pp"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                className="add-form-input-field"
               />
-              {errors.startDate && (
-                <span className="bg-red-500">{errors.startDate}</span>
-              )}
             </div>
             <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                End Date & Time
-              </label>
+              <label className="add-form-label">End Date & Time</label>
               <DatePicker
                 showIcon
                 selected={formData.endDate}
                 onChange={(date) => handleDateChange(date, "endDate")}
                 showTimeSelect
                 dateFormat="Pp"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                className="add-form-input-field"
               />
-              {errors.endDate && (
-                <span className="bg-red-500">{errors.endDate}</span>
-              )}
             </div>
 
             <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Event Location
-              </label>
+              <label className="add-form-label">Event Location</label>
               <input
                 type="text"
                 name="eventLocation"
                 value={formData.eventLocation}
                 onChange={handleInputChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="add-form-input-field"
+                placeholder="Type location"
               />
-              {errors.eventLocation && (
-                <span className="bg-red-500">{errors.eventLocation}</span>
-              )}
             </div>
             <div>
               <ImageUploadComponent
@@ -430,12 +359,12 @@ const AddEventPage = () => {
             </div>
 
             <div>
-              <label className="inline-flex items-center mb-5 cursor-pointer">
+              <label className="add-form-toggle-label">
                 <input
                   type="checkbox"
                   name="requiredbooking"
                   checked={formData.requiredbooking}
-                  onChange={handleInputChange} // Keep your change handler
+                  onChange={handleInputChange}
                   className="sr-only peer"
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -446,7 +375,7 @@ const AddEventPage = () => {
             </div>
 
             <div>
-              <label className="inline-flex items-center mb-5 cursor-pointer">
+              <label className="add-form-toggle-label">
                 <input
                   type="checkbox"
                   name="isRoutine"
@@ -464,9 +393,7 @@ const AddEventPage = () => {
             <div>
               {formData.isRoutine && (
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Recurrence Type
-                  </label>
+                  <label className="add-form-label">Recurrence Type</label>
                   <select
                     name="recurrenceType"
                     value={formData.recurrenceType}
@@ -483,9 +410,7 @@ const AddEventPage = () => {
                   {formData.recurrenceType === "daily" ||
                   formData.recurrenceType === "weekly" ? (
                     <div className="w-full mt-4">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                        End Date
-                      </label>
+                      <label className="add-form-label">End Date</label>
                       <DatePicker
                         selected={formData.recurrenceEndDate}
                         onChange={(date) =>
@@ -499,7 +424,7 @@ const AddEventPage = () => {
 
                   {formData.recurrenceType === "specificDays" ? (
                     <div className="w-full mt-4">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                      <label className="add-form-label">
                         Select Specific Days
                       </label>
                       <DatePicker
@@ -526,9 +451,11 @@ const AddEventPage = () => {
               </button>
             </div>
           </div>
+          {/* Error message alert */}
+          <ErrorAlert errors={errors} />
         </form>
       ) : (
-        <div className="container mx-auto p-6 max-w-lg bg-white rounded-md bg-opacity-85" >
+        <div className="container mx-auto p-6 max-w-lg bg-white rounded-md bg-opacity-85">
           <h1 className="text-xl font-bold mb-4">Events Summary</h1>
           {/* Display event details once */}
           <p>
@@ -563,7 +490,7 @@ const AddEventPage = () => {
           {/* Display start and end dates separately */}
           <h3>Event Dates:</h3>
           {eventList.map((event, index) => (
-            <div key={index}>
+            <div className="border-b-red-100" key={index}>
               <p>
                 <strong>Start Date:</strong>{" "}
                 {new Date(event.startDate).toLocaleDateString()}
