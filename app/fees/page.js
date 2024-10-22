@@ -165,7 +165,7 @@ export default function FeesPage() {
 
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-6">
           <h2 className="text-2xl font-semibold mb-4">
-            Get ready to visit Alberta and British Columbia's parks and have your admissions fees ready!
+            Get ready to visit Alberta and British Columbia&apos;s parks and have your admissions fees ready!
           </h2>
           
           <div className="flex gap-4 justify-center">

@@ -91,31 +91,31 @@ export default function Header() {
               <li className="text-lg group relative w-max">
                 <a href="/parks">
                   <span>Parks</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-indigo-600 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-indigo-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
                 <a href="/events">
                   <span>Events</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-blue-600 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-blue-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
                 <a href="/spots">
                   <span>Spots</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-green-600 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-green-600 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
                 <a href="/fees">
                   <span>Admissions</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-orange-400 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-orange-400 group-hover:w-full"></span>
                 </a>
               </li>
               <li className="text-lg group relative w-max">
                 <a href="/aboutus">
                   <span>About Us</span>
-                  <span class="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>
                 </a>
               </li>
             </ul>

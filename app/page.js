@@ -54,7 +54,7 @@ export default function Home() {
             <img
               src={image}
               className="block w-full h-screen object-cover"
-              alt={`Slide ${index + 1}`}
+              alt={`${index + 1}`}
             />
             <div className="absolute inset-0 bg-black opacity-30"></div>
           </div>

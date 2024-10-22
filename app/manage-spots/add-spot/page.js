@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import ImageUploadComponent from "../../components/image-upload.js";
+import GenerateDescriptionComponent from "../../components/genDescription.js";
 
 const AddSpotPage = () => {
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ const AddSpotPage = () => {
   const [errors, setErrors] = useState({});
   const [summary, setSummary] = useState(null);
   const [parks, setParks] = useState([]);
+  const [selectedPark, setSelectedPark] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -143,14 +145,14 @@ const AddSpotPage = () => {
     <div className="container mx-auto p-6">
       {!summary ? (
         <form className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+          <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
             Add a spot
-          </h2>
-          <div class="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
-            <div class="sm:col-span-2">
+          </h1>
+          <div className="grid gap-4 mb-4 sm:grid-cols-2 sm:gap-6 sm:mb-5">
+            <div className="sm:col-span-2">
               <label
                 for="name"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-lg font-medium text-gray-900 dark:text-white"
               >
                 Spot Name
               </label>
@@ -159,25 +161,30 @@ const AddSpotPage = () => {
                 name="spotName"
                 value={formData.spotName}
                 onChange={handleInputChange}
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="Type spot name"
               />
               {errors.spotName && (
-                <span className="text-red-500">{errors.spotName}</span>
+                <span className="bg-red-500">{errors.spotName}</span>
               )}
             </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="category"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-lg font-medium text-gray-900 dark:text-white"
               >
                 Related Park ID
               </label>
               <select
                 name="parkId"
                 value={formData.parkId}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  // Convert e.target.value to the same type as park.parkId if necessary
+                  const selectedParkName = parks.find((park) => park.parkId.toString() === e.target.value)?.name;
+                  setSelectedPark(selectedParkName);
+                }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
               >
                 <option value="">Select a park</option>
@@ -189,10 +196,9 @@ const AddSpotPage = () => {
               </select>
               {errors.parkId && (
                 <span className="bg-red-500">{errors.parkId}</span>
-              )}
-            </div>
+              )} </div>
 
-            <div class="sm:col-span-2">
+            <div className="sm:col-span-2">
               <label
                 for="description"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -211,12 +217,20 @@ const AddSpotPage = () => {
               {errors.spotDescription && (
                 <span className="bg-red-500">{errors.spotDescription}</span>
               )}
+              <GenerateDescriptionComponent
+                entityName={formData.spotName}
+                parkName={selectedPark || "National park in Canada"} // Pass the park's name, not ID
+                entityType="spot"
+                onDescriptionGenerated={(description) =>
+                  setFormData({ ...formData, spotDescription: description })
+                }
+              />
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="hourlyRate"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Admission (in decimals)
               </label>
@@ -233,10 +247,10 @@ const AddSpotPage = () => {
               )}
             </div>
 
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="discount"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Discount (in decimals)
               </label>
@@ -256,7 +270,7 @@ const AddSpotPage = () => {
             <div>
               <label
                 for="openingHour"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Opening Hour
                 <input
@@ -272,7 +286,7 @@ const AddSpotPage = () => {
             <div>
               <label
                 for="closingHour"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Closing Hour
                 <input
@@ -285,7 +299,7 @@ const AddSpotPage = () => {
                 ></input>
               </label>
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Spot Location
               </label>
@@ -300,7 +314,7 @@ const AddSpotPage = () => {
                 <span className="bg-red-500">{errors.spotLocation}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Spot category
               </label>
@@ -311,24 +325,24 @@ const AddSpotPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
               >
                 <option value="">Select a spot category</option>
-                  <option key="Popular Spots" value="Popular Spots">
-                    Popular Spots
-                  </option>
-                  <option key="Activities" value="Activities">
-                    Activities
-                  </option>
-                  <option key="Sites and Attractions" value="Sites and Attractions">
+                <option key="Popular Spots" value="Popular Spots">
+                  Popular Spots
+                </option>
+                <option key="Activities" value="Activities">
+                  Activities
+                </option>
+                <option key="Sites and Attractions" value="Sites and Attractions">
                   Sites and Attractions
-                  </option>                    
+                </option>
               </select>
               {errors.spotLocation && (
                 <span className="bg-red-500">{errors.spotLocation}</span>
               )}
             </div>
-            <div class="w-full">
+            <div className="w-full">
               <label
                 for="spotLimit"
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Spot Capacity
               </label>
@@ -356,7 +370,7 @@ const AddSpotPage = () => {
                   type="checkbox"
                   name="requiredbooking"
                   checked={formData.requiredbooking}
-                  onChange={handleInputChange} // Keep your change handler
+                  onChange={handleInputChange} 
                   className="sr-only peer"
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -365,7 +379,7 @@ const AddSpotPage = () => {
                 </span>
               </label>
             </div>
-            <div class="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={handleReview}
@@ -410,14 +424,12 @@ const AddSpotPage = () => {
                 {summary.spotDescription}
               </p>
               <p className="text-lg">
-                <strong className="font-semibold">Admission:</strong>
-                  {" "}
-                  ${summary.spotAdmission}
+                <strong className="font-semibold">Admission:</strong> $
+                {summary.spotAdmission}
               </p>
               <p className="text-lg">
-                <strong className="font-semibold">Discounted Price:</strong>
-                    {" "}
-                  {summary.spotDiscount}%      
+                <strong className="font-semibold">Discounted Price:</strong>{" "}
+                {summary.spotDiscount}%
               </p>
               <p className="text-lg">
                 <strong className="font-semibold">Required Booking: </strong>

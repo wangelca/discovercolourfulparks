@@ -72,8 +72,8 @@ export default function Parks() {
                     onClick={() => setSelectedProvince(province)}
                     className={`p-2 border border-gray-300 rounded-md ${
                       selectedProvince === province
-                        ? "bg-gray-200 text-gray-800"
-                        : "text-gray-600 hover:bg-gray-200"
+                        ? "bg-gray-200 text-gray-800 font-bold"
+                        : "text-white hover:bg-gray-200 hover:text-gray-800"
                     }`}
                   >
                     {province}
@@ -83,19 +83,23 @@ export default function Parks() {
             </div>
           </div>
   
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredParks.map((park) => (
               <div
                 key={park.parkId}
-                className="bg-white shadow-lg rounded-lg overflow-hidden flex"
-              >
-                <img
-                  src={park.parkImageUrl[0]}
-                  alt={park.name}
-                  className="w-1/3 h-auto object-cover p-3"
-                />
-                <div className="p-4 w-2/3">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
+            >
+              <div className="relative h-48 overflow-hidden">
+                {park.parkImageUrl && (
+                  <img
+                    src={park.parkImageUrl[0]}
+                    alt={park.name}
+                    className="w-full h-full object-cover p-2"
+                  />
+                )}
+              </div>
+              <div className="p-4">
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
                     {park.name}
                   </h3>
                   <p className="text-gray-700 mb-4">{park.description}</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 
 export default function Spots() {
@@ -10,7 +10,7 @@ export default function Spots() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
 
   // Function to fetch filtered spots
-  const fetchSpots = () => {
+  const fetchSpots = useCallback(() => {
     let url = "http://localhost:8000/spots";
     const params = new URLSearchParams();
 
@@ -29,7 +29,7 @@ export default function Spots() {
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error("Error fetching spots:", error));
-  };
+  }, [hourlyRateRange, selectedParkIds]);
 
   useEffect(() => {
     fetch("http://localhost:8000/parks") // Make sure this matches your FastAPI endpoint
@@ -40,7 +40,7 @@ export default function Spots() {
 
   useEffect(() => {
     fetchSpots(); // Fetch spots when the component mounts or filters change
-  }, [hourlyRateRange, selectedParkIds]);
+  }, [hourlyRateRange, selectedParkIds, fetchSpots]);
 
   const handleSliderChange = (e) => {
     const minValue = e.target.value.split(",")[0];
@@ -166,7 +166,7 @@ export default function Spots() {
                   <img
                     src={spot.spotImageUrl}
                     alt={`Image of ${spot.spotName}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover p-2"
                   />
                 )}
               </div>
