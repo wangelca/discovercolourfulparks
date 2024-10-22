@@ -182,7 +182,7 @@ export default function EventBookingPage({}) {
                   className="border rounded p-2 m-2"
                   min={0}
                 />
-                {adultError && <p className="p-2 bg-red-500 shadow-info-3">{adultError}</p>}
+                {adultError && <p className="p-2 error-message shadow-info-3">{adultError}</p>}
               </p>
               <p>
                 <label>Kids (below 12):</label>
@@ -196,7 +196,7 @@ export default function EventBookingPage({}) {
                   className="border rounded p-2 m-2 align-right"
                   min={0}
                 />
-                {kidError && <p className="p-2 bg-red-500 shadow-info-3">{kidError}</p>}
+                {kidError && <p className="p-2 error-message shadow-info-3">{kidError}</p>}
               </p>
               <p>
                 <label>Booking Date:</label>
@@ -208,7 +208,7 @@ export default function EventBookingPage({}) {
                   min={event.startDate} // Prevents past dates from being selected
                   max={event.endDate} // Prevents booking after event end date
                 />
-                {dateError && <p className="p-2 bg-red-500 shadow-info-3">{dateError}</p>}
+                {dateError && <p className="p-2 error-message shadow-info-3">{dateError}</p>}
               </p>
 
               <p>
