@@ -6,6 +6,8 @@ import axios from "axios";
 import ImageUploadComponent from "../../components/image-upload.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import useEventValidation from "@/app/components/eventValidation.js";
+import GenerateDescriptionComponent from "@/app/components/genDescription.js";
 
 const AddEventPage = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +30,8 @@ const AddEventPage = () => {
   const [errors, setErrors] = useState({});
   const [summary, setSummary] = useState(null);
   const [parks, setParks] = useState([]);
-  const [eventList, setEventList] = useState([]); // Add this to your useState hook
+  const [eventList, setEventList] = useState([]); 
+  const [selectedPark, setSelectedPark] = useState(null);
   const router = useRouter();
 
   const handleSpecificDaysChange = (dates) => {
@@ -122,6 +125,8 @@ const AddEventPage = () => {
   };
 
   const handleReview = () => {
+    if (validateInput()) {
+      setSummary(formData);
     let generatedEventList = [];
 
     // If routine event is selected
@@ -170,7 +175,7 @@ const AddEventPage = () => {
 
     setEventList(generatedEventList); // Set the generated event list in state
     setSummary(formData); // Show the review page
-  };
+  }};
 
   const handleSubmit = async () => {
     let eventList = [];
@@ -269,7 +274,7 @@ const AddEventPage = () => {
                 placeholder="Type event name"
               />
               {errors.eventName && (
-                <span className="text-red-500">{errors.eventName}</span>
+                <span className="bg-red-500">{errors.eventName}</span>
               )}
             </div>
 
@@ -283,7 +288,12 @@ const AddEventPage = () => {
               <select
                 name="parkId"
                 value={formData.parkId}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  // Convert e.target.value to the same type as park.parkId if necessary
+                  const selectedParkName = parks.find((park) => park.parkId.toString() === e.target.value)?.name;
+                  setSelectedPark(selectedParkName);
+                }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
               >
                 <option value="">Select a park</option>
@@ -294,7 +304,7 @@ const AddEventPage = () => {
                 ))}
               </select>
               {errors.parkId && (
-                <span className="text-red-500">{errors.parkId}</span>
+                <span className="bg-red-500">{errors.parkId}</span>
               )}
             </div>
 
@@ -315,8 +325,16 @@ const AddEventPage = () => {
                 placeholder="Write a description here"
               />
               {errors.description && (
-                <span className="text-red-500">{errors.description}</span>
+                <span className="bg-red-500">{errors.description}</span>
               )}
+                            <GenerateDescriptionComponent
+                entityName={formData.eventName}
+                parkName={selectedPark || "National park in Canada"} // Pass the park's name, not ID
+                entityType="event"
+                onDescriptionGenerated={(description) =>
+                  setFormData({ ...formData, description: description })
+                }
+              />
             </div>
 
             <div className="w-full">
@@ -334,7 +352,7 @@ const AddEventPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="50"
               />
-              {errors.fee && <span className="text-red-500">{errors.fee}</span>}
+              {errors.fee && <span className="bg-red-500">{errors.fee}</span>}
             </div>
 
             <div className="w-full">
@@ -353,7 +371,7 @@ const AddEventPage = () => {
                 placeholder="0"
               />
               {errors.discount && (
-                <span className="text-red-500">{errors.discount}</span>
+                <span className="bg-red-500">{errors.discount}</span>
               )}
             </div>
             <div className="w-full">
@@ -369,7 +387,7 @@ const AddEventPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
               />
               {errors.startDate && (
-                <span className="text-red-500">{errors.startDate}</span>
+                <span className="bg-red-500">{errors.startDate}</span>
               )}
             </div>
             <div className="w-full">
@@ -385,7 +403,7 @@ const AddEventPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
               />
               {errors.endDate && (
-                <span className="text-red-500">{errors.endDate}</span>
+                <span className="bg-red-500">{errors.endDate}</span>
               )}
             </div>
 
@@ -401,13 +419,13 @@ const AddEventPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
               />
               {errors.eventLocation && (
-                <span className="text-red-500">{errors.eventLocation}</span>
+                <span className="bg-red-500">{errors.eventLocation}</span>
               )}
             </div>
             <div>
               <ImageUploadComponent
                 onFileChange={handleFileChange}
-                errors={errors.eventImages}
+                errors={errors.eventImageUrl}
               />
             </div>
 
@@ -510,7 +528,7 @@ const AddEventPage = () => {
           </div>
         </form>
       ) : (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-6 max-w-lg bg-white rounded-md bg-opacity-85" >
           <h1 className="text-xl font-bold mb-4">Events Summary</h1>
           {/* Display event details once */}
           <p>

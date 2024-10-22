@@ -12,8 +12,12 @@ from PIL import Image
 from datetime import date, datetime, time, timezone
 import os
 import shutil
+import openai
+
 
 app = FastAPI()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # CORS settings
 app.add_middleware(
@@ -206,7 +210,7 @@ async def get_events(db: Session = Depends(get_db)):
 async def get_spots(
     db: Session = Depends(get_db),
     min_hourly_rate: Optional[float] = Query(0),
-    max_hourly_rate: Optional[float] = Query(100),
+    max_hourly_rate: Optional[float] = Query(1000),
     park_id: Optional[List[int]] = Query(None)
 ):
     # Start with all spots
@@ -563,3 +567,36 @@ async def get_spot_revenue(
         "total_revenue": r.total_revenue
     } for r in revenue_data])
 
+# generat description using AI
+@app.post("/generate-description")
+async def generate_description(parkName: str = Form(...), name: str = Form(...), entityType: str = Form(...)):
+    """
+    Generate AI-based description for spots or events based on the park and entity name.
+    entityType can be 'spot' or 'event'.
+    """
+    print(f"Received request to generate description for {entityType} named {name} at park {parkName}")
+ 
+    try:
+        # Use the correct chat completion API
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that generates descriptions for spots and events in parks."},
+                {
+                    "role": "user",
+                    "content": (
+                        f"Generate a detailed and engaging description for a {entityType} "
+                        f"named {name} located in {parkName}. Highlight the key features, "
+                        f"attractions, and reasons to visit or participate. Keep it below 80 words." 
+                    ),
+                }
+            ],
+            max_tokens=200  # Control the length of the response
+        )
+
+        description = response['choices'][0]['message']['content'].strip()
+        return {"description": description}
+
+    except Exception as e:
+        print(f"Error generating description: {e}")
+        raise HTTPException(status_code=500, detail="Error generating description")
