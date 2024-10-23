@@ -22,7 +22,7 @@ class User(Base):
     phoneNumber = Column(String, nullable=True)
     publicMetadata = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updatedAt = Column(DateTime, onupdate=datetime.utcnow)
+    updatedAt = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
     
     booking = relationship("Booking", back_populates="user")
     payments = relationship("Payment", back_populates="user")

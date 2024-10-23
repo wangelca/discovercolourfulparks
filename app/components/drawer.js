@@ -52,7 +52,7 @@ export default function DrawerMenu() {
         customBurgerIcon={false}
         customCrossIcon={<FontAwesomeIcon icon={faTimes} size="2x" />}
       >
-        {user && user.publicMetadata.publicMetadata?.role === 'visitor' && (
+        {user && user.publicMetadata?.role === 'visitor' && (
           <>
             <a id="user-profile" className="menu-item text-white" href="/user-profile"><FontAwesomeIcon icon={faUser} />  Profile</a>
             <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
@@ -62,7 +62,7 @@ export default function DrawerMenu() {
           </>
         )}
 
-        {user && user.publicMetadata.publicMetadata?.role === 'admin' && (
+        {user && user.publicMetadata?.role === 'admin' && (
           <>
             <a className="menu-item text-white" href="/manage-user" onClick={closeMenu}><FontAwesomeIcon icon={faUsers} />  Manage Users</a>
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}><FontAwesomeIcon icon={faTree} />  Manage Parks</a>

@@ -1,5 +1,5 @@
 from lib2to3.pytree import Base
-from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form, APIRouter
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -10,12 +10,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
+from app.routers import users
 import os
 import shutil
 import openai
 
-
 app = FastAPI()
+
+app.include_router(users.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -100,14 +102,14 @@ class SpotResponse(BaseModel):
 class UserResponse(BaseModel):
     id: int
     clerk_user_id: str
-    username: str
+    username: Optional[str]
     email: str
     created_at: datetime
-    updatedAt: datetime
-    firstName: str
-    lastName: str
-    phoneNumber: str
-    publicMetadata: str    
+    updatedAt: Optional[datetime]
+    firstName: Optional[str]
+    lastName: Optional[str]
+    phoneNumber: Optional[str]
+    publicMetadata: Optional[str]    
 
     class Config:
         orm_mode=True        
