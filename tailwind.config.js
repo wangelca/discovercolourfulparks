@@ -15,6 +15,9 @@ module.exports = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      backgroundImage: {
+        'custom-image': "url('/spots_banner.jpg')",
+      },
 
     },
   },
