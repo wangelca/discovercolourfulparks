@@ -10,7 +10,9 @@ import { BookingProvider } from './context/BookingContext'; // Import the Bookin
 
 export default function RootLayout({ children }) {
     return (
-        <ClerkProvider>
+        <ClerkProvider
+        signInFallbackRedirectUrl="/main"
+        signUpFallbackRedirectUrl="/main">
             <BookingProvider>
                 <html lang="en">
                     <body className='bg-top bg-fixed bg-cover bg-no-repeat bg-[url(/bg/FOREST_BACKGROUND6_generated.jpg)]'>
