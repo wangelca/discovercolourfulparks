@@ -42,6 +42,7 @@ export default function ProfilePage() {
     // Basic validation for phone number
     if (!/^\d+$/.test(profileData.phoneNumber)) {
       setError("Phone number must contain only digits.");
+      setSuccess(false);
       return;
     }else{
       // Reset success and error messages

@@ -12,10 +12,11 @@ const isPublicRoute = createRouteMatcher([
   "/fees(.*)",
   "/aboutus(.*)",
   "/",
-  "/api(.*)",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)"]);
+
+const isUserRoute = createRouteMatcher(["/user-profile(.*)"]);
 
 const afterAuth = async (auth) => {
   // Handle afterAuth logic here
@@ -23,24 +24,40 @@ const afterAuth = async (auth) => {
   return NextResponse.next();
 };
 
-export default clerkMiddleware((auth, request) => {
+export default clerkMiddleware(async (auth, request) => {
   // Handle beforeAuth logic here
-  const { userId } = auth();
+  const { userId } = await auth();
 
-  /*if (isAdminRoute(request)) {
+  if (!userId && isAdminRoute(request)) {
     auth().protect({
       requireSession: true,
       requireSessionCallback: (session) => {
-        if (session.user.publicMetadata.role !== "Admin") {
-          return NextResponse.redirect("/login");
+        if (session.user.publicMetadata.role != "admin") {
+          return auth().redirectToSignIn();
         }
       },
     });
   }
-    */
+
+  if (!userId && isUserRoute(request)) {
+    auth().protect({
+      requireSession: true,
+      requireSessionCallback: (session) => {
+        if (session.user.publicMetadata.role != "visitor") {
+          return auth().redirectToSignIn();
+        }
+      },
+    });
+  }
+
+  if (!userId && !isPublicRoute(request)) {
+    return auth().redirectToSignIn();
+  }
+  
 
   if (!isPublicRoute(request)) {
-    auth().protect();
+    await auth().protect();
+    
   }
 
   // Call afterAuth function

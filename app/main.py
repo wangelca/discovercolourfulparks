@@ -244,13 +244,13 @@ async def get_user(clerk_user_id: str, db: Session = Depends(get_db)):
 
 #update the user by userId (individual profile page)
 @app.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user: UserResponse, db: Session = Depends(get_db)):
+async def update_user(user_id: str, updated_user: UserResponse, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.clerk_user_id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    user.firstName = user.firstName
-    user.lastName = user.lastName
-    user.phoneNumber = user.phoneNumber
+    user.firstName = updated_user.firstName
+    user.lastName = updated_user.lastName
+    user.phoneNumber = updated_user.phoneNumber
     db.commit()
     return user
 
