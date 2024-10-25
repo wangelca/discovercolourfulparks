@@ -141,5 +141,17 @@ class Notification(Base):
 
     user_notifications = relationship("User", back_populates="notifications")
 
-
     
+class Review(Base):
+    __tablename__ = 'reviews'
+
+    id = Column(Integer, primary_key=True, index=True)
+    rating = Column(Float, nullable=False)
+    review = Column(String, nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    spot_id = Column(Integer, ForeignKey('spots.id'), nullable=True)
+    
+    event = relationship("Event", back_populates="reviews", foreign_keys=[event_id])
+    spot = relationship("Spot", back_populates="reviews", foreign_keys=[spot_id])
+    user = relationship("User", back_populates="reviews", foreign_keys=[user_id])

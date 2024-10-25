@@ -1,16 +1,16 @@
 from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form, APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import database, SessionLocal, Base, engine, get_db
-from models import Park, Spot, Event, User, Booking
+from models import Park, Spot, Event, User, Booking, Review
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
-from app.routers import users, notifications
+from app.routers import users, notifications, reviews
 import os
 import shutil
 import openai
@@ -19,6 +19,8 @@ app = FastAPI()
 
 app.include_router(users.router)
 app.include_router(notifications.router)
+app.include_router(reviews.router)
+
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -135,6 +137,25 @@ class BookingResponse(BaseModel):
     class Config:
         orm_mode=True
         arbitrary_types_allowed = True
+
+
+
+class ReviewBase(BaseModel):
+    user_id: int
+    spot_id: int
+    event_id: int
+    rating: int = Field(..., ge=1, le=5)
+    review: Optional[str] = None
+
+class ReviewCreate(ReviewBase):
+    pass
+
+class ReviewResponse(ReviewBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 @app.post("/event-bookings", response_model=BookingResponse)
