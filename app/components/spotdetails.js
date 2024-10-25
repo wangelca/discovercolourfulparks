@@ -2,7 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import PlaceGallerySpot from './googlePhotoSpot';
 
 export default function SpotDetails() {
   const { spotId } = useParams(); // Get dynamic route params

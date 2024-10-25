@@ -27,6 +27,7 @@ class User(Base):
     booking = relationship("Booking", back_populates="user")
     payments = relationship("Payment", back_populates="user")
     notifications = relationship("Notification", back_populates="user_notifications")
+    reviews = relationship("Review", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
@@ -44,6 +45,7 @@ class Park(Base):
     
     spots = relationship("Spot", back_populates="park")
     events = relationship("Event", back_populates="park")
+    
 
     def __repr__(self):
         return f"<Park(parkId={self.parkId}, name={self.name}, province={self.province})>"
@@ -65,6 +67,7 @@ class Spot(Base):
     openingHour = Column(String)
     closingHour = Column(String)
     spotLimit = Column(Integer)
+    reviews = relationship("Review", back_populates="spot")  # Link to Review
     
     park = relationship("Park", back_populates="spots")
     booking = relationship("Booking", back_populates="spot")
@@ -90,6 +93,7 @@ class Event(Base):
     
     park = relationship("Park", back_populates="events") 
     booking = relationship("Booking", back_populates="event")
+    reviews = relationship("Review", back_populates="event")  # Link to Review
 
     def __repr__(self):
         return f"<Event(eventId={self.eventId}, eventName={self.eventName}, parkId={self.parkId})>"
@@ -145,13 +149,15 @@ class Notification(Base):
 class Review(Base):
     __tablename__ = 'reviews'
 
-    id = Column(Integer, primary_key=True, index=True)
+    reviewId = Column(Integer, primary_key=True, index=True)
     rating = Column(Float, nullable=False)
     review = Column(String, nullable=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    spot_id = Column(Integer, ForeignKey('spots.id'), nullable=True)
+    event_id = Column(Integer, ForeignKey("event.eventId"), nullable=True)
+    id = Column(Integer, ForeignKey('user.id'))
+    spot_id = Column(Integer, ForeignKey('spot.spotId'), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
-    event = relationship("Event", back_populates="reviews", foreign_keys=[event_id])
-    spot = relationship("Spot", back_populates="reviews", foreign_keys=[spot_id])
-    user = relationship("User", back_populates="reviews", foreign_keys=[user_id])
+    event = relationship("Event", back_populates="reviews")
+    spot = relationship("Spot", back_populates="reviews")
+    user = relationship("User", back_populates="reviews")
+

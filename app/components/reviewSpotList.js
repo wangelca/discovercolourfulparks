@@ -1,7 +1,6 @@
 //references: ChatGPT
 import React, { useState, useEffect } from "react";
-import { Link } from 'next/link';
-
+import Link from 'next/link';  // Import Link as the default export
 
 export default function SpotList() {
     const [spots, setSpots] = useState([]); // Initialize with an empty array
@@ -13,7 +12,6 @@ export default function SpotList() {
         .catch((error) => console.error("Error fetching spots:", error));
     }, []);
 
-
     return (
         <div>
             <h1>Spots</h1>
@@ -21,11 +19,11 @@ export default function SpotList() {
                 {spots.map(spot => (
                     <li key={spot.spotId}>
                         <h2>{spot.spotName}</h2>
-                        {/* Link to the detailed spot page */}
-                        <Link to={`/spots/${spot.spotId}`}>View Details and Reviews</Link>
+                        {/* Use Link with href instead of to */}
+                        <Link href={`/spots/${spot.spotId}`}>View Details and Reviews</Link>
                     </li>
                 ))}
             </ul>
         </div>
     );
-    }
+}

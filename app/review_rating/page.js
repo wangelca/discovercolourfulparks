@@ -13,10 +13,7 @@ export default function Home() {
   return (
     <div className="relative flex flex-col min-h-screen">
             <SpotList/>
-            <SpotDetails/>
             <EventList/>
-            <EventDetails/>
-            <ReviewsComponent/>
 
     </div>
 

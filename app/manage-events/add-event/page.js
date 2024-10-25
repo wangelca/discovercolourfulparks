@@ -33,6 +33,7 @@ const AddEventPage = () => {
   const [parks, setParks] = useState([]);
   const [eventList, setEventList] = useState([]);
   const [selectedPark, setSelectedPark] = useState(null);
+  const [imageError, setImageError] = useState(null);
   const router = useRouter();
   const validationRules = eventValidationRules;
   const { errors, validate } = ValidationComponent({
@@ -86,10 +87,10 @@ const AddEventPage = () => {
 
   const handleFileChange = (file, error) => {
     if (error) {
-      setErrors({ ...errors, eventImageUrl: error });
+      setImageError(error);
     } else {
       setFormData({ ...formData, eventImageUrl: file });
-      setErrors({ ...errors, eventImageUrl: null });
+      setImageError(null);
     }
   };
 
@@ -354,7 +355,7 @@ const AddEventPage = () => {
             <div>
               <ImageUploadComponent
                 onFileChange={handleFileChange}
-                errors={errors.eventImageUrl}
+                imageError={imageError}
               />
             </div>
 

@@ -47,7 +47,7 @@ export default function Events() {
                 <img
                   src={event.eventImageUrl}
                   alt={event.eventName}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover p-2"
                 />
                 <div className="p-4">
                   <h2 className="text-xl font-bold mb-2">{event.eventName}</h2>
@@ -61,8 +61,13 @@ export default function Events() {
                     {format(new Date(event.startDate), "MMMM d, yyyy")}
                   </p>
                   <p className="text-gray-600">{event.startTime}</p>
-                  <p className="text-gray-600 mb-4">{event.description}</p>
-
+                  <p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                  <a
+                  href={`/events/${event.eventId}`}
+                  className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
+                >
+                  View Details
+                </a>
                   {isPastEvent ? (
                     <p className="text-red-500 font-semibold">
                       Event has passed. Booking unavailable.

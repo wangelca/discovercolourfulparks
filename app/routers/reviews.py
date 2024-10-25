@@ -9,7 +9,7 @@ from datetime import datetime
 
 # Define Pydantic models for request and response validation
 class ReviewBase(BaseModel):
-    user_id: int
+    id: int
     spot_id: Optional[int] = None
     event_id: Optional[int] = None
     rating: int = Field(..., ge=1, le=5)
@@ -19,8 +19,8 @@ class ReviewCreate(ReviewBase):
     pass
 
 class ReviewResponse(ReviewBase):
-    id: int
-    created_at: datetime
+    reviewId: int
+    created_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True
@@ -39,24 +39,24 @@ def create_review(db: Session, review: ReviewCreate):
 # CRUD function for getting reviews by item type and ID
 def get_reviews_by_item(db: Session, item_id: int, item_type: str):
     if item_type == "spot":
-        return db.query(Review).filter(Review.spot_id == item_id, Review.type == "spot").all()
+        return db.query(Review).filter(Review.spot_id == item_id).all()
     elif item_type == "event":
-        return db.query(Review).filter(Review.event_id == item_id, Review.type == "event").all()
+        return db.query(Review).filter(Review.event_id == item_id).all()
     else:
         raise HTTPException(status_code=400, detail="Invalid item type")
 
 # CRUD function for calculating average rating
 def get_average_rating(db: Session, item_id: int, item_type: str):
     if item_type == "spot":
-        avg_rating = db.query(func.avg(Review.rating)).filter(Review.spot_id == item_id, Review.type == "spot").scalar()
+        avg_rating = db.query(func.avg(Review.rating)).filter(Review.spot_id == item_id).scalar()
     elif item_type == "event":
-        avg_rating = db.query(func.avg(Review.rating)).filter(Review.event_id == item_id, Review.type == "event").scalar()
+        avg_rating = db.query(func.avg(Review.rating)).filter(Review.event_id == item_id).scalar()
     else:
         raise HTTPException(status_code=400, detail="Invalid item type")
     return avg_rating
 
 # API Route to add a new review
-@router.post("/reviews/", response_model=ReviewResponse)
+@router.post("/reviews", response_model=ReviewResponse)
 def add_review(review: ReviewCreate, db: Session = Depends(get_db)):
     return create_review(db=db, review=review)
 
