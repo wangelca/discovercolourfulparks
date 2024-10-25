@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from database import database, SessionLocal, Base, engine
+from database import database, SessionLocal, Base, engine, get_db
 from models import Park, Spot, Event, User, Booking
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -57,10 +57,15 @@ class ParkResponse(BaseModel):
     description: str
     location: str
     parkImageUrl: List[str]
-    parameters: str
-
-    class Config:
-        orm_mode=True
+    parameters: Optional[str] = None
+        
+class ParkUpdateRequest(BaseModel):
+    name: str
+    province: str
+    description: str
+    location: str
+    parkImageUrl: Optional[List[str]] = None
+    parameters: Optional[str] = None      
 
 class EventResponse(BaseModel):
     eventId: int
@@ -264,27 +269,45 @@ async def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
 
 #update the park by parkId
 @app.put("/parks/{parkId}", response_model=ParkResponse)
-async def update_park(parkId: int, park: ParkResponse, db: Session = Depends(get_db)):
-    park = db.query(Park).filter(Park.parkId == parkId).first()
-    if park is None:
-        raise HTTPException(status_code=404, detail="Park not found")
-    park.name = park.name
-    park.province = park.province
-    park.description = park.description
-    park.location = park.location
-    park.parkImageUrl = park.parkImageUrl
-    park.parameters = park.parameters
-    db.commit()
-    return park
+async def update_park(
+    parkId: int,
+    park: ParkUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    print(f"Updating park with ID: {parkId}")
+    print(f"Received data: {park}")
 
-#add a new park
-@app.post("/parks/add", response_model=ParkResponse)
-async def create_park(park: ParkResponse, db: Session = Depends(get_db)):
-    new_park = Park(parkId=park.parkId, name=park.name, province=park.province, description=park.description, location=park.location, parkImageUrl=park.parkImageUrl, parameters=park.parameters)
-    db.add(new_park)
-    db.commit()
-    db.refresh(new_park)
-    return new_park
+    db_park = db.query(Park).filter(Park.parkId == parkId).first()
+    if db_park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+
+    print(f"Current values before update: {db_park}")
+
+    db_park.name = park.name
+    db_park.province = park.province
+    db_park.description = park.description
+    db_park.location = park.location
+    db_park.parameters = park.parameters if park.parameters else db_park.parameters
+
+    try:
+        db.commit()
+        db.refresh(db_park) 
+        print(f"Updated values after commit: {db_park}")
+    except Exception as e:
+        db.rollback()
+        print(f"Error during commit: {e}")
+        raise HTTPException(status_code=500, detail="Database commit failed: " + str(e))
+
+    return ParkResponse(
+        parkId=db_park.parkId,
+        name=db_park.name,
+        province=db_park.province,
+        description=db_park.description,
+        location=db_park.location,
+        parkImageUrl=db_park.parkImageUrl,
+        parameters=db_park.parameters
+    )
+
 
 # get a park by parkId
 @app.get("/parks/{parkId}", response_model=ParkResponse)

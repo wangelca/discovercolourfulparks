@@ -11,8 +11,11 @@ export default function EditParkPage() {
     description: '',
     location: '',
     parameters: '',
+    parkId:''
   });
   
+  const [originalImage, setOriginalImage] = useState(''); 
+  const [imageFile, setImageFile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const router = useRouter();
@@ -20,31 +23,36 @@ export default function EditParkPage() {
 
   useEffect(() => {
     const fetchParkData = async () => {
-        try {
-            const response = await axios.get(`http://localhost:8000/parks/${parkId}`);
-            setFormData({
-                name: response.data.name,
-                province: response.data.province,
-                description: response.data.description,
-                location: response.data.location,
-                parameters: response.data.parameters || '',
-            });
-            setIsLoading(false);
-        } catch (error) {
-            console.error('Error fetching park data:', error);
-            setIsLoading(false);
-        }
+      try {
+        const response = await axios.get(`http://localhost:8000/parks/${parkId}`);
+        setFormData({
+          name: response.data.name,
+          province: response.data.province,
+          description: response.data.description,
+          location: response.data.location,
+          parameters: response.data.parameters || '',
+          parkId: response.data.parkId || ''
+        });
+        setOriginalImage(response.data.parkImageUrl[0] || ''); 
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching park data:', error);
+        setIsLoading(false);
+      }
     };
 
     fetchParkData();
-}, [parkId]);
-
+  }, [parkId]);
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
   };
 
   const validateInput = () => {
@@ -62,32 +70,34 @@ export default function EditParkPage() {
     if (!validateInput()) return;
 
     const updatedData = {
-        ...formData,
-        parkId: parkId,
-        parkImageUrl: formData.parkImageUrl || ["../default_image.jpg"]
+        parkId: formData.parkId,
+        name: formData.name,
+        province: formData.province,
+        description: formData.description,
+        location: formData.location,
+        parameters: formData.parameters || '',
+        parkImageUrl: [originalImage],
     };
+
+    console.log("Updated Data to be sent:", updatedData);
 
     try {
         const response = await axios.put(`http://localhost:8000/parks/${parkId}`, updatedData, {
             headers: {
-                'Content-Type': 'application/json',
-            },
+                'Content-Type': 'application/json'
+            }
         });
-
         alert('Park updated successfully!');
-        router.push(`/parks/${parkId}`);
+
+        router.push(`/parks/${response.data.parkId}`);
     } catch (error) {
-        if (error.response) {
-            console.error('Error updating park:', error.response.data);
-            alert('Error updating park: ' + JSON.stringify(error.response.data));
-        } else {
-            console.error('Error updating park:', error.message);
-        }
+        console.error('Error updating park:', error.response?.data || error.message);
+        alert('Error updating park: ' + JSON.stringify(error.response?.data || error.message));
     }
 };
 
- 
-  
+
+
   return (
     <div className="container mx-auto p-6 bg-gray-100 shadow-md rounded-lg max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Edit Park</h1>
@@ -166,6 +176,8 @@ export default function EditParkPage() {
     </div>
   );
 }
+
+
 
 /* Terms of Reference:
 Chatgpt prompt: For line24, I'm being redirected instead to http://localhost:3000/manage-parks/edit-park/undefined. 
