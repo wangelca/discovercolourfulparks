@@ -31,14 +31,14 @@ body {
 /* Styling the burger menu container */
 .burger-icon {
   position: fixed;
-  top: 1rem;
+  top: 3rem;
   left: 1rem;
   z-index: 1000;
 }
 
 /* Styling the menu container */
 .bm-menu {
-  background: #333;
+  background: #5a2b2b;
   padding: 2.5em 1.5em 0;
   font-size: 1.15em;
   display: flex;
@@ -94,7 +94,5 @@ body {
 }
 
 .error-message {
-  color: #e3342f; /* Red error color */
-  font-size: 0.875rem; /* Text size */
-  margin-top: 0.25rem;;
+  @apply text-red-500 bg-red-100 my-2 p-1 rounded-md text-sm
 }

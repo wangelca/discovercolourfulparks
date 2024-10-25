@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
-from app.routers import users
+from app.routers import users, notifications
 import os
 import shutil
 import openai
@@ -18,6 +18,7 @@ import openai
 app = FastAPI()
 
 app.include_router(users.router)
+app.include_router(notifications.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -249,13 +250,13 @@ async def get_user(clerk_user_id: str, db: Session = Depends(get_db)):
 
 #update the user by userId (individual profile page)
 @app.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user: UserResponse, db: Session = Depends(get_db)):
+async def update_user(user_id: str, updated_user: UserResponse, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.clerk_user_id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    user.firstName = user.firstName
-    user.lastName = user.lastName
-    user.phoneNumber = user.phoneNumber
+    user.firstName = updated_user.firstName
+    user.lastName = updated_user.lastName
+    user.phoneNumber = updated_user.phoneNumber
     db.commit()
     return user
 

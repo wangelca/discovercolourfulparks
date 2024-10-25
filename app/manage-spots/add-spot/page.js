@@ -28,6 +28,7 @@ const AddSpotPage = () => {
   const [summary, setSummary] = useState(null);
   const [parks, setParks] = useState([]);
   const [selectedPark, setSelectedPark] = useState(null);
+  const [imageError, setImageError] = useState(null);
   const router = useRouter();
   const validationRules = spotValidationRules;
   const { errors, validate } = ValidationComponent({
@@ -58,10 +59,10 @@ const AddSpotPage = () => {
 
   const handleFileChange = (file, error) => {
     if (error) {
-      setErrors({ ...errors, spotImageUrl: error });
+      setImageError(error);
     } else {
       setFormData({ ...formData, spotImageUrl: file });
-      setErrors({ ...errors, spotImageUrl: null });
+      setImageError(null);
     }
   };
 
@@ -226,13 +227,13 @@ const AddSpotPage = () => {
               </label>
             </div>
             <div className="w-full">
-              <label className="add-form-input-field">Spot Location</label>
+              <label className="add-form-label">Spot Location</label>
               <input
                 type="text"
                 name="spotLocation"
                 value={formData.spotLocation}
                 onChange={handleInputChange}
-                className="badd-form-input-field"
+                className="add-form-input-field"
               />
             </div>
             <div className="w-full">
@@ -274,7 +275,7 @@ const AddSpotPage = () => {
             <div>
               <ImageUploadComponent
                 onFileChange={handleFileChange}
-                errors={errors.spotImageUrl}
+                imageError={imageError}
               />
             </div>
             <div>

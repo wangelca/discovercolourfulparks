@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
-const ImageUploadComponent = ({ onFileChange, errors }) => {
+const ImageUploadComponent = ({ onFileChange, imageError }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const handleFileChange = (e) => {
+    setSelectedImage(null);
     const file = e.target.files[0];
     const allowedFormats = ["image/jpeg", "image/png"];
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -44,7 +45,7 @@ const ImageUploadComponent = ({ onFileChange, errors }) => {
         onChange={handleFileChange}
         className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
       />
-      {errors && <span className="error-message">{errors}</span>}
+      {imageError && <span className="error-message">{imageError}</span>}
       {selectedImage && (
         <div className="mt-4">
           <img src={selectedImage} alt="Preview" className="w-full h-64 object-cover" />
