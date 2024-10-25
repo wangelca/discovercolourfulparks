@@ -1,21 +1,23 @@
 // references : chatGPT: functions to interact with the backend API
-
-
-import axios from "axios";
+import axios from 'axios';
 
 const API_URL = 'http://localhost:8000';
 
-export const createReview = async (review) => {
-  return axios.post(`${API_URL}/reviews/`, review);
+export const addReview = async (review) => {
+    const response = await axios.post(`${API_URL}/reviews/`, review);
+    return response.data;
 };
 
-export const getEventReviews = async (eventId) => {
-  return axios.get(`${API_URL}/reviews/event/${eventId}`);
+export const getReviewsByItem = async (itemType, itemId) => {
+    const response = await axios.get(`${API_URL}/reviews/${itemType}/${itemId}`);
+    return response.data;
 };
 
-export const getSpotReviews = async (spotId) => {
-  return axios.get(`${API_URL}/reviews/spot/${spotId}`);
-}
+export const getAverageRating = async (itemType, itemId) => {
+    const response = await axios.get(`${API_URL}/ratings/${itemType}/${itemId}`);
+    return response.data;
+};
+
 
 
 

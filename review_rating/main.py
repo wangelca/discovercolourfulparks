@@ -1,27 +1,25 @@
 # references : ChatGPT: create the afstAPI routes to submit reviews and retrieve them
-from fastapi import FastAPI, Depends, HTTPException
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, FastAPI
 from sqlalchemy.orm import Session
-from .models import Park, Spot, Review
+from .schemas import ReviewCreate, ReviewResponse
+from .models import Review
+from .crud import create_review, get_reviews_by_item, get_average_rating
 from .database import get_db
-from .schemas import ReviewCreate, Review
 
 app = FastAPI()
 
-@app.post("/reviews/", response_model=Review)
-def create_review(review: ReviewCreate, db: Session = Depends(get_db)):
-    db_review = Review(rating=review.rating, comment=review.comment, event_id=review.event_id, spot_id=review.spot_id)
-    db.add(db_review)
-    db.commit()
-    db.refresh(db_review)
-    return db_review
+router = APIRouter()
 
-@app.get("/reviews/event/{event_id}")
-def get_events_reviews(event_id: int, db: Session = Depends(get_db)):
-    reviews = db.query(Review).filter(Review.event_id == event_id).all()
-    return reviews
-    
-@app.get("/reviews/spot/{spot_id}")
-def get_spot_reviews(spot_id: int, db: Session = Depends(get_db)):
-    reviews = db.query(Review).filter(Review.spot.id == spot_id).all()
-    return reviews
+@router.post("/reviews/", response_model=ReviewResponse)
+def add_review(review: ReviewCreate, db: Session = Depends(get_db)):
+    return create_review(db=db, review=review)
 
+@router.get("/reviews/{item_type}/{item_id}", response_model=List[ReviewResponse])
+def get_reviews(item_type: str, item_id: int, db: Session = Depends(get_db)):
+    return get_reviews_by_item(db=db, item_id=item_id, item_type=item_type)
+
+@router.get("/ratings/{item_type}/{item_id}")
+def get_average_rating(item_type: str, item_id: int, db: Session = Depends(get_db)):
+    avg_rating = get_average_rating(db=db, item_id=item_id, item_type=item_type)
+    return {"average_rating": avg_rating}

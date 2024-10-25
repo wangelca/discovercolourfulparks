@@ -1,16 +1,31 @@
-// references : chatGPT: To integrate the ReviewForm and ReviewList components
 import React from 'react';
-import ReviewForm from './ReviewForm';
-import ReviewList from './ReviewList';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import SpotList from './review_rating/SpotList';
+import SpotDetails from './review_rating/SpotDetail';
+import EventList from './review_rating/EventList';
+import EventDetails from './review_rating/EventDetail';
 
-const EventPage = ({ eventId }) => {
-    return (
-        <div>
-            <h1>Event Details</h1>
-            <ReviewForm eventId={eventId}/>
-            <ReviewList eventId={eventId}/>
-        </div>
-    );
-};
+function App() {
+  return (
+    <Router>
+      <div>
+        <Switch>
+          {/* Routes for spots */}
+          <Route exact path="/spots" component={SpotList} />
+          <Route path="/spots/:id" component={SpotDetails} />
 
-export default EventPage;
+          {/* Routes for events */}
+          <Route exact path="/events" component={EventList} />
+          <Route path="/events/:id" component={EventDetails} />
+
+          {/* Default or home route */}
+          <Route path="/" exact>
+            <h1>Welcome to the Park & Event Rating System</h1>
+          </Route>
+        </Switch>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
