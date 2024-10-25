@@ -33,8 +33,7 @@
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "latest": "^0.2.0",
-    "next": "^14.2.15",
-    "pg": "^8.13.0",
+
     "react": "^18",
     "react-burger-menu": "^3.0.9",
     "react-datepicker": "^7.4.0",

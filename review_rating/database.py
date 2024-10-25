@@ -1,5 +1,6 @@
-# references : https://www.javatpoint.com/connect-to-a-postgresql-database-server
+# references : https://www.javatpoint.com/connect-to-a-postgresql-database-server.
 from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
@@ -7,6 +8,7 @@ DATABASE_URL = "postgresql://postgres.bbdmoywjdiyiqemzycnk:A4751705bc%23@aws-0-c
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 
 def get_db():
