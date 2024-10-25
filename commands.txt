@@ -1,0 +1,6 @@
+For easy access:
+
+Install dependencies: pip install -r requirements.txt
+Run web application - npm run dev
+Uvicorn command to access the API - uvicorn app.main:app --reload
+Local host links to view database data: localhost:8000/spots, localhost:8000/events, localhost:8000/parks to route to a specific park: localhost:8000/parks/parkid

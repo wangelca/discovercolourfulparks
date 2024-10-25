@@ -1,47 +1,149 @@
 'use client';
-import Header from './components/header';
-import Image from 'next/image';
 
-import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const { isSignedIn } = useUser(); // Check if the user is signed in
+  const images = [
+    '/bg/bowlake_landingpage.jpg',
+    '/bg/2023BarrierLakeLookout23Sept100.jpg',
+    '/bg/2023KingCreekRidge21.jpg',
+    '/bg/2023CoalMineTrail9Oct-23.jpg',
+    '/bg/2023ElbowLake16Jul-22.jpg',
+    '/bg/2023ElbowLake16Jul-55.jpg',
+    '/bg/2023KingCreekRidge57.jpg',
+    '/bg/2024Banff29Mar-126.jpg',
+    '/bg/2024Banff29Mar-161.jpg',
+    '/bg/2024Banff29Mar-197.jpg',
+    '/bg/2024Banff29Mar-229.jpg',
+    '/bg/2024Banff29Mar-258.jpg',
+    '/bg/2024ElbowRiver19Feb2.jpg',    
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 10000); // Slide change interval
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const nextSlide = () => {
+    setCurrentIndex((currentIndex + 1) % images.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((currentIndex - 1 + images.length) % images.length);
+  };
+
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Header/>
+    <div>
+    <section>
+    <div id="default-carousel" className="relative w-full h-screen" data-carousel="slide">
+      {/* Carousel Wrapper */}
+      <div className="relative h-screen overflow-hidden ">
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={image}
+              className="block w-full h-screen object-cover"
+              alt={`${index + 1}`}
+            />
+            <div className="absolute inset-0 bg-black opacity-30"></div>
+          </div>
+        ))}
 
-      <div className="relative w-full max-w-screen-xl mx-auto mt-4 mb-4 bg-white">
-        <div className="relative h-[40vh] rounded-lg overflow-hidden">
-          <Image
-            src="/bowlake_landingpage.jpg"
-            alt="Beautiful Lake View"
-            className="object-cover w-full h-full rounded-lg"
-            style={{ transform: 'scaleX(1.1)' }}
-            width={1920}
-            height={1080}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6 py-12 z-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Explore the World`s Most Beautiful Parks
-            </h1>
-            <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
-              Explore the never-ending beauty of Canada`s national parks. Discover some of the most beautiful landscapes that occupy the Earth.
-            </p>
-            <a href="/explore" className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200">
-              Explore Now
-            </a>
-          </div>
-          <div className="absolute bottom-4 left-6 z-20">
-            <p className="bg-black bg-opacity-70 text-white text-xs leading-tight rounded-sm px-2 py-1">
-              Pinterest
-            </p>
-          </div>
+        {/* Text and Button */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-20 text-white px-6 py-12">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl lg:text-6xl">
+            Explore the World’s Most Beautiful Parks
+          </h1>
+          <p className="mb-8 text-lg font-bold lg:text-xl sm:px-16 lg:px-48">
+            Explore the never-ending beauty of Canada’s national parks. Discover
+            some of the most beautiful landscapes that occupy the Earth.
+          </p>
+          <a
+            href="/parks"
+            className="bg-white text-black font-semibold py-3 px-6 rounded-full text-lg transition hover:bg-gray-200"
+          >
+            Explore Now
+          </a>
         </div>
       </div>
 
-      <section className="py-12 bg-gray-50">
+      {/* Slider Indicators */}
+      <div className="absolute z-30 flex space-x-3 -translate-x-1/2 bottom-5 left-1/2">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`w-3 h-3 rounded-full ${
+              currentIndex === index ? 'bg-white' : 'bg-gray-400'
+            }`}
+            onClick={() => setCurrentIndex(index)}
+            aria-label={`Slide ${index + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Previous and Next Buttons */}
+      <button
+        type="button"
+        className="absolute top-0 left-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+        onClick={prevSlide}
+        aria-label="Previous Slide"
+      >
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 focus:ring-4 focus:ring-white">
+          <svg
+            className="w-4 h-4 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 6 10"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 1 1 5l4 4"
+            />
+          </svg>
+        </span>
+      </button>
+      <button
+        type="button"
+        className="absolute top-0 right-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+        onClick={nextSlide}
+        aria-label="Next Slide"
+      >
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 focus:ring-4 focus:ring-white">
+          <svg
+            className="w-4 h-4 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 6 10"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M1 9l4-4-4-4"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+    </section>
+
+      <section className="py-12">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-black">
             Top Attractions
@@ -54,7 +156,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   Morraine Lake is a stunning turquoise lake, cradled by the Valley of the Ten Peaks, located in Banff National Park, Alberta, Canada.
                 </p>
-                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/spots/116" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +171,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">
                   The Prince of Wales Hotel, located in the heart of Waterton Lakes National Park in Alberta, Canada, stands on the bluff overlooking Upper Waterton Lake.
                 </p>
-                <a href="/" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
+                <a href="/spots/414" className="text-blue-600 hover:text-blue-700 font-semibold">Learn More</a>
               </div>
               <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,7 +197,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
   );
 }
 
