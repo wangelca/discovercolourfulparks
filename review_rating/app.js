@@ -1,3 +1,4 @@
+//references: Chatgpt: app.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import SpotList from './review_rating/SpotList';

@@ -1,4 +1,4 @@
-# references : ChatGPT: define models for events, spots and reviews/ratings
+# references : ChatGPT: define models for events, spots and reviews/ratings.
 from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

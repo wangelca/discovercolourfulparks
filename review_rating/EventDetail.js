@@ -1,4 +1,4 @@
-// references : chatGPT: functions to interact with the backend API
+// references : chatGPT: functions to interact with the backend API.
 import React, { useState, useEffect } from 'react';
 import { addReview, getReviewsByItem, getAverageRating } from '../review_rating/reviews'; 
 
