@@ -16,6 +16,7 @@ export default function RootLayout({ children }) {
             <BookingProvider>
                 <html lang="en">
                     <body className='bg-top bg-fixed bg-cover bg-no-repeat bg-[url(/bg/FOREST_BACKGROUND6_generated.jpg)]'>
+                    <SignedIn><DrawerMenu /></SignedIn>
                         <Header />
                         <BackToTopButton />
                         <header>
@@ -23,7 +24,6 @@ export default function RootLayout({ children }) {
                                 {/* You can add a sign-in button or prompt here */}
                             </SignedOut>
                             <SignedIn>
-                                <DrawerMenu />
                             </SignedIn>
                         </header>
                         <main>{children}</main>

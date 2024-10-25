@@ -26,6 +26,7 @@ class User(Base):
     
     booking = relationship("Booking", back_populates="user")
     payments = relationship("Payment", back_populates="user")
+    notifications = relationship("Notification", back_populates="user_notifications")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
@@ -127,3 +128,18 @@ class Payment(Base):
 
     def __repr__(self):
         return f"<Payment(paymentId={self.paymentId}, bookingId={self.bookingId}, userId={self.id})>"
+    
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    msgId = Column(Integer, primary_key=True, index=True)
+    email = Column(String, ForeignKey("user.email"), index=True)
+    message = Column(String)
+    status = Column(String, default="pending")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user_notifications = relationship("User", back_populates="notifications")
+
+
+    

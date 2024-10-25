@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
-from app.routers import users
+from app.routers import users, notifications
 import os
 import shutil
 import openai
@@ -18,6 +18,7 @@ import openai
 app = FastAPI()
 
 app.include_router(users.router)
+app.include_router(notifications.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
