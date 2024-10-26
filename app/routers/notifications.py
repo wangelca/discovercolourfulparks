@@ -5,6 +5,7 @@ from database import get_db
 from models import Notification
 from email.message import EmailMessage
 import aiosmtplib
+import os
 
 router = APIRouter()
 
@@ -25,8 +26,7 @@ async def send_email(to_email: str, subject: str, body: str):
         message,
         hostname="smtp.gmail.com",
         port=465,
-        username="wuiyitang@gmail.com",
-        password="uacd oqvl ymiy uciu",
+        password=os.getenv("EMAIL_PASSWORD"),
         use_tls=True
     )
 

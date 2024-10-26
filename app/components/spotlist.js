@@ -7,7 +7,10 @@ export default function Spots() {
   const [selectedParkIds, setSelectedParkIds] = useState([]); // Stores selected park IDs
   const [parks, setParks] = useState([]); // Store parks fetched from the API
   const [showDropdown, setShowDropdown] = useState(false); // State to toggle dropdown
+  const [showCatDropdown, setShowCatDropdown] = useState(false); // State to toggle dropdown
+  const [selectedCategory, setSelectedCategory] = useState([]);
   const { isSignedIn } = useUser(); // Check if the user is signed in
+  const categories = ["Popular Spots", "Activities", "Sites and Attractions"];
 
   // Function to fetch filtered spots
   const fetchSpots = useCallback(() => {
@@ -25,11 +28,18 @@ export default function Spots() {
       selectedParkIds.forEach((id) => params.append("park_id", id));
     }
 
+    // Add selected category to params
+    if (selectedCategory.length > 0) {
+      selectedCategory.forEach((category) =>
+        params.append("category", category)
+      );
+    }
+
     fetch(`${url}?${params.toString()}`)
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error("Error fetching spots:", error));
-  }, [hourlyRateRange, selectedParkIds]);
+  }, [hourlyRateRange, selectedParkIds, selectedCategory]);
 
   useEffect(() => {
     fetch("http://localhost:8000/parks") // Make sure this matches your FastAPI endpoint
@@ -40,7 +50,7 @@ export default function Spots() {
 
   useEffect(() => {
     fetchSpots(); // Fetch spots when the component mounts or filters change
-  }, [hourlyRateRange, selectedParkIds, fetchSpots]);
+  }, [hourlyRateRange, selectedParkIds, selectedCategory, fetchSpots]);
 
   const handleSliderChange = (e) => {
     const minValue = e.target.value.split(",")[0];
@@ -48,7 +58,7 @@ export default function Spots() {
     setHourlyRateRange([Number(minValue), Number(maxValue)]);
   };
   // Handle checkbox selection
-  const handleCheckboxChange = (e) => {
+  const handleParkCheckboxChange = (e) => {
     const { value, checked } = e.target;
 
     if (checked) {
@@ -60,13 +70,29 @@ export default function Spots() {
     }
   };
 
+  const handleCatCheckboxChange = (e) => {
+    const { value, checked } = e.target;
+
+    if (checked) {
+      setSelectedCategory((prevSelectedCategory) => [
+        ...prevSelectedCategory,
+        value,
+      ]); // Add park ID to selected list
+    } else {
+      setSelectedCategory(
+        (prevSelectedCategory) =>
+          prevSelectedCategory.filter((category) => category !== value) // Remove park ID if unchecked
+      );
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 flex flex-col items-center w-11/12">
       <h1 className="text-3xl font-bold mb-6">Spots</h1>
       {/* Filter Section */}
-      <div className="flex mb-6 border-2 w-3/5 rounded-2xl bg-gray-100 shadow-2 p-3">
+      <div className="flex mb-6 border-2 w-4/5 rounded-2xl bg-gray-100 shadow-2 p-3">
         {/* Admission Fee Slider */}
-        <div className="w-1/2 px-5 border-amber-200 border-r-3 ">
+        <div className="w-1/3 px-5 border-amber-200 border-r-3 ">
           <label className="block text-sm font-medium text-gray-700">
             Admission Fee Range
           </label>
@@ -89,7 +115,7 @@ export default function Spots() {
         </div>
 
         {/* Park ID Checkboxes */}
-        <div className="w-1/2 px-5 justify-center">
+        <div className="w-1/3 px-5 justify-center">
           <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
             Park ID
           </label>
@@ -118,7 +144,7 @@ export default function Spots() {
             </svg>
           </button>
 
-          {/* Dropdown menu */}
+          {/* Dropdown menu for Park ID*/}
           <div
             id="dropdown"
             className={`${
@@ -138,7 +164,7 @@ export default function Spots() {
                     id={`park-${park.parkId}`}
                     type="checkbox"
                     value={park.parkId}
-                    onChange={handleCheckboxChange}
+                    onChange={handleParkCheckboxChange}
                     className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 "
                   />
                   <label
@@ -146,6 +172,69 @@ export default function Spots() {
                     className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
                   >
                     {park.name}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/*Dropdown menu for cateogry */}
+        <div className="w-1/3 px-5 justify-center">
+          <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
+            Spot Cateogry
+          </label>
+          <button
+            id="dropdownDefault"
+            data-dropdown-toggle="dropdown"
+            className="text-white w-4/5 bg-green-500 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            type="button"
+            onClick={() => setShowCatDropdown(!showCatDropdown)}
+          >
+            Filter by Cateogry
+            <svg
+              className="w-4 h-4 ml-2"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              ></path>
+            </svg>
+          </button>
+          <div
+            id="catDropdown"
+            className={`${
+              showCatDropdown ? "block" : "hidden"
+            } z-10 w-full p-3 bg-white rounded-lg shadow dark:bg-gray-700 overflow-auto max-h-60`}
+          >
+            <h6 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+              Select Cateogry
+            </h6>
+            <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200 w-full">
+              {categories.map((category) => (
+                <li
+                  key={category}
+                  className="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
+                  <input
+                    id={`category-${category}`}
+                    type="checkbox"
+                    value={category}
+                    onChange={handleCatCheckboxChange}
+                    className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                  />
+                  <label
+                    htmlFor={`category-${category}`}
+                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
+                  >
+                    {category}
                   </label>
                 </li>
               ))}

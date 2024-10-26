@@ -240,7 +240,8 @@ async def get_spots(
     db: Session = Depends(get_db),
     min_hourly_rate: Optional[float] = Query(0),
     max_hourly_rate: Optional[float] = Query(1000),
-    park_id: Optional[List[int]] = Query(None)
+    park_id: Optional[List[int]] = Query(None),
+    category: Optional[str] = Query(None)
 ):
     # Start with all spots
     query = db.query(Spot)
@@ -251,6 +252,10 @@ async def get_spots(
     # Filter by multiple park IDs
     if park_id:
         query = query.filter(Spot.parkId.in_(park_id))
+
+    # Filter by category
+    if category:
+        query = query.filter(Spot.category == category)
 
     spots = query.all()
     return spots

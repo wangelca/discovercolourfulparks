@@ -6,14 +6,12 @@ import DrawerMenu from './components/drawer';
 import Header from './components/header';
 import Footer from './components/footer';
 import BackToTopButton from './components/scroll-back-button';
-import { BookingProvider } from './context/BookingContext'; // Import the BookingProvider
 
 export default function RootLayout({ children }) {
     return (
         <ClerkProvider
         signInFallbackRedirectUrl="/main"
         signUpFallbackRedirectUrl="/main">
-            <BookingProvider>
                 <html lang="en">
                     <body className='bg-top bg-fixed bg-cover bg-no-repeat bg-[url(/bg/FOREST_BACKGROUND6_generated.jpg)]'>
                     <SignedIn><DrawerMenu /></SignedIn>
@@ -30,7 +28,6 @@ export default function RootLayout({ children }) {
                         <Footer />
                     </body>
                 </html>
-            </BookingProvider>
         </ClerkProvider>
     );
 }

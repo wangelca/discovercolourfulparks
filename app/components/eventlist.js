@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useBooking } from "../context/BookingContext"; // Import the context
 import { useUser } from "@clerk/nextjs"; // Import the Clerk hook
 
 export default function Events() {
