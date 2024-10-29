@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
+import { toast, ToastContainer, Bounce } from "react-toastify"; // Optional: for better user notifications
+import "react-toastify/dist/ReactToastify.css";
+import { FaHeart } from "react-icons/fa"; // Import heart icon
 
 export default function Spots() {
   const [spots, setSpots] = useState([]); // Initialize with an empty array
@@ -10,6 +13,8 @@ export default function Spots() {
   const [showCatDropdown, setShowCatDropdown] = useState(false); // State to toggle dropdown
   const [selectedCategory, setSelectedCategory] = useState([]);
   const { isSignedIn } = useUser(); // Check if the user is signed in
+  const { user } = useUser();
+  const [profileData, setProfileData] = useState(null);
   const categories = ["Popular Spots", "Activities", "Sites and Attractions"];
 
   // Function to fetch filtered spots
@@ -33,7 +38,7 @@ export default function Spots() {
       selectedCategory.forEach((category) =>
         params.append("category", category)
       );
-    }
+    }    
 
     fetch(`${url}?${params.toString()}`)
       .then((response) => response.json())
@@ -51,6 +56,84 @@ export default function Spots() {
   useEffect(() => {
     fetchSpots(); // Fetch spots when the component mounts or filters change
   }, [hourlyRateRange, selectedParkIds, selectedCategory, fetchSpots]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchProfile() {
+      try {
+        const profileResponse = await fetch(
+          `http://localhost:8000/users/${user.id}`
+        );
+        if (!profileResponse.ok) {
+          throw new Error("Failed to fetch user profile data");
+        }
+        const profile = await profileResponse.json();
+        setProfileData(profile);
+      } catch (err) {
+        setError("Failed to fetch user profile data.");
+      }
+    }
+    fetchProfile();
+  }, [user]);
+
+  const handleToggleFavorite = async (spotId) => {
+    if (!isSignedIn) {
+      alert("Please sign in to add or remove this spot from your favorites.");
+      window.open("/sign-in", "_blank");
+      return;
+    }
+
+    try {
+      const isFavorite = profileData?.favspotId?.includes(spotId);
+      const method = isFavorite ? "DELETE" : "PUT";
+      const url = isFavorite
+        ? `http://localhost:8000/user/${profileData.id}/favorites?spot_id=${spotId}`
+        : `http://localhost:8000/user/${profileData.id}/favorites`;
+
+      const options = {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      if (method === "PUT") {
+        options.body = JSON.stringify({ spot_id: spotId });
+      }
+
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error("Failed to update favorites");
+      }
+
+      setProfileData((prevProfile) => {
+        const updatedFavorites = isFavorite
+          ? prevProfile.favspotId.filter((id) => id !== spotId)
+          : [...(prevProfile.favspotId || []), spotId];
+        return { ...prevProfile, favspotId: updatedFavorites };
+      });
+
+      toast.success(
+        isFavorite
+          ? "Event removed from your favorites!"
+          : "Event added to your favorites!",
+        {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeButton: true,
+        }
+      );
+    } catch (error) {
+      toast.error("Failed to update favorites. Please try again later.", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeButton: true,
+      });
+    }
+  };
 
   const handleSliderChange = (e) => {
     const minValue = e.target.value.split(",")[0];
@@ -245,11 +328,13 @@ export default function Spots() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {spots.length > 0 ? (
-          spots.map((spot) => (
-            <div
-              key={spot.spotId}
-              className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
-            >
+          spots.map((spot) => {
+            const isFavorite = profileData?.favspotId?.includes(spot.spotId);
+            return (
+              <div
+                key={spot.spotId}
+                className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
+              >
               <div className="relative h-48 overflow-hidden">
                 {spot.spotImageUrl && (
                   <img
@@ -258,6 +343,12 @@ export default function Spots() {
                     className="w-full h-full object-cover p-2"
                   />
                 )}
+                <FaHeart
+                  onClick={() => handleToggleFavorite(spot.spotId)}
+                  className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
+                    isFavorite ? "text-red-500" : "text-white"
+                  } hover:text-red-600`}
+                />
               </div>
               <div className="p-4">
                 <h2 className="text-lg font-semibold mb-2">{spot.spotName}</h2>
@@ -303,13 +394,27 @@ export default function Spots() {
                 )}
               </div>
             </div>
-          ))
-        ) : (
+            );
+        })
+      ) : (
           <div className="col-span-full text-center text-lg font-medium text-gray-500">
             No spots found.
           </div>
         )}
       </div>
+      <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+      transition={Bounce}
+    />
     </div>
   );
 }
