@@ -27,7 +27,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000" , "https://dcp-tawny.vercel.app"],  # React app runs here
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
