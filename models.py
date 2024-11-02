@@ -143,7 +143,8 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     msgId = Column(Integer, primary_key=True, index=True)
-    email = Column(String, ForeignKey("user.email"), index=True)
+    id = Column(Integer)
+    email = Column(String, ForeignKey("user.email"))
     message = Column(String)
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
