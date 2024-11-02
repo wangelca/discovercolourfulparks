@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime, timezone
 from enum import Enum
+from typing import List, Tuple
 
 # Enum for booking status
 class BookingStatus(str, Enum):
@@ -21,6 +22,9 @@ class User(Base):
     lastName = Column(String, nullable=True)
     phoneNumber = Column(String, nullable=True)
     publicMetadata = Column(String, nullable=True)
+    mktPref = Column(Boolean, default = False)
+    favSpotId = Column(ARRAY(Integer), nullable=True)
+    favEventId = Column(ARRAY(Integer), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
     
@@ -49,6 +53,7 @@ class Park(Base):
 
     def __repr__(self):
         return f"<Park(parkId={self.parkId}, name={self.name}, province={self.province})>"
+    
 
 class Spot(Base):
     __tablename__ = 'spot'

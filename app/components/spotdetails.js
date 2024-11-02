@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ReviewsComponent from '@/app/components/reviews';
 
 export default function SpotDetails() {
   const { spotId } = useParams(); // Get dynamic route params
@@ -75,6 +76,9 @@ export default function SpotDetails() {
         ></iframe>
       </div>
     </div>
+
+    <ReviewsComponent itemType ="spot" itemId={spotId} />
+
   </div>
 </div>
 
