@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 export default function ParksAdmin() {
   const [parks, setParks] = useState([]);
   const [filteredParks, setFilteredParks] = useState([]);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState("Alphabetical"); 
   const router = useRouter();
 
   useEffect(() => {
@@ -12,13 +12,12 @@ export default function ParksAdmin() {
       .then((response) => response.json())
       .then((data) => {
         setParks(data);
-        setFilteredParks(data); // Initialize filteredParks with all parks
+        setFilteredParks(data.sort((a, b) => a.name.localeCompare(b.name))); 
       })
       .catch((error) => console.error("Error fetching parks:", error));
   }, []);
 
   useEffect(() => {
-    // Filter parks based on the selected option
     let updatedParks = [...parks];
     if (filter === "Alberta") {
       updatedParks = parks.filter((park) => park.province === "Alberta");
@@ -49,7 +48,6 @@ export default function ParksAdmin() {
           onChange={(e) => setFilter(e.target.value)}
           className="py-2 px-4 border rounded-lg"
         >
-          <option value="All">All</option>
           <option value="Alphabetical">Alphabetical</option>
           <option value="Alberta">Alberta</option>
           <option value="British Columbia">British Columbia</option>
