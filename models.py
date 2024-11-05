@@ -146,7 +146,7 @@ class Notification(Base):
     id = Column(Integer)
     email = Column(String, ForeignKey("user.email"))
     message = Column(String)
-    status = Column(String, default="pending")
+    status = Column(String, default="unread")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user_notifications = relationship("User", back_populates="notifications")
