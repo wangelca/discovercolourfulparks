@@ -12,11 +12,12 @@ import asyncio
 
 router = APIRouter()
 
-# Pydantic model for request validation
 class NotificationRequest(BaseModel):
     email: str
     message: str
 
+class NotificationStatusUpdate(BaseModel):
+    status: str
 
 # Function to send the email (runs in the background)
 async def send_email(to_email: str, subject:str, body: str):
@@ -72,7 +73,7 @@ async def admin_create_notification(
     notification = Notification(
         email=user.email,
         message=notification_req.message,
-        status="pending",
+        status="unread",
         created_at=datetime.utcnow()
     )
     db.add(notification)
@@ -92,33 +93,39 @@ async def admin_create_notification(
 @router.post("/notifications/user-to-admin")
 async def user_to_admin_notification(
     notification_req: NotificationRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    # Retrieve user email based on ID (assuming user ID is in notification_req)
-    user = db.query(User).filter(User.id == notification_req.user_id).first()
+     # Retrieve user based on provided ID
+    user = db.query(User).filter(User.email == notification_req.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Send email to admin
-    background_tasks.add_task(send_email, "wuiyitang@gmail.com", "User Notification", notification_req.message)
+    # Create a notification for the admin
+    notification = Notification(
+        email="wuiyitang@gmail.com",  # Admin email address
+        message=notification_req.message,
+        status="unread",
+        id="92",
+        created_at=datetime.utcnow()
+    )
+    db.add(notification)
+    db.commit()
 
-    return {"status": "Notification sent to admin"}
+    return {"status": "Notification successfully added to the database"}
 
 
-@router.websocket("/ws/notifications/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = Depends(get_db)):
-    await websocket.accept()
-    while True:
-        # Fetch unread notifications count for user
-        count = db.query(Notification).filter(Notification.user_id == user_id, Notification.status == "unread").count()
-        await websocket.send_json({"unread_count": count})
-        await asyncio.sleep(10)  # Adjust the interval as needed
+@router.get("/notifications/unread-count/{user_id}")
+async def get_unread_notification_count(user_id: int, db: Session = Depends(get_db)):
+    count = db.query(Notification).filter(
+        Notification.id == user_id,
+        Notification.status == "unread"
+    ).count()
+    return {"unread_count": count}
 
 
 @router.get("/notifications/{user_id}")
 async def get_notifications(user_id: int, db: Session = Depends(get_db)):
-    notifications = db.query(Notification).filter(Notification.user_id == user_id).all()
+    notifications = db.query(Notification).filter(Notification.id == user_id).all()
     return notifications
 
 
@@ -127,5 +134,15 @@ async def search_email(query: str, db: Session = Depends(get_db)):
     users = db.query(User).filter(User.email.ilike(f"%{query}%")).all()
     return [{"email": user.email, "username": user.username} for user in users]
 
+# Update notification status to read or unread
+@router.put("/notifications/{msgId}")
+async def update_notification_status(msgId: int, status_update: NotificationStatusUpdate, db: Session = Depends(get_db)):
+    notification = db.query(Notification).filter(Notification.msgId == msgId).first()
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    notification.status = status_update.status
+    db.commit()
+    return {"status": "Notification updated", "msgId": notification.msgId}
 
 #Refrence: https://mailmug.net/blog/fastapi-mail/

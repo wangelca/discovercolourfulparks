@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ToastContainer, toast, Bounce } from "react-toastify";
 import axios from "axios";
 
 export default function AdminNotificationPage() {
@@ -58,8 +59,8 @@ export default function AdminNotificationPage() {
     fetchAllEmails();
   }, [recipients]);
 
-   // Handle adding selected users to the list
-   const handleEmailSelect = (e) => {
+  // Handle adding selected users to the list
+  const handleEmailSelect = (e) => {
     const selectedEmailValue = e.target.value;
     setSelectedEmail(selectedEmailValue);
     const user = emailSuggestions.find(
@@ -85,32 +86,48 @@ export default function AdminNotificationPage() {
     e.preventDefault();
 
     if (selectedUsers.length === 0 || !message) {
-      console.error("At least one user and a message are required.");
+      toast.error("At least one user and a message are required.");
       return;
     }
 
     for (const user of selectedUsers) {
-    const requestData = {
-      id: user.id,
-      email: user.email,
-      message,
-    };
+      const requestData = {
+        id: user.id,
+        email: user.email,
+        message,
+      };
 
-    try {
-      await axios.post(
-        "http://localhost:8000/notifications/admin-to-user",
-        requestData
-      );
-      console.log(`Notification sent successfully to ${user.email}`);
-    } catch (error) {
-      console.error(`Failed to send notification to ${user.email}`, error);
-    }}
+      try {
+        await axios.post(
+          "http://localhost:8000/notifications/admin-to-user",
+          requestData
+        );
+        setSelectedUsers([]); // Clear selected users after sending notification
+        setMessage(""); // Clear message after sending notification
+        toast.success("Notification sent successfully");
+      } catch (error) {
+        toast.error("Failed to send notification");
+      }
+    }
   };
 
   return (
     <div className="container mx-auto p-6">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Send Notification
+        Send Message to Users
       </h1>
 
       <form
@@ -139,35 +156,35 @@ export default function AdminNotificationPage() {
         {/* Conditional Input Fields */}
         {recipients === "specific" && (
           <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Search and Select User Emails
-          </label>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            placeholder="Search user email"
-          />
-          {emailSuggestions.length > 0 && (
-            <select
-            value={selectedEmail}
-              onChange={handleEmailSelect}
-              className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            >
+            <label className="block text-gray-700 font-medium mb-2">
+              Search and Select User Emails
+            </label>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Search user email"
+            />
+            {emailSuggestions.length > 0 && (
+              <select
+                value={selectedEmail}
+                onChange={handleEmailSelect}
+                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              >
                 <option value="" disabled>
                   -- Select a user email --
                 </option>
-              {emailSuggestions.map((suggestion) => (
-                <option key={suggestion.email} value={suggestion.email}>
-                  {suggestion.username
-                    ? `${suggestion.username} (${suggestion.email})`
-                    : suggestion.email}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+                {emailSuggestions.map((suggestion) => (
+                  <option key={suggestion.email} value={suggestion.email}>
+                    {suggestion.username
+                      ? `${suggestion.username} (${suggestion.email})`
+                      : suggestion.email}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         )}
 
         {/* Display Selected Users */}

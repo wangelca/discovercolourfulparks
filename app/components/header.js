@@ -4,10 +4,10 @@ import { useState } from "react";
 import {
   useUser,
   SignInButton,
-  SignOutButton,
   UserButton,
 } from "@clerk/nextjs";
 import Image from "next/image";
+import NotificationBubble from "./notificationBubble";
 
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
@@ -44,8 +44,8 @@ export default function Header() {
                     userButtonPopoverActionButton:
                       "bg-slate-500 hover:bg-slate-400 text-sm",
                   }}
-                />
-              )}
+                />               
+              ) }
             </div>
             <button
               onClick={handleMenuToggle} // Toggle menu on click

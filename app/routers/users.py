@@ -29,14 +29,19 @@ async def update_user_metadata(user_id: str, metadata: str):
 async def sync_users(db: Session = Depends(get_db)):
     try:
 
-
+        if not CLERK_SECRET_KEY:
+            print("Error: CLERK_SECRET_KEY is missing.")
+            raise HTTPException(status_code=500, detail="CLERK_SECRET_KEY is not set.")
+        
         users = []
 
         # Fetch users from Clerk API
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{CLERK_API_URL}/users?limit=500&offset=0&order_by=-created_at", headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"})
-            if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail="Failed to fetch users from Clerk")
+            response = await client.get(
+                f"{CLERK_API_URL}/users?limit=500&offset=0&order_by=-created_at",
+                headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"}
+            )
+            response.raise_for_status()  # Ensure HTTP errors are caught
             users = response.json()
 
         # Loop through users and sync with the database
@@ -44,7 +49,6 @@ async def sync_users(db: Session = Depends(get_db)):
 
             clerk_user_id = user_data["id"]
             email = user_data["email_addresses"][0]["email_address"] if user_data["email_addresses"] else ""
-            phone_number = user_data["phone_numbers"][0]["phone_number"] if user_data["phone_numbers"] else ""
             public_metadata = user_data.get("public_metadata", {"role": "visitor"})
 
             public_metadata_str = json.dumps(public_metadata)
@@ -55,26 +59,32 @@ async def sync_users(db: Session = Depends(get_db)):
                 public_metadata["role"] = "visitor"
 
             # Check if the user already exists in the database
-            db_user = db.query(User).filter(User.clerk_user_id == clerk_user_id).first()
+            db_user = db.query(User).filter(
+                (User.clerk_user_id == clerk_user_id) | (User.email == email)
+            ).first()
 
             if db_user:
                 db_user.email = email
-                db_user.phoneNumber = phone_number
                 db_user.publicMetadata = public_metadata_str
             else:
                 new_user = User(
                     clerk_user_id=clerk_user_id,
                     email=email,
-                    phoneNumber=phone_number,
+                    phoneNumber=user_data.get("phone_number", ""),
                     publicMetadata=public_metadata_str,
                     firstName=user_data.get("first_name", ""),
                     lastName=user_data.get("last_name", ""),
                     username=user_data.get("username", ""),
+                    mktPref=user_data.get("marketing_preferences", False),
+                    favSpotId=user_data.get("favorite_spot_ids", []),
+                    favEventId=user_data.get("favorite_event_ids", [])
                 )
                 db.add(new_user)
 
         db.commit()  # Commit all changes
+        print("Users synced successfully.")
         return {"message": "Users synced successfully"}
 
     except Exception as e:
+        print("General error in sync-users:", str(e))
         raise HTTPException(status_code=500, detail=f"Error syncing users: {str(e)}")
