@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone
-from app.routers import users, notifications, reviews, favorite
+from app.routers import users, notifications, reviews, favorite, maps
 import os
 import shutil
 import openai
@@ -21,6 +21,7 @@ app.include_router(users.router)
 app.include_router(notifications.router)
 app.include_router(reviews.router)
 app.include_router(favorite.router)
+app.include_router(maps.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -655,21 +656,3 @@ async def generate_description(parkName: str = Form(...), name: str = Form(...),
     except Exception as e:
         print(f"Error generating description: {e}")
         raise HTTPException(status_code=500, detail="Error generating description")
-
-
-
-class ParkTest(BaseModel):
-    id: int
-    name: str
-    province: str
-    boundary: List[Tuple[float, float]]  # List of coordinates for the park boundary
-
-parks_data = [
-    {"id": 1, "name": "Banff National Park", "province": "Alberta", "boundary": [(51.4968, -115.9281), (51.2, -115.6)]},
-    {"id": 2, "name": "Jasper National Park", "province": "Alberta", "boundary": [(52.8734, -117.9571), (52.9, -118)]},
-    # Add more parks here
-]
-
-@app.get("/parks_map/", response_model=List[ParkTest])
-async def get_parks(province: str = Query(...)):
-    return [park for park in parks_data if park["province"].lower() == province.lower()]
