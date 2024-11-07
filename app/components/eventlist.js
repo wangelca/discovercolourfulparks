@@ -1,18 +1,13 @@
-"use client"; // Mark this component as a Client Component
-
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useUser } from "@clerk/nextjs"; // Import the Clerk hook
-import { toast, ToastContainer, Bounce } from "react-toastify"; // Optional: for better user notifications
+import { useUser } from "@clerk/nextjs";
+import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaHeart } from "react-icons/fa"; // Import heart icon
+import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const router = useRouter(); // Initialize useRouter
-  const { isSignedIn } = useUser(); // Check if the user is signed in
-  const { user } = useUser();
+  const { isSignedIn, user } = useUser(); // Single useUser hook to avoid multiple updates
   const [profileData, setProfileData] = useState(null);
 
   // Fetch events data from the backend
@@ -24,29 +19,40 @@ export default function Events() {
           throw new Error("Failed to fetch events: " + response.statusText);
         }
         const data = await response.json();
+
+        // Fetch ratings for each event and attach it
         const eventsWithRatings = await Promise.all(
           data.map(async (event) => {
+            try {
               const ratingResponse = await fetch(
-                  `http://localhost:8000/ratings/event/${event.eventId}`
+                `http://localhost:8000/ratings/event/${event.eventId}`
               );
-              const ratingData = await ratingResponse.json();
-              return { ...event, averageRating: ratingData.average_rating };
+              if (ratingResponse.ok) {
+                const ratingData = await ratingResponse.json();
+                return { ...event, averageRating: ratingData.average_rating };
+              } else {
+                return { ...event, averageRating: null }; // Handle the case where rating is unavailable
+              }
+            } catch {
+              return { ...event, averageRating: null };
+            }
           })
-      );
-      
-      setEvents(eventsWithRatings);
+        );
+
+        setEvents(eventsWithRatings);
       } catch (error) {
-        alert("Failed to fetch events. Please try again later.");
+        console.error("Error fetching events:", error);
       }
     };
 
     fetchEvents();
   }, []);
 
+  // Fetch profile data if the user is signed in
   useEffect(() => {
     if (!user) return;
 
-    async function fetchProfile() {
+    const fetchProfile = async () => {
       try {
         const profileResponse = await fetch(
           `http://localhost:8000/users/${user.id}`
@@ -57,9 +63,10 @@ export default function Events() {
         const profile = await profileResponse.json();
         setProfileData(profile);
       } catch (err) {
-        setError("Failed to fetch user profile data.");
+        console.error("Failed to fetch user profile data.", err);
       }
-    }
+    };
+
     fetchProfile();
   }, [user]);
 
@@ -123,18 +130,17 @@ export default function Events() {
 
   const renderStars = (rating) => (
     <div className="flex">
-        {[...Array(5)].map((_, index) => (
-            <span
-                key={index}
-                style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
-                className="text-2xl"
-            >
-                ★
-            </span>
-        ))}
+      {[...Array(5)].map((_, index) => (
+        <span
+          key={index}
+          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
+          className="text-2xl"
+        >
+          ★
+        </span>
+      ))}
     </div>
-);
-
+  );
 
   const currentDate = new Date();
 
@@ -161,7 +167,7 @@ export default function Events() {
                   <FaHeart
                     onClick={() => handleToggleFavorite(event.eventId)}
                     className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
-                      isFavorite ? "text-red-500" : "text-white 0 "
+                      isFavorite ? "text-red-500" : "text-white"
                     } hover:text-red-600`}
                   />
                 </div>
@@ -206,9 +212,9 @@ export default function Events() {
                       onClick={() => {
                         if (!isSignedIn) {
                           alert("Please sign in to continue booking.");
-                          window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
+                          window.open("/sign-in", "_blank");
                         } else {
-                          window.location.href = `/events/${event.eventId}/book`; // Direct to booking page
+                          window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
                       className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
