@@ -7,7 +7,6 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import Image from "next/image";
-import NotificationBubble from "./notificationBubble";
 
 export default function Header() {
   const { isSignedIn } = useUser(); // Check if the user is signed in
