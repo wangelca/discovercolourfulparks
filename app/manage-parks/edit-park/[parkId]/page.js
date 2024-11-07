@@ -99,7 +99,7 @@ export default function EditParkPage() {
 
 
   return (
-    <div className="container mx-auto p-6 bg-gray-100 shadow-md rounded-lg max-w-7xl">
+    <div className="container mx-auto mt-6 p-6 bg-gray-100 shadow-md rounded-lg max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Edit Park</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
