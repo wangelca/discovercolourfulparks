@@ -24,6 +24,7 @@
     "@stripe/stripe-js": "^4.5.0",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
+    "benchmark": "^2.1.4",
     "detect-port": "^1.6.1",
     "discovercolourfulparks": "file:",
     "dotenv": "^16.4.5",
