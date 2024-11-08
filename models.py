@@ -46,7 +46,8 @@ class Park(Base):
     location = Column(String)
     parkImageUrl = Column(ARRAY(String))
     parameters = Column(String, nullable=True)
-    
+    duration = Column(Integer)
+
     spots = relationship("Spot", back_populates="park")
     events = relationship("Event", back_populates="park")
     
@@ -73,7 +74,8 @@ class Spot(Base):
     closingHour = Column(String)
     spotLimit = Column(Integer)
     reviews = relationship("Review", back_populates="spot")  # Link to Review
-    
+    duration = Column(Integer)
+
     park = relationship("Park", back_populates="spots")
     booking = relationship("Booking", back_populates="spot")
 
@@ -95,6 +97,7 @@ class Event(Base):
     eventImageUrl = Column(ARRAY(String))
     parameters = Column(String, nullable=True)
     requiredbooking = Column(Boolean, default=False)
+    duration = Column(Integer)
     
     park = relationship("Park", back_populates="events") 
     booking = relationship("Booking", back_populates="event")

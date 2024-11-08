@@ -26,13 +26,12 @@ export default function Header() {
               width={280}
               height={125}
               alt="Logo"
-              href="/"
             />
           </a>
           <div className="flex items-center lg:order-2">
             <div>
               {!isSignedIn ? (
-                <SignInButton redirectUrl="/" mode='modal'> 
+                <SignInButton redirectUrl="/" mode="modal">
                   <button className="bg-green-800 text-white text-xl font-semibold py-2.5 px-6 rounded-full transition hover:bg-gray-700 mx-2">
                     Sign In
                   </button>
@@ -47,15 +46,15 @@ export default function Header() {
               ) }
             </div>
             <button
-              onClick={handleMenuToggle} // Toggle menu on click
+              onClick={handleMenuToggle}
               type="button"
               className="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               aria-controls="mobile-menu-2"
-              aria-expanded={isMobileMenuOpen} // Reflect the state in aria-expanded
+              aria-expanded={isMobileMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
               <svg
-                className={`w-6 h-6 ${isMobileMenuOpen ? "hidden" : "block"}`} // Show only when menu is closed
+                className={`w-6 h-6 ${isMobileMenuOpen ? "hidden" : "block"}`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +66,7 @@ export default function Header() {
                 ></path>
               </svg>
               <svg
-                className={`w-6 h-6 ${isMobileMenuOpen ? "block" : "hidden"}`} // Show only when menu is open
+                className={`w-6 h-6 ${isMobileMenuOpen ? "block" : "hidden"}`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -117,6 +116,12 @@ export default function Header() {
                   <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-red-300 group-hover:w-full"></span>
                 </a>
               </li>
+              <li className="text-lg group relative w-max">
+                <a href="/itinerary">
+                  <span>Generate Itinerary</span>
+                  <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-purple-500 group-hover:w-full"></span>
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -124,6 +129,7 @@ export default function Header() {
     </header>
   );
 }
+
 
 {
   /*Ref: https://flowbite.com/blocks/marketing/header/ */
