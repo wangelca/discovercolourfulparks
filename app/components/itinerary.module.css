@@ -1,0 +1,87 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.title {
+  font-size: 2rem;
+  text-align: center;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 20px;
+}
+
+.button {
+  background-color: #4a90e2;
+  color: white;
+  font-size: 1rem;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #357ab7;
+}
+
+.loading {
+  text-align: center;
+  color: #666;
+}
+
+.itineraryContainer {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dayContainer {
+  margin-bottom: 1rem;
+  padding: 10px;
+  background-color: #e0f7fa;
+  border-radius: 8px;
+}
+
+.dayHeader {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #00796b;
+  margin-bottom: 8px;
+}
+
+.timeActivityContainer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.timeColumn,
+.activityColumn {
+  width: 45%;
+}
+
+.timeColumn p,
+.activityColumn p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.timeColumn p:first-child,
+.activityColumn p:first-child {
+  font-weight: bold;
+  color: #333;
+}

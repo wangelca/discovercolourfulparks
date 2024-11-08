@@ -14,6 +14,9 @@ from app.routers import users, notifications, reviews, favorite
 import os
 import shutil
 import openai
+from database import get_db
+from datetime import timedelta
+import random
 
 app = FastAPI()
 
@@ -673,3 +676,83 @@ parks_data = [
 @app.get("/parks_map/", response_model=List[ParkTest])
 async def get_parks(province: str = Query(...)):
     return [park for park in parks_data if park["province"].lower() == province.lower()]
+
+@app.get("/itinerary")
+async def generate_itinerary(days: int = Query(1, ge=1, le=3), db: Session = Depends(get_db)):
+    # Fetch data from the database
+    parks = db.query(Park).all()
+    spots = db.query(Spot).all()
+    events = db.query(Event).all()
+
+    itinerary = []
+
+    for day in range(days):
+        # Select 1-2 parks for the day's itinerary
+        selected_parks = random.sample(parks, min(2, len(parks)))
+
+        # Select 2-3 spots across the selected parks for the day
+        selected_spots = []
+        for park in selected_parks:
+            park_spots = [spot for spot in spots if spot.parkId == park.parkId]
+            selected_spots.extend(random.sample(park_spots, min(3, len(park_spots))))
+
+        # Pick one random event if available for the day
+        selected_event = random.choice(events) if events else None
+
+        # Calculate the day's total cost based on spots and event
+        day_cost = sum(spot.spotAdmission for spot in selected_spots) + (selected_event.fee if selected_event else 0)
+
+        # Prepare parks, spots, and event details
+        parks_data = [
+            {
+                "type": "Park",
+                "name": park.name,
+                "location": park.location,
+                "province": park.province,
+                "duration": park.duration  # Estimated time in minutes
+            }
+            for park in selected_parks
+        ]
+
+        spots_data = [
+            {
+                "type": "Spot",
+                "name": spot.spotName,
+                "description": spot.spotDescription,
+                "cost": spot.spotAdmission,
+                "location": spot.spotLocation,
+                "duration": spot.duration  # Estimated time in minutes
+            }
+            for spot in selected_spots
+        ]
+
+        event_data = {
+            "type": "Event",
+            "name": selected_event.eventName,
+            "location": selected_event.eventLocation,
+            "cost": selected_event.fee,
+            "location": selected_event.eventLocation,
+            "duration": selected_event.duration  # Estimated time in minutes
+        } if selected_event else None
+
+        # Combine activities for the day's itinerary
+        activities = parks_data + spots_data
+        if event_data:
+            activities.append(event_data)
+
+        # Add the day's itinerary with parks, spots, and event details
+        day_itinerary = {
+            "day": day + 1,
+            "parks": parks_data,
+            "spots": spots_data,
+            "event": event_data,
+            "activities": activities,
+            "day_cost": day_cost
+        }
+
+        itinerary.append(day_itinerary)
+
+    # Calculate total cost across all days
+    total_cost = sum(day["day_cost"] for day in itinerary)
+
+    return {"itinerary": itinerary, "total_cost": total_cost}
