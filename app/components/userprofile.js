@@ -38,7 +38,7 @@ export default function ProfilePage() {
       );
 
     const savedAvatar = localStorage.getItem("selectedAvatar");
-    console.log("Saved avatar from localStorage:", savedAvatar); 
+
     if (savedAvatar) {
       setProfileData((prevData) => ({ ...prevData, avatar: savedAvatar }));
     } else {
@@ -53,8 +53,8 @@ export default function ProfilePage() {
 
   const handleAvatarSelect = (avatar) => {
     setProfileData((prevData) => ({ ...prevData, avatar }));
+    
     localStorage.setItem("selectedAvatar", avatar);
-    console.log("Avatar selected:", avatar); 
   };
 
   const handleSubmit = async (e) => {
@@ -78,7 +78,7 @@ export default function ProfilePage() {
     }
   };
 
-  const avatarToDisplay = profileData.avatar || "/avatars/avatar1.jpg"; 
+  const avatarToDisplay = profileData.avatar || "/avatars/avatar1.jpg";
 
   return (
     <div className="max-w-4xl mx-auto my-8">
@@ -95,7 +95,7 @@ export default function ProfilePage() {
 
       <div className="flex items-center justify-center space-x-8 mb-6">
         <img
-          src={avatarToDisplay} 
+          src={avatarToDisplay}
           alt="Profile"
           className="w-48 h-48 rounded-full object-cover border-4 border-blue-500"
         />

@@ -24,6 +24,8 @@ app.include_router(favorite.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+UPLOAD_DIR = "public\avatars"
+
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
@@ -276,6 +278,24 @@ async def get_user(clerk_user_id: str, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+@app.put("/users/{user_id}/avatar")
+async def update_avatar(user_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.clerk_user_id == user_id).first()
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    avatar_filename = f"{user_id}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, avatar_filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    user.avatar = f"/{UPLOAD_DIR}/{avatar_filename}"
+    db.commit()
+
+    return {"message": "Avatar updated successfully", "avatar": user.avatar}
 
 #update the user by userId (individual profile page)
 @app.put("/users/{user_id}", response_model=UserResponse)
