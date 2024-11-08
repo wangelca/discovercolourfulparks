@@ -1,0 +1,20 @@
+# Dockerfile.frontend
+
+# Use an official Node.js runtime as a parent image
+FROM node:18-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy frontend-specific files to the container
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the frontend files
+COPY . .
+
+# Expose the port your frontend uses
+EXPOSE 3000
+
+# Run the frontend server
+CMD ["npm", "run", "dev"]

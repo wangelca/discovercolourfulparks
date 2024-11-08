@@ -2,15 +2,32 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ParksAdmin() {
-  const [parks, setParks] = useState([]); // Initialize with an empty array
+  const [parks, setParks] = useState([]);
+  const [filteredParks, setFilteredParks] = useState([]);
+  const [filter, setFilter] = useState("Alphabetical"); 
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/parks") // Update with your FastAPI endpoint
+    fetch("http://localhost:8000/parks")
       .then((response) => response.json())
-      .then((data) => setParks(data))
+      .then((data) => {
+        setParks(data);
+        setFilteredParks(data.sort((a, b) => a.name.localeCompare(b.name))); 
+      })
       .catch((error) => console.error("Error fetching parks:", error));
   }, []);
+
+  useEffect(() => {
+    let updatedParks = [...parks];
+    if (filter === "Alberta") {
+      updatedParks = parks.filter((park) => park.province === "Alberta");
+    } else if (filter === "British Columbia") {
+      updatedParks = parks.filter((park) => park.province === "British Columbia");
+    } else if (filter === "Alphabetical") {
+      updatedParks.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    setFilteredParks(updatedParks);
+  }, [filter, parks]);
 
   return (
     <div className="container mx-auto p-6">
@@ -23,8 +40,21 @@ export default function ParksAdmin() {
           Add Park
         </button>
       </div>
+      <div className="mb-4">
+        <label htmlFor="filter" className="mr-2 font-medium">Filter by:</label>
+        <select
+          id="filter"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="py-2 px-4 border rounded-lg"
+        >
+          <option value="Alphabetical">Alphabetical</option>
+          <option value="Alberta">Alberta</option>
+          <option value="British Columbia">British Columbia</option>
+        </select>
+      </div>
       <div className="overflow-x-auto">
-      <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
+        <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
           <thead>
             <tr className="bg-gray-700 text-left text-white font-semibold text-medium">
               <th className="w-1/5 py-3 px-6">Image</th>
@@ -38,12 +68,9 @@ export default function ParksAdmin() {
             </tr>
           </thead>
           <tbody>
-            {parks.length > 0 ? (
-              parks.map((park) => (
-                <tr
-                  key={park.parkId}
-                  className="border-t hover:bg-gray-50 transition"
-                >
+            {filteredParks.length > 0 ? (
+              filteredParks.map((park) => (
+                <tr key={park.parkId} className="border-t hover:bg-gray-50 transition">
                   <td className="w-1/6 py-3 px-6 w-32">
                     {park.parkImageUrl && (
                       <img
@@ -78,7 +105,7 @@ export default function ParksAdmin() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-3 text-gray-500">
+                <td colSpan="8" className="text-center py-3 text-gray-500">
                   No parks found.
                 </td>
               </tr>

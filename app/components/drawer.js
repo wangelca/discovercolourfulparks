@@ -5,16 +5,11 @@ import { slide as Menu } from 'react-burger-menu';
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faUser, faHeart, faStar, faTag, faInbox, faUsers, faTree, faCalendar, faMapMarkerAlt, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import NotificationBubble from './notificationBubble';
 
 export default function DrawerMenu() {
   const { user, isLoaded } = useUser(); // Check if user data is loaded
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded && user) {
-    }
-  }, [isLoaded, user]);
-  
 
   const handleStateChange = (state) => {
     setMenuOpen(state.isOpen);
@@ -31,7 +26,7 @@ export default function DrawerMenu() {
   if (!isLoaded) {
     // While user data is being fetched, return null or a loading spinner
     return null;
-  }  
+  }
 
   return (
     <SignedIn>
@@ -58,7 +53,7 @@ export default function DrawerMenu() {
             <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faTag} />  Coupons</a>
-            <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faInbox} />  Inbox</a>
+            <a className="menu-item text-white" href="/inbox" onClick={closeMenu}><FontAwesomeIcon icon={faInbox} />  Inbox <NotificationBubble menuOpen={menuOpen} /></a>
           </>
         )}
 
@@ -68,6 +63,7 @@ export default function DrawerMenu() {
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}><FontAwesomeIcon icon={faTree} />  Manage Parks</a>
             <a className="menu-item text-white" href="/manage-events" onClick={closeMenu}><FontAwesomeIcon icon={faCalendar} />  Manage Events</a>
             <a className="menu-item text-white" href="/manage-spots" onClick={closeMenu}><FontAwesomeIcon icon={faMapMarkerAlt} />  Manage Spots</a>
+            <a className="menu-item text-white" href="/inbox" onClick={closeMenu}><FontAwesomeIcon icon={faInbox} />  Inbox <NotificationBubble menuOpen={menuOpen} /></a>
             <a className="menu-item text-white" href="/reports" onClick={closeMenu}><FontAwesomeIcon icon={faFileAlt} />  Generate Reports</a>
           </>
         )}

@@ -6,6 +6,7 @@ import DrawerMenu from './components/drawer';
 import Header from './components/header';
 import Footer from './components/footer';
 import BackToTopButton from './components/scroll-back-button';
+import NotificationBubble from './components/notificationBubble';
 
 export default function RootLayout({ children }) {
     return (
@@ -14,7 +15,7 @@ export default function RootLayout({ children }) {
         signUpFallbackRedirectUrl="/main">
                 <html lang="en">
                     <body className='bg-top bg-fixed bg-cover bg-no-repeat bg-[url(/bg/FOREST_BACKGROUND6_generated.jpg)]'>
-                    <SignedIn><DrawerMenu /></SignedIn>
+                    <SignedIn><DrawerMenu /> </SignedIn>
                         <Header />
                         <BackToTopButton />
                         <header>

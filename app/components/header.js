@@ -42,8 +42,8 @@ export default function Header() {
                     userButtonPopoverActionButton:
                       "bg-slate-500 hover:bg-slate-400 text-sm",
                   }}
-                />
-              )}
+                />               
+              ) }
             </div>
             <button
               onClick={handleMenuToggle}

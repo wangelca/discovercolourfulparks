@@ -27,10 +27,12 @@ app.include_router(favorite.router)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+UPLOAD_DIR = "public\avatars"
+
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000" , "https://dcp-tawny.vercel.app"],  # React app runs here
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -279,6 +281,24 @@ async def get_user(clerk_user_id: str, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+@app.put("/users/{user_id}/avatar")
+async def update_avatar(user_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.clerk_user_id == user_id).first()
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    avatar_filename = f"{user_id}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, avatar_filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    user.avatar = f"/{UPLOAD_DIR}/{avatar_filename}"
+    db.commit()
+
+    return {"message": "Avatar updated successfully", "avatar": user.avatar}
 
 #update the user by userId (individual profile page)
 @app.put("/users/{user_id}", response_model=UserResponse)
@@ -659,24 +679,6 @@ async def generate_description(parkName: str = Form(...), name: str = Form(...),
         print(f"Error generating description: {e}")
         raise HTTPException(status_code=500, detail="Error generating description")
 
-
-
-class ParkTest(BaseModel):
-    id: int
-    name: str
-    province: str
-    boundary: List[Tuple[float, float]]  # List of coordinates for the park boundary
-
-parks_data = [
-    {"id": 1, "name": "Banff National Park", "province": "Alberta", "boundary": [(51.4968, -115.9281), (51.2, -115.6)]},
-    {"id": 2, "name": "Jasper National Park", "province": "Alberta", "boundary": [(52.8734, -117.9571), (52.9, -118)]},
-    # Add more parks here
-]
-
-@app.get("/parks_map/", response_model=List[ParkTest])
-async def get_parks(province: str = Query(...)):
-    return [park for park in parks_data if park["province"].lower() == province.lower()]
-
 @app.get("/itinerary")
 async def generate_itinerary(days: int = Query(1, ge=1, le=3), db: Session = Depends(get_db)):
     # Fetch data from the database
@@ -756,3 +758,5 @@ async def generate_itinerary(days: int = Query(1, ge=1, le=3), db: Session = Dep
     total_cost = sum(day["day_cost"] for day in itinerary)
 
     return {"itinerary": itinerary, "total_cost": total_cost}
+
+

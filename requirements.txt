@@ -35,7 +35,6 @@ pefile==2023.2.7
 pillow==10.4.0
 prisma-client==0.2.1
 propcache==0.2.0
-psycopg2==2.9.9
 psycopg2-binary==2.9.9
 pybase64==1.4.0
 pydantic==2.9.2
@@ -55,3 +54,4 @@ typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.31.1
 yarl==1.16.0
+selenium==4.26.1
