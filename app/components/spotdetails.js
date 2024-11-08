@@ -2,26 +2,31 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import PlaceGallerySpot from './googlePhotoSpot';
+import ReviewsComponent from '@/app/components/reviews';
 
 export default function SpotDetails() {
   const { spotId } = useParams(); // Get dynamic route params
   const [spot, setSpot] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (spotId) {
-      axios.get(`/api/spot/${spotId}`)
-        .then((response) => {
-          setSpot(response.data);
-        })
-        .catch((error) => {
-          console.error('Error fetching spot details:', error);
-        });
+    async function fetchSpotData() {
+      try {
+        const response = await fetch(`http://localhost:8000/spots/${spotId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch spot data");
+        }
+        const spotData = await response.json();
+        setSpot(spotData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching spot data:", error);
+      }
     }
+    fetchSpotData();
   }, [spotId]);
 
-  if (!spot) {
+  if (!spot || loading) {
     return <div>Loading...</div>;
   }
 
@@ -50,7 +55,7 @@ export default function SpotDetails() {
         </p>
         <p className="text-lg">
           <strong className="font-semibold">Hourly Rate:</strong> 
-          <span className="text-green-600 font-bold"> ${spot.spotHourlyRate}</span>
+          <span className="text-green-600 font-bold"> ${spot.spotAdmission}</span>
         </p>
         <p className="text-lg">
           <strong className="font-semibold">Discount:</strong> 
@@ -71,6 +76,9 @@ export default function SpotDetails() {
         ></iframe>
       </div>
     </div>
+
+    <ReviewsComponent itemType ="spot" itemId={spotId} />
+
   </div>
 </div>
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ParksAdmin() {
   const [parks, setParks] = useState([]); // Initialize with an empty array
+  const router = useRouter();
 
   useEffect(() => {
     fetch("http://localhost:8000/parks") // Update with your FastAPI endpoint
@@ -15,17 +17,17 @@ export default function ParksAdmin() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Parks Database</h1>
         <button
-          onClick={() => router.push("/add-park")}
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition"
+          onClick={() => router.push("/manage-parks/add-park")}
+          className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-800 transition"
         >
           Add Park
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+      <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-gray-100 text-left text-gray-600 font-semibold">
-              <th className="py-3 px-6">Image</th>
+            <tr className="bg-gray-700 text-left text-white font-semibold text-medium">
+              <th className="w-1/5 py-3 px-6">Image</th>
               <th className="py-3 px-6">Park Name</th>
               <th className="py-3 px-6">Province</th>
               <th className="py-3 px-6">Description</th>
@@ -42,12 +44,12 @@ export default function ParksAdmin() {
                   key={park.parkId}
                   className="border-t hover:bg-gray-50 transition"
                 >
-                  <td className="py-3 px-6 w-32">
+                  <td className="w-1/6 py-3 px-6 w-32">
                     {park.parkImageUrl && (
                       <img
                         src={park.parkImageUrl}
                         alt={`Image of ${park.name}`}
-                        className="w-24 h-auto rounded-lg"
+                        className="w-auto h-auto rounded-lg"
                       />
                     )}
                   </td>
@@ -66,7 +68,7 @@ export default function ParksAdmin() {
                   </td>
                   <td className="py-3 px-6">
                     <button
-                      onClick={() => router.push(`/edit-park/${[park].parkId}`)}
+                      onClick={() => router.push(`/manage-parks/edit-park/${park.parkId}`)}
                       className="text-blue-600 hover:underline"
                     >
                       Edit

@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 const provinces = ['Ontario', 'British Columbia', 'Alberta', 'Quebec'];
@@ -11,7 +13,7 @@ const AddParkPage = () => {
     description: '',
     location: '',
     parkImage: null,
-    parameters
+    parameters: '',
   });
   const [errors, setErrors] = useState({});
   const [summary, setSummary] = useState(null);
@@ -69,7 +71,7 @@ const AddParkPage = () => {
   return (
     <div className="container mx-auto p-6">
       {!summary ? (
-        <form>
+        <form className="space-y-8">
           <div>
             <label>Name</label>
             <input

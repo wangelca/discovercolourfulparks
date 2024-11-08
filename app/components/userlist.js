@@ -10,10 +10,10 @@ export default function UserList() {
     const [searchFirstName, setSearchFirstName] = useState('');
     const [searchLastName, setSearchLastName] = useState('');    
     const [searchPhone, setSearchPhone] = useState('');
-
+    const [searchPublicMetadata, setSearchPublicMetadata] = useState('');
  
   useEffect(() => {
-    fetch('http://localhost:8000/get_users')
+    fetch('http://localhost:8000/users')
       .then((response) => response.json())
       .then((data) => {setUsers(data); setLoading(false);})
       .catch((error) => console.error('Error fetching users:', error));
@@ -25,7 +25,8 @@ export default function UserList() {
       (user.email.toLowerCase().includes(searchEmail.toLowerCase()) &&
       (user.firstName || '').toLowerCase().includes(searchFirstName.toLowerCase()) &&
       (user.lastName || '').toLowerCase().includes(searchLastName.toLowerCase()) &&
-      (user.phoneNumber || '').toLowerCase().includes(searchPhone.toLowerCase())
+      (user.phoneNumber || '').toLowerCase().includes(searchPhone.toLowerCase()) &&
+      (user.publicMetadata || '').toLowerCase().includes(searchPublicMetadata.toLowerCase())
     ));
 
   if (loading) {
@@ -37,19 +38,20 @@ export default function UserList() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto p-6 mb-10">
     <h1 className="text-3xl font-bold text-center mb-8">User List</h1>
-    <table className="min-w-full bg-white border-collapse block md:table">
-      <thead className="block md:table-header-group">
-        <tr className="border border-gray-300 md:border-none block md:table-row absolute -top-full md:top-auto -left-full md:left-auto md:relative">
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">User ID</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Email</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">First Name</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Last Name</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Phone Number</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Created at</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Last update at</th>
-          <th className="bg-gray-100 p-2 text-gray-700 font-bold md:border md:border-gray-300 text-left block md:table-cell">Profile</th>
+    <div className="overflow-x-auto">
+    <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
+    <thead>
+    <tr className="bg-gray-700 text-left text-white font-semibold">
+          <th >User ID</th>
+          <th >Email</th>
+          <th >First Name</th>
+          <th >Last Name</th>
+          <th >Phone Number</th>
+          <th >Created at</th>
+          <th >Last update at</th>
+          <th >Profile</th>
         </tr>
         {/* Search inputs for filtering */}
         <tr className="block md:table-row">
@@ -98,6 +100,17 @@ export default function UserList() {
               className="p-2 w-full border rounded"
             />
           </td>
+          <td></td>
+          <td></td>
+          <td className="p-2 md:border md:border-gray-300 block md:table-cell">
+            <input 
+              type="text"
+              placeholder="Search Public Metadata"
+              value={searchPublicMetadata}
+              onChange={(e) => setSearchPublicMetadata(e.target.value)}
+              className="p-2 w-full border rounded"
+            />
+            </td>
         </tr>
       </thead>
       <tbody className="block md:table-row-group">
@@ -131,6 +144,7 @@ export default function UserList() {
         ))}
       </tbody>
     </table>
+    </div>
   </div>
   );
 }

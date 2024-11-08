@@ -7,14 +7,18 @@ module.exports = {
     "./node_modules/tw-elements/js/**/*.js"
   ],
   theme: {
+    fontFamily: {
+      Dosis: ['Dosis', "sans-serif"],
+    },
     extend: {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
-      fontFamily: {
-        'dosis': ["Dosis", "sans-serif"],
+      backgroundImage: {
+        'custom-image': "url('/spots_banner.jpg')",
       },
+
     },
   },
   plugins: [require("tw-elements/plugin.cjs")],

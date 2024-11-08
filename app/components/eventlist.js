@@ -1,78 +1,140 @@
-"use client"; 
+"use client"; // Mark this component as a Client Component
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; 
-import { format } from 'date-fns'; 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { useUser } from "@clerk/nextjs"; // Import the Clerk hook
+import { toast, ToastContainer, Bounce } from "react-toastify"; // Optional: for better user notifications
+import "react-toastify/dist/ReactToastify.css";
+import { FaHeart } from "react-icons/fa"; // Import heart icon
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const [loadingEventId, setLoadingEventId] = useState(null);
-  const router = useRouter(); 
+  const router = useRouter(); // Initialize useRouter
+  const { isSignedIn } = useUser(); // Check if the user is signed in
+  const { user } = useUser();
+  const [profileData, setProfileData] = useState(null);
 
-  const id = 1;  // Replace with actual user ID dynamically (e.g., from Clerk authentication)
-  const spotId = 1; // Static spot ID for now, or replace with actual spotId dynamically
-
-  const eventImages = useMemo(() => ({
-    "Indigenous Voices": "https://wereintherockies.com/wp-content/uploads/2024/08/CBGiftshop.jpeg",
-    "Art In Nature Trail": "https://banfflakelouise.bynder.com/m/911bfa88a9147f0/2000x1080_jpg-2023_Banff_ArtinNatureTrail_signage_RobertMassey%20(0).jpg",
-    "Fall Equinox Release & Reset Yoga Workshop": "https://www.risingfawngardens.com/wp-content/uploads/2022/07/mec-thumb-1026-362-IMG_0321-scaled.jpg",
-    "Downtown Foodie Tour": "https://cdn.prod.website-files.com/65cd06b49d0a9fd5c7556909/661c2643b10c5b27b4fc9d03_Downtown-Foodie-Tour-700%20(Large).webp",
-  }), []);
-
+  // Fetch events data from the backend
   useEffect(() => {
-    fetch('/api/event')
-      .then((response) => response.json())
-      .then((data) => setEvents(data))
-      .catch((error) => {
-        console.error('Error fetching events:', error);
-        alert('Failed to fetch events. Please try again later.');
-      });
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/events");
+        if (!response.ok) {
+          throw new Error("Failed to fetch events: " + response.statusText);
+        }
+        const data = await response.json();
+        const eventsWithRatings = await Promise.all(
+          data.map(async (event) => {
+              const ratingResponse = await fetch(
+                  `http://localhost:8000/ratings/event/${event.eventId}`
+              );
+              const ratingData = await ratingResponse.json();
+              return { ...event, averageRating: ratingData.average_rating };
+          })
+      );
+      
+      setEvents(eventsWithRatings);
+      } catch (error) {
+        alert("Failed to fetch events. Please try again later.");
+      }
+    };
+
+    fetchEvents();
   }, []);
 
-  const handleBooking = async (eventId, id, spotId, bookingStartTime, eventDate) => {
-    if (!id || !spotId || !bookingStartTime) {
-      alert('User ID, Spot ID, or booking start time is missing! Please make sure all required data is available.');
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchProfile() {
+      try {
+        const profileResponse = await fetch(
+          `http://localhost:8000/users/${user.id}`
+        );
+        if (!profileResponse.ok) {
+          throw new Error("Failed to fetch user profile data");
+        }
+        const profile = await profileResponse.json();
+        setProfileData(profile);
+      } catch (err) {
+        setError("Failed to fetch user profile data.");
+      }
+    }
+    fetchProfile();
+  }, [user]);
+
+  const handleToggleFavorite = async (eventId) => {
+    if (!isSignedIn) {
+      alert("Please sign in to add or remove this event from your favorites.");
+      window.open("/sign-in", "_blank");
       return;
     }
 
-    const date = new Date(eventDate);
-
-    // Assuming bookingStartTime is in HH:MM AM/PM format:
-    const [hours, minutesPeriod] = bookingStartTime.split(/[: ]/);
-    const period = minutesPeriod.slice(-2);
-    const minutes = parseInt(minutesPeriod.slice(0, 2));
-
-    // Adjust hours for AM/PM
-    date.setHours(period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours));
-    date.setMinutes(minutes || 0);
-
-    // Ensure bookingStartTime is in ISO format (UTC time)
-    const isoBookingStartTime = date.toISOString();
-
-    setLoadingEventId(eventId);
     try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ eventId, id, spotId, bookingStartTime: isoBookingStartTime }), 
-      });
-      const data = await response.json();
+      const isFavorite = profileData?.favEventId?.includes(eventId);
+      const method = isFavorite ? "DELETE" : "PUT";
+      const url = isFavorite
+        ? `http://localhost:8000/user/${profileData.id}/favorites?event_id=${eventId}`
+        : `http://localhost:8000/user/${profileData.id}/favorites`;
 
-      if (data.success) {
-        alert('Booking successful!');
-        router.push('/confirmation');
-      } else {
-        alert('Booking failed.');
+      const options = {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      if (method === "PUT") {
+        options.body = JSON.stringify({ event_id: eventId });
       }
+
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error("Failed to update favorites");
+      }
+
+      setProfileData((prevProfile) => {
+        const updatedFavorites = isFavorite
+          ? prevProfile.favEventId.filter((id) => id !== eventId)
+          : [...(prevProfile.favEventId || []), eventId];
+        return { ...prevProfile, favEventId: updatedFavorites };
+      });
+
+      toast.success(
+        isFavorite
+          ? "Event removed from your favorites!"
+          : "Event added to your favorites!",
+        {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeButton: true,
+        }
+      );
     } catch (error) {
-      console.error('Error booking event:', error);
-      alert('There was an error processing your booking.');
-    } finally {
-      setLoadingEventId(null);
+      toast.error("Failed to update favorites. Please try again later.", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeButton: true,
+      });
     }
   };
+
+  const renderStars = (rating) => (
+    <div className="flex">
+        {[...Array(5)].map((_, index) => (
+            <span
+                key={index}
+                style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
+                className="text-2xl"
+            >
+                ★
+            </span>
+        ))}
+    </div>
+);
+
 
   const currentDate = new Date();
 
@@ -83,33 +145,79 @@ export default function Events() {
         {events.length > 0 ? (
           events.map((event) => {
             const isPastEvent = new Date(event.startDate) < currentDate;
-            
+            const isFavorite = profileData?.favEventId?.includes(event.eventId);
+
             return (
-              <div key={event.eventId} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <img
-                  src={eventImages[event.eventName] || "https://via.placeholder.com/400x200"}
-                  alt={event.eventName}
-                  className="w-full h-48 object-cover"
-                />
+              <div
+                key={event.eventId}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
+                <div className="relative">
+                  <img
+                    src={event.eventImageUrl}
+                    alt={event.eventName}
+                    className="w-full h-48 object-cover p-2"
+                  />
+                  <FaHeart
+                    onClick={() => handleToggleFavorite(event.eventId)}
+                    className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
+                      isFavorite ? "text-red-500" : "text-white 0 "
+                    } hover:text-red-600`}
+                  />
+                </div>
+
                 <div className="p-4">
                   <h2 className="text-xl font-bold mb-2">{event.eventName}</h2>
-                  <p className="text-gray-700 mb-2">{event.eventLocation || 'Location not available'}</p>
-                  <p className="text-gray-900 font-semibold">
-                    {event.fee ? `$${event.fee}` : 'Free'}
-                  </p>
-                  <p className="text-gray-600">{format(new Date(event.startDate), 'MMMM d, yyyy')}</p>
-                  <p className="text-gray-600">{event.startTime}</p>
-                  <p className="text-gray-600 mb-4">{event.description}</p>
-
-                  {isPastEvent ? (
-                    <p className="text-red-500 font-semibold">Event has passed. Booking unavailable.</p>
+                  {event.averageRating ? (
+                    <div className="flex items-center mb-2">
+                      {renderStars(event.averageRating)}
+                      <span className="ml-2 text-gray-700">
+                        {event.averageRating.toFixed(1)} / 5
+                      </span>
+                    </div>
                   ) : (
+                    <p className="text-gray-500 mb-2">No ratings yet</p>
+                  )}
+                  <p className="text-gray-700 mb-2">
+                    {event.eventLocation || "Location not available"}
+                  </p>
+                  <p className="text-gray-900 font-semibold">
+                    {event.fee ? `$${event.fee}` : "Free"}
+                  </p>
+                  <p className="text-gray-600">
+                    {format(new Date(event.startDate), "MMMM d, yyyy")}
+                  </p>
+                  <p className="text-gray-600">{event.startTime}</p>
+                  <p className="text-gray-600 mb-4 line-clamp-2">
+                    {event.description}
+                  </p>
+                  <a
+                    href={`/events/${event.eventId}`}
+                    className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
+                  >
+                    View Details
+                  </a>
+                  {isPastEvent ? (
+                    <button className="mt-4 ml-3 inline-block bg-pink-400 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-pink-500">
+                      Event Passed
+                    </button>
+                  ) : event.requiredbooking ? (
                     <button
-                      onClick={() => handleBooking(event.eventId, id, spotId, event.startTime, event.startDate)}
-                      className={`w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 ${loadingEventId === event.eventId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      disabled={loadingEventId === event.eventId}
+                      onClick={() => {
+                        if (!isSignedIn) {
+                          alert("Please sign in to continue booking.");
+                          window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
+                        } else {
+                          window.location.href = `/events/${event.eventId}/book`; // Direct to booking page
+                        }
+                      }}
+                      className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
                     >
-                      {loadingEventId === event.eventId ? 'Booking...' : 'Book Now'}
+                      Book Now
+                    </button>
+                  ) : (
+                    <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
+                      No booking is required.
                     </button>
                   )}
                 </div>
@@ -120,6 +228,19 @@ export default function Events() {
           <p className="text-center col-span-3">No events found.</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   );
 }

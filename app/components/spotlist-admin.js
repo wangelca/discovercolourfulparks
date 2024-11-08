@@ -6,7 +6,7 @@ export default function SpotsAdmin() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/spots") // Update with your FastAPI endpoint
+    fetch("http://localhost:8000/spots") 
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error("Error fetching spots:", error));
@@ -18,17 +18,19 @@ export default function SpotsAdmin() {
         <h1 className="text-3xl font-bold">Spots Database</h1>
         <button
           onClick={() => router.push("/manage-spots/add-spot")}
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition"
+          className="bg-green-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-green-800 transition"
         >
           Add Spot
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+      <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-gray-100 text-left text-gray-600 font-semibold">
-              <th className="py-3 px-6">Image</th>
+            <tr className="bg-gray-700 text-left text-white font-semibold">
+              <th className="w-1/5 py-3 px-6">Image</th>
+              <th className="py-3 px-6">Spot ID</th>
               <th className="py-3 px-6">Spot Name</th>
+              <th className="py-3 px-6">Park ID</th>
               <th className="py-3 px-6">Hourly Rate</th>
               <th className="py-3 px-6">Description</th>
               <th className="py-3 px-6">Location</th>
@@ -43,17 +45,19 @@ export default function SpotsAdmin() {
                   key={spot.spotId}
                   className="border-t hover:bg-gray-50 transition"
                 >
-                  <td className="py-3 px-6">
+                  <td className="w-1/6 py-3 px-6">
                     {spot.spotImageUrl && (
                       <img
                         src={spot.spotImageUrl}
                         alt={`Image of ${spot.spotName}`}
-                        className="w-24 h-auto rounded-lg"
+                        className="w-auto h-auto rounded-lg "
                       />
                     )}
                   </td>
+                  <td className="py-3 px-6">{spot.spotId}</td>
                   <td className="py-3 px-6">{spot.spotName}</td>
-                  <td className="py-3 px-6">{spot.spotHourlyRate}</td>
+                  <td className="py-3 px-6">{spot.parkId}</td>
+                  <td className="py-3 px-6">{spot.spotAdmission}</td>
                   <td className="py-3 px-6">{spot.spotDescription}</td>
                   <td className="py-3 px-6">{spot.spotLocation}</td>
                   <td className="py-3 px-6">
