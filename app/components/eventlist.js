@@ -7,22 +7,47 @@ import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const { isSignedIn, user } = useUser(); // Single useUser hook to avoid multiple updates
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const eventsPerPage = 9; 
+  const { isSignedIn, user } = useUser();
   const [profileData, setProfileData] = useState(null);
+
+  // Fetch total count of events
+  useEffect(() => {
+    const fetchTotalEventsCount = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/events/count");
+        if (!response.ok) {
+          throw new Error("Failed to fetch total events count: " + response.statusText);
+        }
+        const totalCount = await response.json();
+        setTotalPages(Math.ceil(totalCount / eventsPerPage));
+      } catch (error) {
+        console.error("Error fetching total events count:", error);
+      }
+    };
+
+    fetchTotalEventsCount();
+  }, []);
 
   // Fetch events data from the backend
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("http://localhost:8000/events");
+        const response = await fetch(
+          `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch events: " + response.statusText);
         }
         const data = await response.json();
 
-        // Fetch ratings for each event and attach it
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
         const eventsWithRatings = await Promise.all(
-          data.map(async (event) => {
+          data.events.map(async (event) => {
             try {
               const ratingResponse = await fetch(
                 `http://localhost:8000/ratings/event/${event.eventId}`
@@ -40,14 +65,15 @@ export default function Events() {
         );
 
         setEvents(eventsWithRatings);
-      } catch (error) {
-        console.error("Error fetching events:", error);
+        setTotalPages(Math.ceil(data.total / eventsPerPage));
       }
-    };
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
 
-    fetchEvents();
-  }, []);
-
+  fetchEvents();
+}, [currentPage]);
   // Fetch profile data if the user is signed in
   useEffect(() => {
     if (!user) return;
@@ -133,7 +159,7 @@ export default function Events() {
       {[...Array(5)].map((_, index) => (
         <span
           key={index}
-          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
+          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }}
           className="text-2xl"
         >
           ★
@@ -141,6 +167,12 @@ export default function Events() {
       ))}
     </div>
   );
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   const currentDate = new Date();
 
@@ -233,6 +265,49 @@ export default function Events() {
         ) : (
           <p className="text-center col-span-3">No events found.</p>
         )}
+      </div>
+{/* Pagination Controls */}
+<div className="flex justify-center mt-8">
+        {/* First Page Button */}
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          First
+        </button>
+
+        {/* Previous Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        {/* Page Number Display */}
+        <span className="px-4 py-2 mx-2 text-lg text-white">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        {/* Next Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Next
+        </button>
+
+        {/* Last Page Button */}
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Last
+        </button>
       </div>
       <ToastContainer
         position="top-right"

@@ -14,9 +14,9 @@ const isPublicRoute = createRouteMatcher([
   "/",
 ]);
 
-const isAdminRoute = createRouteMatcher(["/user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)"]);
+const isAdminRoute = createRouteMatcher(["/user(.*)","/manage-user(.*)", "/manage-parks(.*)", "/manage-events(.*)", "/manage-spots(.*)", "/reports(.*)", "/inbox(.*)"]);
 
-const isUserRoute = createRouteMatcher(["/user-profile(.*)"]);
+const isUserRoute = createRouteMatcher(["/user-profile(.*)", "/inbox(.*)"]);
 
 const afterAuth = async (auth) => {
   // Handle afterAuth logic here

@@ -9,13 +9,11 @@ from models import Park, Spot, Event, User, Booking, Review
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timezone, timedelta
 from app.routers import users, notifications, reviews, favorite
 import os
 import shutil
 import openai
-from database import get_db
-from datetime import timedelta
 import random
 
 app = FastAPI()
@@ -236,11 +234,27 @@ async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
     return parks
 
-# get all events
+#get all events
 @app.get("/events", response_model=List[EventResponse])
-async def get_events(db: Session = Depends(get_db)):
-    events = db.query(Event).all()
+async def get_events(
+    page: int = Query(1, ge=1, description="Page number, starting from 1"),
+    limit: int = Query(10, ge=1, le=100, description="Number of events per page, maximum 100"),
+    db: Session = Depends(get_db)
+):
+    # Calculate the offset based on page number and limit
+    offset = (page - 1) * limit
+
+    # Fetch events with pagination
+    events = db.query(Event).offset(offset).limit(limit).all()
+
+    # Return only the list of events
     return events
+
+# Get total count of events
+@app.get("/events/count", response_model=int)
+async def get_events_count(db: Session = Depends(get_db)):
+    total_events = db.query(Event).count()
+    return total_events
 
 # get spots based on parkId and admission rate range
 @app.get("/spots", response_model=List[SpotResponse])
