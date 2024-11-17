@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useUser } from "@clerk/nextjs";
@@ -7,8 +9,8 @@ import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const { isSignedIn, user } = useUser(); // Single useUser hook to avoid multiple updates
-  const [profileData, setProfileData] = useState(null);
+  const { isSignedIn, user } = useUser();
+  const [profileData, setProfileData] = useState({ favEventId: [] });
 
   // Fetch events data from the backend
   useEffect(() => {
@@ -16,11 +18,10 @@ export default function Events() {
       try {
         const response = await fetch("http://localhost:8000/events");
         if (!response.ok) {
-          throw new Error("Failed to fetch events: " + response.statusText);
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
         }
         const data = await response.json();
 
-        // Fetch ratings for each event and attach it
         const eventsWithRatings = await Promise.all(
           data.map(async (event) => {
             try {
@@ -30,9 +31,8 @@ export default function Events() {
               if (ratingResponse.ok) {
                 const ratingData = await ratingResponse.json();
                 return { ...event, averageRating: ratingData.average_rating };
-              } else {
-                return { ...event, averageRating: null }; // Handle the case where rating is unavailable
               }
+              return { ...event, averageRating: null };
             } catch {
               return { ...event, averageRating: null };
             }
@@ -85,7 +85,7 @@ export default function Events() {
         : `http://localhost:8000/user/${profileData.id}/favorites`;
 
       const options = {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -133,7 +133,7 @@ export default function Events() {
       {[...Array(5)].map((_, index) => (
         <span
           key={index}
-          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
+          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }}
           className="text-2xl"
         >
           ★
@@ -160,7 +160,9 @@ export default function Events() {
               >
                 <div className="relative">
                   <img
-                    src={event.eventImageUrl}
+                    src={
+                      event.eventImageUrl?.[0] || "/path/to/default.jpg"
+                    }
                     alt={event.eventName}
                     className="w-full h-48 object-cover p-2"
                   />
