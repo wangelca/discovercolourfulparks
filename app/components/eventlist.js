@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useUser } from "@clerk/nextjs";
@@ -7,11 +9,13 @@ import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const eventsPerPage = 9; 
   const { isSignedIn, user } = useUser();
   const [profileData, setProfileData] = useState(null);
+
 
   // Fetch total count of events
   useEffect(() => {
@@ -39,13 +43,15 @@ export default function Events() {
           `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
         );
         if (!response.ok) {
-          throw new Error("Failed to fetch events: " + response.statusText);
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
         }
         const data = await response.json();
+
 
         if (Array.isArray(data)) {
           setEvents(data);
         } else {
+
         const eventsWithRatings = await Promise.all(
           data.events.map(async (event) => {
             try {
@@ -55,9 +61,8 @@ export default function Events() {
               if (ratingResponse.ok) {
                 const ratingData = await ratingResponse.json();
                 return { ...event, averageRating: ratingData.average_rating };
-              } else {
-                return { ...event, averageRating: null }; // Handle the case where rating is unavailable
               }
+              return { ...event, averageRating: null };
             } catch {
               return { ...event, averageRating: null };
             }
@@ -111,7 +116,7 @@ export default function Events() {
         : `http://localhost:8000/user/${profileData.id}/favorites`;
 
       const options = {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -192,7 +197,9 @@ export default function Events() {
               >
                 <div className="relative">
                   <img
-                    src={event.eventImageUrl}
+                    src={
+                      event.eventImageUrl?.[0] || "/path/to/default.jpg"
+                    }
                     alt={event.eventName}
                     className="w-full h-48 object-cover p-2"
                   />
