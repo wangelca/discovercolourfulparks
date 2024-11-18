@@ -1,11 +1,28 @@
+/* General Container Styles */
 .container {
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
+}
+
+.itineraryContainer {
+  width: 100%;
+  margin: 0 auto;
+  background-color: #d1ecf1;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.dayContainer {
+  margin-bottom: 20px;
+  border: 2px solid #00796b;
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: #ffffff;
 }
 
 .title {
@@ -22,66 +39,113 @@
   margin-bottom: 20px;
 }
 
-.button {
-  background-color: #4a90e2;
+/* Styling for Day Header */
+.dayHeader {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: black;
+  background-color: #e5f5fa;
+  padding: 10px;
+  border-bottom: 2px solid #00796b;
+  text-align: center;
+  margin: 0;
+  width: 100%;
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border: 1px solid #00796b;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+
+.table th {
+  background-color: #00796b;
+  color: #fff;
+  font-weight: bold;
+  text-align: left;
+}
+
+.table tr:nth-child(even) {
+  background-color: #a1d4e7;
+}
+
+.table tr:nth-child(odd) {
+  background-color: #e5f5fa;
+}
+
+/* Column-Specific Styles */
+.timeColumn {
+  width: 120px;
+  text-align: left;
+  font-family: "Courier New", Courier, monospace;
+  white-space: nowrap;
+}
+
+.activityColumn {
+  text-align: left;
+}
+
+.costColumn {
+  width: 100px;
+  text-align: right;
+}
+
+.bookButton {
+  background-color: #28a745; /* Green background */
+  color: white; /* White text */
+  font-size: 1rem; /* Standard font size */
+  padding: 10px 20px; /* Ensure enough padding */
+  border: none; /* Remove border */
+  border-radius: 4px; /* Slightly rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  text-align: center; /* Center-align text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Prevent text wrapping */
+  white-space: nowrap; /* Prevent text from breaking into multiple lines */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+}
+
+/* Hover effect */
+.bookButton:hover {
+  background-color: #218838; /* Slightly darker green */
+  transform: translateY(-2px); /* Lift the button slightly */
+}
+
+
+/* Variation for Custom Book Button (if needed) */
+.customBookButton {
+  background-color: #007bff;
   color: white;
-  font-size: 1rem;
-  padding: 0.8rem;
   border: none;
+  padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
 }
 
-.button:hover {
-  background-color: #357ab7;
+.customBookButton:hover {
+  background-color: #0056b3;
 }
 
-.loading {
-  text-align: center;
-  color: #666;
+/* Booking Message and Total Amount */
+.bookingMessage {
+  margin-top: 1rem;
+  color: #00796b;
+  font-weight: bold;
 }
 
-.itineraryContainer {
-  background-color: #fff;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.dayContainer {
-  margin-bottom: 1rem;
-  padding: 10px;
-  background-color: #e0f7fa;
-  border-radius: 8px;
-}
-
-.dayHeader {
+.totalAmount {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #00796b;
-  margin-bottom: 8px;
-}
-
-.timeActivityContainer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.timeColumn,
-.activityColumn {
-  width: 45%;
-}
-
-.timeColumn p,
-.activityColumn p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.timeColumn p:first-child,
-.activityColumn p:first-child {
-  font-weight: bold;
   color: #333;
+  margin-top: 1rem;
+  text-align: center;
 }
