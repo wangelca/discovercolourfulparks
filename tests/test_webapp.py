@@ -21,6 +21,66 @@ class WebAppTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.driver.quit()
     
+    def tearDown(self):
+        # Clear cookies to ensure a clean state for the next test
+        self.driver.delete_all_cookies()
+    
+    def login_user(self, email, password):
+        try:
+            # Click on the 'Sign In' button
+            sign_in_button = WebDriverWait(self.driver, 20).until(
+                EC.visibility_of_element_located((By.XPATH, "//button[text()='Sign In']"))
+            )
+            sign_in_button.click()
+
+            # Enter the user's email address
+            email_field = WebDriverWait(self.driver, 20).until(
+                EC.visibility_of_element_located((By.ID, "identifier-field"))
+            )
+            email_field.send_keys(email)
+
+            # Click 'Continue' to proceed
+            continue_button = WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'cl-formButtonPrimary')]"))
+            )
+            continue_button.click()
+
+            # Enter the user's password
+            password_field = WebDriverWait(self.driver, 20).until(
+                EC.visibility_of_element_located((By.NAME, "password"))
+            )
+            password_field.send_keys(password)
+
+            # Click 'Continue' to log in
+            continue_button = WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'cl-formButtonPrimary')]"))
+            )
+            continue_button.click()
+
+            # Wait for the user menu to appear, indicating a successful login
+            WebDriverWait(self.driver, 30).until(
+                EC.visibility_of_element_located((By.CLASS_NAME, "cl-userButton-root"))
+            )
+        except TimeoutException as e:
+            # If any step fails, mark the test as failed with an error message
+            self.fail(f"Login failed: {str(e)}")
+
+    def ensure_signed_out(self):
+        try:
+            user_button = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CLASS_NAME, "cl-userButton-root"))
+            )
+            user_button.click()
+            logout_button = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign out')]"))
+            )
+            logout_button.click()
+            WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.XPATH, "//button[text()='Sign In']"))
+            )
+        except TimeoutException:
+            pass  # User is already signed out
+    
     # 1. Homepage Load Test
     def test_homepage_loads(self):
         self.assertIn("", self.driver.title)  # the page's title
@@ -130,12 +190,16 @@ class WebAppTest(unittest.TestCase):
             self.fail("Sign In button or modal was not found within the expected time.")
 
 
-    # 3. Test Successful Login (Mocked)
+    # 3. Test Successful Login
     def test_successful_login(self):
         # Step 1: Navigate to the homepage and click the Sign In button
         self.driver.get("http://localhost:3000")
-        try:
-            sign_in_button = WebDriverWait(self.driver, 20).until(
+
+        # Ensure the user is signed out before starting the test
+        self.ensure_signed_out()
+
+        try:          
+            sign_in_button = WebDriverWait(self.driver, 50).until(
                 EC.visibility_of_element_located((By.XPATH, "//button[text()='Sign In']"))
             )
             sign_in_button.click()
@@ -179,13 +243,12 @@ class WebAppTest(unittest.TestCase):
             # Optionally, print the page source for debugging purposes
             print(self.driver.page_source)
             self.fail(f"Test failed due to timeout: {str(e)}")
-       
-
+     
 
     # 4. Test Logout
     def test_logout(self):
         # Ensure the user is logged in first
-        self.test_successful_login()  # Reuse the login test
+        self.login_user('visitor@dcp.com', 'visitor')
 
         # Click on the user menu (this opens the logout option)
         user_button = self.driver.find_element(By.CLASS_NAME, "cl-userButtonBox")
@@ -202,6 +265,52 @@ class WebAppTest(unittest.TestCase):
             EC.visibility_of_element_located((By.XPATH, "//button[text()='Sign In']"))
         )
         self.assertTrue(sign_in_button.is_displayed(), "Sign In button did not reappear after logging out")
+
+    # 6. Test Successful Booking
+    def test_successful_booking(self):
+        self.login_user('visitor@dcp.com', 'visitor')
+
+        # Navigate to the Spots page
+        self.driver.get("http://localhost:3000/spots")
+
+        # Select the specific spot by locating the div containing 'Golden Skybridge'
+        golden_skybridge_div = WebDriverWait(self.driver, 50).until(
+            EC.visibility_of_element_located((By.XPATH, "//div[h2[text()='Golden Skybridge']]"))
+        )
+
+        # Find the 'Book Now' button within the identified div
+        book_now_button = golden_skybridge_div.find_element(By.XPATH, ".//button[text()='Book Now']")
+        book_now_button.click()
+
+        # Wait for booking form to be visible before interacting
+        booking_form = WebDriverWait(self.driver, 50).until(
+            EC.visibility_of_element_located((By.XPATH, "//label[text()='Adults:']"))
+        )
+        # Updated XPaths to correctly locate the input fields
+        adults_input = self.driver.find_element(By.XPATH, "//label[text()='Adults:']/following::input[@type='number'][1]")
+        kids_input = self.driver.find_element(By.XPATH, "//label[text()='Kids (below 12):']/following::input[@type='number'][1]")
+        booking_date_input = self.driver.find_element(By.XPATH, "//label[text()='Booking Date:']/following::input[@type='date'][1]")
+
+
+        adults_input.clear()
+        adults_input.send_keys("2")
+        kids_input.clear()
+        kids_input.send_keys("1")
+        booking_date_input.clear()
+        booking_date_input.send_keys("2024-12-31")
+
+        # Adding a short wait to ensure the inputs are processed
+        WebDriverWait(self.driver, 2)
+
+        # Click on the 'Validation and Confirm Booking' button
+        confirm_booking_button = self.driver.find_element(By.XPATH, "//button[text()='Validation and Confirm Booking']")
+        confirm_booking_button.click()
+
+        # Wait for the booking confirmation alert
+        WebDriverWait(self.driver, 20).until(EC.alert_is_present())
+        alert = self.driver.switch_to.alert
+        self.assertIn("Booking confirmed!", alert.text, "Booking confirmation alert did not appear as expected.")
+        alert.accept()
 
 if __name__ == "__main__":
     unittest.main()

@@ -116,10 +116,17 @@ const Calendar = () => {
             durationBarVisible={false}
             businessBeginsHour={8}
             businessEndsHour={22}
+            timeHeaders={[
+              { groupBy: "Day", format: "dddd d MMMM yyyy" },
+              { groupBy: "Hour" }
+            ]}
+            timeRangeSelectedHandling={"Disabled"} // Disable selection outside of the view
+            scrollToHour={8} // Set the initial scroll position to 8:00 AM
+            heightSpec={"BusinessHoursNoScroll"} // Restrict the height to show only business hours
             onTimeRangeSelected={onTimeRangeSelected}
             controlRef={setWeekView}
             onEventClick={(args) => router.push(`/events/${args.e.data.id}`)}
-            onEventHover={(args) => new DayPilotPopover({ target: args.e, content: args.e.data.description })}
+            onEventHover={(args) => new DayPilotPopover({ target: args.e, content: args.e.data.description })}  
           />
           <DayPilotMonth
             startDate={startDate}
