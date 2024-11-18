@@ -12,10 +12,9 @@ export default function Events() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const eventsPerPage = 9; 
+  const eventsPerPage = 9;
   const { isSignedIn, user } = useUser();
   const [profileData, setProfileData] = useState(null);
-
 
   // Fetch total count of events
   useEffect(() => {
@@ -23,7 +22,9 @@ export default function Events() {
       try {
         const response = await fetch("http://localhost:8000/events/count");
         if (!response.ok) {
-          throw new Error("Failed to fetch total events count: " + response.statusText);
+          throw new Error(
+            "Failed to fetch total events count: " + response.statusText
+          );
         }
         const totalCount = await response.json();
         setTotalPages(Math.ceil(totalCount / eventsPerPage));
@@ -47,38 +48,36 @@ export default function Events() {
         }
         const data = await response.json();
 
-
         if (Array.isArray(data)) {
           setEvents(data);
         } else {
-
-        const eventsWithRatings = await Promise.all(
-          data.events.map(async (event) => {
-            try {
-              const ratingResponse = await fetch(
-                `http://localhost:8000/ratings/event/${event.eventId}`
-              );
-              if (ratingResponse.ok) {
-                const ratingData = await ratingResponse.json();
-                return { ...event, averageRating: ratingData.average_rating };
+          const eventsWithRatings = await Promise.all(
+            data.events.map(async (event) => {
+              try {
+                const ratingResponse = await fetch(
+                  `http://localhost:8000/ratings/event/${event.eventId}`
+                );
+                if (ratingResponse.ok) {
+                  const ratingData = await ratingResponse.json();
+                  return { ...event, averageRating: ratingData.average_rating };
+                }
+                return { ...event, averageRating: null };
+              } catch {
+                return { ...event, averageRating: null };
               }
-              return { ...event, averageRating: null };
-            } catch {
-              return { ...event, averageRating: null };
-            }
-          })
-        );
+            })
+          );
 
-        setEvents(eventsWithRatings);
-        setTotalPages(Math.ceil(data.total / eventsPerPage));
+          setEvents(eventsWithRatings);
+          setTotalPages(Math.ceil(data.total / eventsPerPage));
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
       }
-    } catch (error) {
-      console.error("Error fetching events:", error);
-    }
-  };
+    };
 
-  fetchEvents();
-}, [currentPage]);
+    fetchEvents();
+  }, [currentPage]);
   // Fetch profile data if the user is signed in
   useEffect(() => {
     if (!user) return;
@@ -197,9 +196,7 @@ export default function Events() {
               >
                 <div className="relative">
                   <img
-                    src={
-                      event.eventImageUrl?.[0] || "/path/to/default.jpg"
-                    }
+                    src={event.eventImageUrl?.[0] || "/path/to/default.jpg"}
                     alt={event.eventName}
                     className="w-full h-48 object-cover p-2"
                   />
@@ -262,7 +259,7 @@ export default function Events() {
                     </button>
                   ) : (
                     <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
-                      No booking is required.
+                      No booking is required
                     </button>
                   )}
                 </div>
@@ -273,8 +270,8 @@ export default function Events() {
           <p className="text-center col-span-3">No events found.</p>
         )}
       </div>
-{/* Pagination Controls */}
-<div className="flex justify-center mt-8">
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8">
         {/* First Page Button */}
         <button
           onClick={() => handlePageChange(1)}

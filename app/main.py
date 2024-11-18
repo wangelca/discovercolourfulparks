@@ -40,6 +40,7 @@ app.include_router(users.router)
 app.include_router(notifications.router)
 app.include_router(reviews.router)
 app.include_router(report.router, prefix="/reports")
+app.include_router(favorite.router)
 
 # Dependency to get the SQLAlchemy session
 def get_db():
@@ -313,6 +314,35 @@ async def get_spots(
     min_hourly_rate: Optional[float] = Query(0),
     max_hourly_rate: Optional[float] = Query(1000),
     park_id: Optional[List[int]] = Query(None),
+    category: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),  # Page number, must be >= 1
+    limit: int = Query(9, ge=1)  # Limit number of spots per page, must be >= 1
+):
+    # Start with all spots
+    query = db.query(Spot)
+
+    # Filter by hourly rate range
+    query = query.filter(Spot.spotAdmission.between(min_hourly_rate, max_hourly_rate))
+
+    # Filter by multiple park IDs
+    if park_id:
+        query = query.filter(Spot.parkId.in_(park_id))
+
+    # Filter by category
+    if category:
+        query = query.filter(Spot.category == category)
+
+    # Apply pagination
+    offset = (page - 1) * limit
+    spots = query.offset(offset).limit(limit).all()
+
+    return spots
+
+@app.get("/spots/count", response_model=int)
+async def get_spots_count(db: Session = Depends(get_db),
+    min_hourly_rate: Optional[float] = Query(0),
+    max_hourly_rate: Optional[float] = Query(1000),
+    park_id: Optional[List[int]] = Query(None),
     category: Optional[str] = Query(None)
 ):
     # Start with all spots
@@ -329,8 +359,9 @@ async def get_spots(
     if category:
         query = query.filter(Spot.category == category)
 
-    spots = query.all()
-    return spots
+    total_spots = query.count()
+
+    return total_spots
 
 # get all users
 @app.get("/users", response_model=List[UserResponse])

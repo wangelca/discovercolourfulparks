@@ -16,10 +16,13 @@ export default function Spots() {
   const { user } = useUser();
   const [profileData, setProfileData] = useState(null);
   const categories = ["Popular Spots", "Activities", "Sites and Attractions"];
+  const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
+  const [totalPages, setTotalPages] = useState(1); // Total pages for pagination
+  const spotsPerPage = 9;
 
-  // Function to fetch filtered spots
-  const fetchSpots = useCallback(() => {
-    let url = "http://localhost:8000/spots";
+  // Function to fetch the total count of spots
+  const fetchTotalSpotsCount = useCallback(() => {
+    let url = "http://localhost:8000/spots/count";
     const params = new URLSearchParams();
 
     // Add hourly rate range to params
@@ -38,24 +41,75 @@ export default function Spots() {
       selectedCategory.forEach((category) =>
         params.append("category", category)
       );
-    }    
+    }
 
+    // Make the fetch request
     fetch(`${url}?${params.toString()}`)
+      .then((response) => response.json())
+      .then((totalCount) => {
+        setTotalPages(Math.ceil(totalCount / spotsPerPage));
+      })
+      .catch((error) =>
+        console.error("Error fetching total spots count:", error)
+      );
+  }, [hourlyRateRange, selectedParkIds, selectedCategory, spotsPerPage]);
+
+  // Function to fetch filtered spots
+  const fetchSpots = useCallback(() => {
+    let url = `http://localhost:8000/spots?page=${currentPage}&limit=${spotsPerPage}`;
+    const params = new URLSearchParams();
+
+    // Add hourly rate range to params
+    if (hourlyRateRange) {
+      params.append("min_hourly_rate", hourlyRateRange[0]);
+      params.append("max_hourly_rate", hourlyRateRange[1]);
+    }
+
+    // Add selected park IDs to params
+    if (selectedParkIds.length > 0) {
+      selectedParkIds.forEach((id) => params.append("park_id", id));
+    }
+
+    // Add selected category to params
+    if (selectedCategory.length > 0) {
+      selectedCategory.forEach((category) =>
+        params.append("category", category)
+      );
+    }
+
+    fetch(`${url}&${params.toString()}`)
       .then((response) => response.json())
       .then((data) => setSpots(data))
       .catch((error) => console.error("Error fetching spots:", error));
-  }, [hourlyRateRange, selectedParkIds, selectedCategory]);
+  }, [hourlyRateRange, selectedParkIds, selectedCategory, currentPage]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/parks") // Make sure this matches your FastAPI endpoint
+    fetch("http://localhost:8000/parks")
       .then((response) => response.json())
       .then((data) => setParks(data))
       .catch((error) => console.error("Error fetching parks:", error));
   }, []);
 
+  // Update total count of spots when filters change
   useEffect(() => {
-    fetchSpots(); // Fetch spots when the component mounts or filters change
-  }, [hourlyRateRange, selectedParkIds, selectedCategory, fetchSpots]);
+    fetchTotalSpotsCount();
+  }, [
+    hourlyRateRange,
+    selectedParkIds,
+    selectedCategory,
+    fetchTotalSpotsCount,
+  ]);
+
+  // Fetch spots when filters, page, or the fetch function changes
+  useEffect(() => {
+    fetchSpots();
+  }, [
+    hourlyRateRange,
+    selectedParkIds,
+    selectedCategory,
+    currentPage,
+    fetchSpots,
+  ]);
 
   useEffect(() => {
     if (!user) return;
@@ -71,7 +125,7 @@ export default function Spots() {
         const profile = await profileResponse.json();
         setProfileData(profile);
       } catch (err) {
-        setError("Failed to fetch user profile data.");
+        console.error("Failed to fetch user profile data.");
       }
     }
     fetchProfile();
@@ -116,8 +170,8 @@ export default function Spots() {
 
       toast.success(
         isFavorite
-          ? "Event removed from your favorites!"
-          : "Event added to your favorites!",
+          ? "Spot removed from your favorites!"
+          : "Spot added to your favorites!",
         {
           position: "bottom-right",
           autoClose: 5000,
@@ -134,6 +188,20 @@ export default function Spots() {
       });
     }
   };
+
+  const renderStars = (rating) => (
+    <div className="flex">
+      {[...Array(5)].map((_, index) => (
+        <span
+          key={index}
+          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }}
+          className="text-2xl"
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
 
   const handleSliderChange = (e) => {
     const minValue = e.target.value.split(",")[0];
@@ -166,6 +234,12 @@ export default function Spots() {
         (prevSelectedCategory) =>
           prevSelectedCategory.filter((category) => category !== value) // Remove park ID if unchecked
       );
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -335,86 +409,145 @@ export default function Spots() {
                 key={spot.spotId}
                 className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
               >
-              <div className="relative h-48 overflow-hidden">
-                {spot.spotImageUrl && (
-                  <img
-                    src={spot.spotImageUrl}
-                    alt={`Image of ${spot.spotName}`}
-                    className="w-full h-full object-cover p-2"
+                <div className="relative h-48 overflow-hidden">
+                  {spot.spotImageUrl && (
+                    <img
+                      src={spot.spotImageUrl}
+                      alt={`Image of ${spot.spotName}`}
+                      className="w-full h-full object-cover p-2"
+                    />
+                  )}
+                  <FaHeart
+                    onClick={() => handleToggleFavorite(spot.spotId)}
+                    className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
+                      isFavorite ? "text-red-500" : "text-white"
+                    } hover:text-red-600`}
                   />
-                )}
-                <FaHeart
-                  onClick={() => handleToggleFavorite(spot.spotId)}
-                  className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
-                    isFavorite ? "text-red-500" : "text-white"
-                  } hover:text-red-600`}
-                />
-              </div>
-              <div className="p-4">
-                <h2 className="text-lg font-semibold mb-2">{spot.spotName}</h2>
-                {spot.spotAdmission > 0 ? (
-                  <p className="text-gray-700">
-                    <strong>Admission: $</strong> {spot.spotAdmission}
+                </div>
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold mb-2">
+                    {spot.spotName}
+                  </h2>
+                  {spot.averageRating ? (
+                    <div className="flex items-center mb-2">
+                      {renderStars(spot.averageRating)}
+                      <span className="ml-2 text-gray-700">
+                        {spot.averageRating.toFixed(1)} / 5
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 mb-2">No ratings yet</p>
+                  )}
+                  {spot.spotAdmission > 0 ? (
+                    <p className="text-gray-700">
+                      <strong>Admission: $</strong> {spot.spotAdmission}
+                    </p>
+                  ) : (
+                    <div>
+                      {" "}
+                      <strong>Free</strong>
+                    </div>
+                  )}
+                  <p className="text-gray-600 mt-2 line-clamp-2">
+                    {spot.spotDescription}
                   </p>
-                ) : (
-                  <div>
-                    {" "}
-                    <strong>Free</strong>
-                  </div>
-                )}
-                <p className="text-gray-600 mt-2 line-clamp-2">
-                  {spot.spotDescription}
-                </p>
-                <p className="text-gray-700 mt-2">
-                  <strong>Location: </strong> {spot.spotLocation}
-                </p>
-                <a
-                  href={`/spots/${spot.spotId}`}
-                  className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
-                >
-                  View Details
-                </a>
-                {/* Add a button to route to booking page if requiredbooking is true */}
-                {spot.requiredbooking ? (
-                  <button
-                    onClick={() => {
-                      if (!isSignedIn) {
-                        alert("Please sign in to continue booking.");
-                        window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
-                      } else {
-                        window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
-                      }
-                    }}
-                    className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                  <p className="text-gray-700 mt-2">
+                    <strong>Location: </strong> {spot.spotLocation}
+                  </p>
+                  <a
+                    href={`/spots/${spot.spotId}`}
+                    className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
                   >
-                    Book Now
-                  </button>
-                ) : (
-                  <div></div>
-                )}
+                    View Details
+                  </a>
+                  {/* Add a button to route to booking page if requiredbooking is true */}
+                  {spot.requiredbooking ? (
+                    <button
+                      onClick={() => {
+                        if (!isSignedIn) {
+                          alert("Please sign in to continue booking.");
+                          window.open("/sign-in", "_blank"); // Open Clerk sign-in in a new tab
+                        } else {
+                          window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
+                        }
+                      }}
+                      className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                    >
+                      Book Now
+                    </button>
+                  ) : (
+                    <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
+                      No booking is required
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
             );
-        })
-      ) : (
+          })
+        ) : (
           <div className="col-span-full text-center text-lg font-medium text-gray-500">
             No spots found.
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8">
+        {/* First Page Button */}
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          First
+        </button>
+
+        {/* Previous Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        {/* Page Number Display */}
+        <span className="px-4 py-2 mx-2 text-lg text-white">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        {/* Next Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Next
+        </button>
+
+        {/* Last Page Button */}
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Last
+        </button>
+      </div>
+
       <ToastContainer
-      position="top-right"
-      autoClose={5000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      theme="light"
-      transition={Bounce}
-    />
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   );
 }
