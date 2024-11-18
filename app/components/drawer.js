@@ -50,6 +50,9 @@ export default function DrawerMenu() {
         {user && user.publicMetadata?.role === 'visitor' && (
           <>
             <a id="user-profile" className="menu-item text-white" href="/user-profile"><FontAwesomeIcon icon={faUser} />  Profile</a>
+            <a className="menu-item text-white" href="/userreports/make-report" onClick={closeMenu}>
+  <FontAwesomeIcon icon={faFileAlt} /> Make A Report
+</a>
             <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faTag} />  Coupons</a>
@@ -71,3 +74,4 @@ export default function DrawerMenu() {
     </SignedIn>
   );
 }
+
