@@ -2,7 +2,7 @@
 
 import { useUser, SignedIn } from '@clerk/nextjs';
 import { slide as Menu } from 'react-burger-menu';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faUser, faHeart, faStar, faTag, faInbox, faUsers, faTree, faCalendar, faMapMarkerAlt, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import NotificationBubble from './notificationBubble';
@@ -51,8 +51,8 @@ export default function DrawerMenu() {
           <>
             <a id="user-profile" className="menu-item text-white" href="/user-profile"><FontAwesomeIcon icon={faUser} />  Profile</a>
             <a className="menu-item text-white" href="/userreports/make-report" onClick={closeMenu}>
-  <FontAwesomeIcon icon={faFileAlt} /> Make A Report
-</a>
+              <FontAwesomeIcon icon={faFileAlt} /> Make A Report
+            </a>
             <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faTag} />  Coupons</a>
@@ -63,6 +63,7 @@ export default function DrawerMenu() {
         {user && user.publicMetadata?.role === 'admin' && (
           <>
             <a className="menu-item text-white" href="/manage-user" onClick={closeMenu}><FontAwesomeIcon icon={faUsers} />  Manage Users</a>
+            <a className="menu-item text-white" href="/manage-user-reports" onClick={closeMenu}><FontAwesomeIcon icon={faFileAlt} />  Manage User Reports</a>
             <a className="menu-item text-white" href="/manage-parks" onClick={closeMenu}><FontAwesomeIcon icon={faTree} />  Manage Parks</a>
             <a className="menu-item text-white" href="/manage-events" onClick={closeMenu}><FontAwesomeIcon icon={faCalendar} />  Manage Events</a>
             <a className="menu-item text-white" href="/manage-spots" onClick={closeMenu}><FontAwesomeIcon icon={faMapMarkerAlt} />  Manage Spots</a>
