@@ -1,18 +1,33 @@
-"use client"; // Mark this component as a Client Component
+"use client";
 
 import { useState } from "react";
-import Calendar from "../components/calendar";
-import Events from "../components/eventlist";
-import EventBookingPage from "./[eventId]/book/page"; // Import EventBookingPage
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+// Dynamic Imports to improve loading performance
+const Calendar = dynamic(() => import("../components/calendar"));
+const Events = dynamic(() => import("../components/eventlist"));
+const EventBookingPage = dynamic(() => import("./[eventId]/book/page"));
 
 export default function Home() {
-  const [showCalendar, setShowCalendar] = useState(false); // State to toggle between Events and Calendar
-  const [showBooking, setShowBooking] = useState(false); // State to toggle booking form
-  const [selectedEvent, setSelectedEvent] = useState(null); // State to store the selected event for booking
+  // Using a single state variable for simplicity
+  const [viewMode, setViewMode] = useState("events"); // Possible values: 'events', 'calendar', 'booking'
+  const [selectedEvent, setSelectedEvent] = useState(null); // Stores the selected event for booking
 
+  // Event booking handler
   const handleEventBooking = (eventName) => {
-    setSelectedEvent(eventName); // Set the selected event
-    setShowBooking(true); // Show the booking form
+    setSelectedEvent(eventName);
+    setViewMode("booking");
+  };
+
+  // Handler to show calendar view
+  const showCalendarView = () => {
+    setViewMode("calendar");
+  };
+
+  // Handler to show events view
+  const showEventsView = () => {
+    setViewMode("events");
   };
 
   return (
@@ -20,28 +35,38 @@ export default function Home() {
       {/* Toggle buttons */}
       <div className="flex justify-center my-4">
         <button
-          className={`px-4 py-2 rounded-lg text-white mr-4 ${showCalendar ? "bg-blue-700" : "bg-blue-500 hover:bg-blue-600"}`}
-          onClick={() => { setShowCalendar(true); setShowBooking(false); }} // Show Calendar
+          className={`px-4 py-2 rounded-lg text-white mr-4 ${
+            viewMode === "calendar"
+              ? "bg-blue-700"
+              : "bg-blue-500 hover:bg-blue-600"
+          }`}
+          onClick={showCalendarView}
         >
           Calendar View
         </button>
         <button
-          className={`px-4 py-2 rounded-lg text-white ${!showCalendar ? "bg-blue-700" : "bg-blue-500 hover:bg-blue-600"}`}
-          onClick={() => { setShowCalendar(false); setShowBooking(false); }} // Show Events
+          className={`px-4 py-2 rounded-lg text-white ${
+            viewMode === "events"
+              ? "bg-blue-700"
+              : "bg-blue-500 hover:bg-blue-600"
+          }`}
+          onClick={showEventsView}
         >
           Events Card View
         </button>
       </div>
 
-      {/* Conditionally render Calendar, Events, or Booking Form */}
+      {/* Main content - use Suspense to handle loading state */}
       <div className="flex-grow">
-        {showCalendar ? (
-          <Calendar />
-        ) : showBooking && selectedEvent ? (
-          <EventBookingPage eventName={selectedEvent} /> // Pass the selected event name here
-        ) : (
-          <Events onEventSelect={handleEventBooking} /> // Pass the handler to the Events component
-        )}
+        <Suspense fallback={<div>Loading...</div>}>
+          {viewMode === "calendar" && <Calendar />}
+          {viewMode === "booking" && selectedEvent && (
+            <EventBookingPage eventName={selectedEvent} />
+          )}
+          {viewMode === "events" && (
+            <Events onEventSelect={handleEventBooking} />
+          )}
+        </Suspense>
       </div>
     </div>
   );
