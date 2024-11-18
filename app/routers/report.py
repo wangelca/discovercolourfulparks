@@ -1,5 +1,3 @@
-# app/routers/report.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -85,6 +83,7 @@ async def delete_report(reportID: int, db: Session = Depends(get_db)):
     db.delete(report)
     db.commit()
     return {"message": "Report deleted successfully"}
+
 
 
 

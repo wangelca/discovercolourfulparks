@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function ReportsAdmin() {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [filter, setFilter] = useState("Most Recent");
-  const router = useRouter();
-
+  
   useEffect(() => {
     fetch("http://localhost:8000/reports/")
       .then((response) => response.json())
       .then((data) => {
         setReports(data);
-        setFilteredReports(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))); // Default sort by most recent
+        setFilteredReports(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
       })
       .catch((error) => console.error("Error fetching reports:", error));
   }, []);
@@ -24,6 +22,7 @@ export default function ReportsAdmin() {
     } else if (filter === "Oldest") {
       updatedReports.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     }
+
     setFilteredReports(updatedReports);
   }, [filter, reports]);
 
@@ -45,28 +44,6 @@ export default function ReportsAdmin() {
         console.error("Error deleting report:", error);
         alert("An error occurred while deleting the report. Please try again.");
       }
-    }
-  };
-   
-
-  const handleResolve = (reportID) => {
-    const comment = prompt("Please enter a comment for resolving this report:");
-    if (comment) {
-      fetch(`http://localhost:8000/reports/${reportID}/resolve`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ comment }),
-      })
-        .then((response) => {
-          if (response.ok) {
-            alert("Report resolved successfully!");
-          } else {
-            console.error("Failed to resolve the report.");
-          }
-        })
-        .catch((error) => console.error("Error resolving report:", error));
     }
   };
 
@@ -110,12 +87,6 @@ export default function ReportsAdmin() {
                   <td className="py-3 px-6">{new Date(report.created_at).toLocaleString()}</td>
                   <td className="py-3 px-6">
                     <button
-                      onClick={() => handleResolve(report.reportID)}
-                      className="text-green-600 hover:underline mr-2"
-                    >
-                      Resolve
-                    </button>
-                    <button
                       onClick={() => handleDelete(report.reportID)}
                       className="text-red-600 hover:underline"
                     >
@@ -137,3 +108,5 @@ export default function ReportsAdmin() {
     </div>
   );
 }
+
+
