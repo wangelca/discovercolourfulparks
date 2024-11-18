@@ -9,7 +9,7 @@ export default function ParkReportPage() {
   const { parkId } = useParams();
   const router = useRouter();
   const { user } = useUser(); // Get the Clerk user
-  
+
   // State variables
   const [park, setPark] = useState(null);
   const [reportType, setReportType] = useState('');
@@ -17,7 +17,7 @@ export default function ParkReportPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState(null);
-  
+
   // Report type options
   const REPORT_TYPES = [
     { value: 'Weather Alert', label: 'Weather Alert', icon: '🌦️' },
@@ -34,7 +34,7 @@ export default function ParkReportPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch park data
         const parkResponse = await axios.get(`http://localhost:8000/parks/${parkId}`);
         setPark(parkResponse.data);
@@ -42,7 +42,7 @@ export default function ParkReportPage() {
         // Fetch user data using Clerk user ID
         const userResponse = await axios.get(`http://localhost:8000/users/${user.id}`);
         setCurrentUser(userResponse.data);
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -56,11 +56,11 @@ export default function ParkReportPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Reset previous errors
     setError(null);
-    
-    // Validation
+
+    // Validation checks
     if (!reportType) {
       setError('Please select a report type');
       return;
@@ -86,19 +86,28 @@ export default function ParkReportPage() {
         details,
       };
 
-      // Submit the report
-      const response = await axios.post('http://localhost:8000/reports', reportData);
-      
+      console.log('Submitting report:', reportData);
+
+      // Submit the report to the correct endpoint
+      const response = await axios.post('http://localhost:8000/reports/', reportData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('Report submission response:', response.data);
+
       // Success handling
       alert('Report submitted successfully');
       router.push(`/parks/${parkId}`);
     } catch (error) {
       console.error('Error submitting report:', error);
-      
+
       // Detailed error handling
       if (error.response) {
+        console.error('Error response:', error.response.data);
         setError(
-          error.response.data.detail || 
+          error.response.data.detail ||
           'Failed to submit the report. Please try again.'
         );
       } else if (error.request) {
@@ -107,7 +116,7 @@ export default function ParkReportPage() {
         setError('An unexpected error occurred. Please try again.');
       }
     }
-};
+  };
 
   // Render loading state
   if (loading) {
@@ -123,8 +132,8 @@ export default function ParkReportPage() {
     <div className="container mx-auto mt-10 p-8 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg rounded-lg max-w-3xl">
       {/* Error Alert */}
       {error && (
-        <div 
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" 
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
           role="alert"
         >
           <span className="block sm:inline">{error}</span>

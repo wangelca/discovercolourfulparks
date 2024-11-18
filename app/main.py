@@ -1,4 +1,3 @@
-#from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form, APIRouter
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from pydantic import BaseModel, Field, EmailStr
@@ -10,8 +9,8 @@ from models import Park, Spot, Event, User, Booking, Review
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
-from datetime import date, datetime, time, timezone, timedelta
-from app.routers import users, notifications, reviews, favorite
+from datetime import date, datetime, time, timedelta
+from app.routers import users, notifications, reviews, favorite, report
 import os
 import shutil
 import openai
@@ -40,7 +39,7 @@ logger = logging.getLogger("uvicorn.error")
 app.include_router(users.router)
 app.include_router(notifications.router)
 app.include_router(reviews.router)
-app.include_router(favorite.router)
+app.include_router(report.router, prefix="/reports")
 
 # Dependency to get the SQLAlchemy session
 def get_db():
@@ -61,6 +60,26 @@ def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
+    
+class ReportBase(BaseModel):
+    parkId: int
+    userId: int
+    reportType: str
+    details: str
+
+class ReportCreate(ReportBase):
+    pass
+
+class ReportResponse(BaseModel):
+    reportID: int
+    parkId: int
+    userId: int
+    reportType: str
+    details: str
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 class ParkResponse(BaseModel):
     parkId: int
@@ -192,7 +211,6 @@ class Itinerary(BaseModel):
 class SendItineraryRequest(BaseModel):
     email: EmailStr
     itinerary: Itinerary
-
 
 @app.post("/event-bookings", response_model=BookingResponse)
 async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):

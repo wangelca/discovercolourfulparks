@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, JSON, DateTime, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, JSON, DateTime, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from database import Base
@@ -32,6 +32,7 @@ class User(Base):
     payments = relationship("Payment", back_populates="user")
     notifications = relationship("Notification", back_populates="user_notifications")
     reviews = relationship("Review", back_populates="user")
+    reports = relationship("Report", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
@@ -50,9 +51,11 @@ class Park(Base):
 
     spots = relationship("Spot", back_populates="park")
     events = relationship("Event", back_populates="park")
+    reports = relationship("Report", back_populates="park") 
     
     def __repr__(self):
         return f"<Park(parkId={self.parkId}, name={self.name}, province={self.province})>"
+
     
 
 class Spot(Base):
@@ -173,3 +176,28 @@ class Review(Base):
     event = relationship("Event", back_populates="reviews")
     spot = relationship("Spot", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+    
+from enum import Enum
+
+class ReportType(str, Enum):
+    WEATHER_ALERT = "Weather Alert"
+    DRIVING_CONDITIONS = "Driving Conditions"
+    TERRAIN_CONDITIONS = "Terrain Conditions"
+    FIRE_SIGHTINGS = "Fire Sightings"
+
+class Report(Base):
+    __tablename__ = 'reports'
+    
+    reportID = Column(Integer, primary_key=True, index=True)
+    parkId = Column(Integer, ForeignKey('park.parkId'), nullable=False)
+    userId = Column(Integer, ForeignKey('user.id'), nullable=False)
+    reportType = Column(String, nullable=False)
+    details = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    park = relationship("Park", back_populates="reports")
+    user = relationship("User", back_populates="reports") 
+    
+    def __repr__(self):
+        return f"<Report(reportID={self.reportID}, parkId={self.parkId}, reportType={self.reportType})>"
+
