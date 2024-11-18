@@ -32,7 +32,6 @@ class ReportResponse(BaseModel):
 # Endpoint to create a new report
 @router.post("/", response_model=ReportResponse)
 async def create_report(report: ReportCreate, db: Session = Depends(get_db)):
-    # Fetch park and user to ensure existence
     park = db.query(Park).filter(Park.parkId == report.parkId).first()
     if not park:
         raise HTTPException(status_code=404, detail="Park not found")
@@ -41,11 +40,9 @@ async def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Validate reportType
     if report.reportType not in ['Weather Alert', 'Driving Conditions', 'Terrain Conditions', 'Fire Sightings']:
         raise HTTPException(status_code=400, detail="Invalid report type")
 
-    # Create new report
     new_report = Report(
         parkId=report.parkId,
         userId=report.userId,
@@ -60,17 +57,15 @@ async def create_report(report: ReportCreate, db: Session = Depends(get_db)):
 # Endpoint to get reports for a specific park
 @router.get("/park/{parkId}", response_model=List[ReportResponse])
 async def get_reports_by_park(parkId: int, db: Session = Depends(get_db)):
-    # Check if the park exists
     park = db.query(Park).filter(Park.parkId == parkId).first()
     if not park:
         raise HTTPException(status_code=404, detail="Park not found")
 
-    # Retrieve reports for the specified park
     reports = (
         db.query(Report)
         .filter(Report.parkId == parkId)
         .order_by(Report.created_at.desc())
-        .limit(10)  # Limit to 10 most recent reports
+        .limit(10)
         .all()
     )
     return reports
@@ -80,4 +75,17 @@ async def get_reports_by_park(parkId: int, db: Session = Depends(get_db)):
 async def get_all_reports(db: Session = Depends(get_db)):
     reports = db.query(Report).all()
     return reports
+
+@router.delete("/{reportID}", response_model=dict)
+async def delete_report(reportID: int, db: Session = Depends(get_db)):
+    report = db.query(Report).filter(Report.reportID == reportID).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    db.delete(report)
+    db.commit()
+    return {"message": "Report deleted successfully"}
+
+
+
 
