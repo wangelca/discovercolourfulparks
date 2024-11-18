@@ -96,30 +96,39 @@ export default function ParkPage() {
           Recent Park Reports
         </h2>
         <div className="space-y-4">
-          {parkReports.length > 0 ? (
-            parkReports.slice(currentReportIndex, currentReportIndex + reportsPerPage).map((report) => (
-              <div 
-                key={report.reportID} 
-                className="bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center space-x-3">
-                    {/* Report Type Badge */}
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${getReportTypeClass(report.reportType)}`}>
-                      {report.reportType}
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(report.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-base">{report.details}</p>
-              </div>
-            ))
-          ) : (
-            <p>No reports available for this park.</p>
-          )}
+  {parkReports.length > 0 ? (
+    parkReports.slice(currentReportIndex, currentReportIndex + reportsPerPage).map((report) => (
+      <div 
+        key={report.reportID} 
+        className="bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200"
+      >
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center space-x-3">
+            <div className={`px-3 py-1 rounded-full text-xs font-bold ${getReportTypeClass(report.reportType)}`}>
+              {report.reportType}
+            </div>
+            <span className="text-sm text-gray-500">
+              {new Date(report.created_at).toLocaleString()}
+            </span>
+          </div>
         </div>
+        <p className="text-gray-700 text-base">{report.details}</p>
+
+        {report.resolved && (
+          <div className="mt-2 p-2 bg-green-100 rounded-lg">
+            <span className="text-green-600 font-bold">Resolved</span>
+            {report.comment && (
+              <p className="text-gray-600 text-sm">Comment: {report.comment}</p>
+            )}
+          </div>
+        )}
+      </div>
+    ))
+  ) : (
+    <p>No reports available for this park.</p>
+  )}
+</div>
+
         <div className="flex justify-center mt-4 space-x-4">
           {currentReportIndex > 0 && (
             <button
