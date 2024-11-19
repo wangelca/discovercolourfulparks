@@ -81,8 +81,8 @@ export default function ProfilePage() {
   const avatarToDisplay = profileData.avatar || "/avatars/avatar1.jpg";
 
   return (
-    <div className="max-w-4xl mx-auto my-8">
-      <h2 className="text-3xl font-bold mb-6">My Profile</h2>
+    <div className="max-w-4xl mx-auto my-8 p-4 md:p-8 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">My Profile</h2>
 
       {error && (
         <div className="bg-red-100 text-red-600 p-3 mb-4 rounded">{error}</div>
@@ -93,11 +93,11 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="flex items-center justify-center space-x-8 mb-6">
+      <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-x-8 md:space-y-0 mb-6">
         <img
           src={avatarToDisplay}
           alt="Profile"
-          className="w-48 h-48 rounded-full object-cover border-4 border-blue-500"
+          className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-blue-500"
         />
         {!isEditing && (
           <button
@@ -111,9 +111,9 @@ export default function ProfilePage() {
       </div>
 
       {isEditing ? (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="mb-4">
-            <label className="block text-xl text-gray-700">First Name</label>
+            <label className="block text-lg text-gray-700">First Name</label>
             <input
               type="text"
               name="firstName"
@@ -125,7 +125,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-xl text-gray-700">Last Name</label>
+            <label className="block text-lg text-gray-700">Last Name</label>
             <input
               type="text"
               name="lastName"
@@ -136,14 +136,14 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div className="mb-4 flex items-center space-x-2">
-            <label className="block text-xl text-gray-700">Phone Number</label>
+          <div className="mb-4 flex flex-col md:flex-row items-center space-y-2 md:space-x-4 md:space-y-0">
+            <label className="block text-lg text-gray-700">Phone Number</label>
             <input
               type="text"
               name="phoneNumber"
               value={profileData.phoneNumber}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border rounded text-lg"
+              className="w-full md:w-auto px-4 py-2 border rounded text-lg"
               required={!profileData.hidePhoneNumber}
               disabled={profileData.hidePhoneNumber}
             />
@@ -164,7 +164,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-xl text-gray-700">Email Address</label>
+            <label className="block text-lg text-gray-700">Email Address</label>
             <input
               type="email"
               name="emailAddress"
@@ -175,16 +175,15 @@ export default function ProfilePage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-xl text-gray-700">Select Avatar</label>
-            <div className="flex space-x-4">
+            <label className="block text-lg text-gray-700">Select Avatar</label>
+            <div className="flex flex-wrap gap-4">
               {avatars.map((avatar, index) => (
                 <img
                   key={index}
                   src={avatar}
                   alt={`Avatar ${index + 1}`}
-                  className={`w-16 h-16 rounded-full cursor-pointer ${
-                    profileData.avatar === avatar ? "border-4 border-blue-500" : ""
-                  }`}
+                  className={`w-16 h-16 rounded-full cursor-pointer transition-all duration-300 ease-in-out
+                    ${profileData.avatar === avatar ? "border-4 border-blue-500" : ""}`}
                   onClick={() => handleAvatarSelect(avatar)}
                 />
               ))}
@@ -193,7 +192,7 @@ export default function ProfilePage() {
 
           <button
             type="submit"
-            className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 text-lg"
+            className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 text-lg w-full md:w-auto"
           >
             Save
           </button>
@@ -201,7 +200,7 @@ export default function ProfilePage() {
       ) : (
         <div className="mt-6">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-xl font-semibold">{profileData.firstName} {profileData.lastName}</div>
+            <div className="text-lg md:text-xl font-semibold">{profileData.firstName} {profileData.lastName}</div>
           </div>
           <div className="text-lg mb-2">
             <strong>Phone Number:</strong>{" "}

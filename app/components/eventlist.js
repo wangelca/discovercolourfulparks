@@ -164,7 +164,7 @@ export default function Events() {
         <span
           key={index}
           style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }}
-          className="text-2xl"
+          className="text-xl md:text-2xl"
         >
           ★
         </span>
@@ -181,9 +181,11 @@ export default function Events() {
   const currentDate = new Date();
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Available Events</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="p-4 md:p-6 lg:p-8">
+      <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8">
+        Available Events
+      </h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {events.length > 0 ? (
           events.map((event) => {
             const isPastEvent = new Date(event.startDate) < currentDate;
@@ -192,55 +194,59 @@ export default function Events() {
             return (
               <div
                 key={event.eventId}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-transform transform hover:scale-105"
               >
                 <div className="relative">
                   <img
                     src={event.eventImageUrl?.[0] || "/path/to/default.jpg"}
                     alt={event.eventName}
-                    className="w-full h-48 object-cover p-2"
+                    className="w-full h-48 object-cover"
                   />
                   <FaHeart
                     onClick={() => handleToggleFavorite(event.eventId)}
-                    className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
+                    className={`absolute top-4 right-4 text-2xl md:text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
                       isFavorite ? "text-red-500" : "text-white"
                     } hover:text-red-600`}
                   />
                 </div>
 
-                <div className="p-4">
-                  <h2 className="text-xl font-bold mb-2">{event.eventName}</h2>
+                <div className="p-4 flex-grow flex flex-col">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 md:mb-2">
+                    {event.eventName}
+                  </h2>
                   {event.averageRating ? (
                     <div className="flex items-center mb-2">
                       {renderStars(event.averageRating)}
-                      <span className="ml-2 text-gray-700">
+                      <span className="ml-2 text-sm md:text-base text-gray-700">
                         {event.averageRating.toFixed(1)} / 5
                       </span>
                     </div>
                   ) : (
                     <p className="text-gray-500 mb-2">No ratings yet</p>
                   )}
-                  <p className="text-gray-700 mb-2">
+                  <p className="text-sm md:text-base text-gray-700 mb-2">
                     {event.eventLocation || "Location not available"}
                   </p>
-                  <p className="text-gray-900 font-semibold">
+                  <p className="text-sm md:text-base text-gray-900 font-semibold">
                     {event.fee ? `$${event.fee}` : "Free"}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-sm md:text-base text-gray-600">
                     {format(new Date(event.startDate), "MMMM d, yyyy")}
                   </p>
-                  <p className="text-gray-600">{event.startTime}</p>
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-sm md:text-base text-gray-600">
+                    {event.startTime}
+                  </p>
+                  <p className="text-sm md:text-base text-gray-600 mb-4 line-clamp-2">
                     {event.description}
                   </p>
                   <a
                     href={`/events/${event.eventId}`}
-                    className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
+                    className="mt-auto inline-block bg-blue-500 text-white text-sm md:text-base font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600 text-center"
                   >
                     View Details
                   </a>
                   {isPastEvent ? (
-                    <button className="mt-4 ml-3 inline-block bg-pink-400 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-pink-500">
+                    <button className="mt-4 ml-0 md:ml-3 inline-block bg-pink-400 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-pink-500 text-center">
                       Event Passed
                     </button>
                   ) : event.requiredbooking ? (
@@ -253,12 +259,12 @@ export default function Events() {
                           window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
-                      className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                      className="mt-4 ml-0 md:ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600 text-center"
                     >
                       Book Now
                     </button>
                   ) : (
-                    <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
+                    <button className="mt-4 ml-0 md:ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600 text-center">
                       No booking is required
                     </button>
                   )}
@@ -267,7 +273,7 @@ export default function Events() {
             );
           })
         ) : (
-          <p className="text-center col-span-3">No events found.</p>
+          <p className="text-center col-span-full">No events found.</p>
         )}
       </div>
       {/* Pagination Controls */}
@@ -291,7 +297,7 @@ export default function Events() {
         </button>
 
         {/* Page Number Display */}
-        <span className="px-4 py-2 mx-2 text-lg text-white">
+        <span className="px-4 py-2 mx-2 text-sm md:text-lg text-gray-800">
           Page {currentPage} of {totalPages}
         </span>
 

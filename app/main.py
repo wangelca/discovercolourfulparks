@@ -482,13 +482,13 @@ async def get_park_spots(parkId: int, db: Session = Depends(get_db)):
     return park.spots
 
 #get event details by eventId
-@app.get("/events", response_model=List[EventResponse])
-async def get_events(db: Session = Depends(get_db)):
-    events = db.query(Event).all()  # Query all events from the database
-    for event in events:
-        if event.eventImageUrl is None:
-            event.eventImageUrl = []  # Ensure eventImageUrl is a list if None
-    return events
+@app.get("/events/{eventID}", response_model=EventResponse)
+async def get_events(db: Session = Depends(get_db), eventID: int = None):
+    if eventID:
+        event = db.query(Event).filter(Event.eventId == eventID).first()
+        if event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return event
 
 #add a new event
 @app.post("/events/add", response_model=EventResponse)
