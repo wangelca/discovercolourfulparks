@@ -38,42 +38,40 @@ export default function Parks() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
       {/* Left side: Park list */}
-      <div className="w-1/3 p-4 overflow-y-auto border-r border-gray-300 bg-white">
+      <div className="w-full md:w-1/3 p-4 overflow-y-auto border-r border-gray-300 bg-white">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
           National Parks in {selectedProvince}
         </h2>
 
         {/* Search and Filter */}
-        <div className="flex items-center mb-6 gap-2">
+        <div className="flex flex-col md:flex-row items-center mb-6 gap-2">
           <input
             type="text"
             placeholder="Search parks..."
-            className="p-2 border border-gray-300 rounded-md w-full text-gray-900"
+            className="p-2 border border-gray-300 rounded-md w-full md:w-auto text-gray-900"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <select
             value={filterOption}
             onChange={(e) => setFilterOption(e.target.value)}
-            className="p-2 border border-gray-300 rounded-md text-gray-900"
+            className="p-2 border border-gray-300 rounded-md text-gray-900 w-full md:w-auto"
           >
             <option value="alphabetical">A - Z</option>
           </select>
         </div>
 
         {/* Province Selection */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           {["Alberta", "British Columbia"].map((province) => (
             <button
               key={province}
               onClick={() => setSelectedProvince(province)}
-              className={`p-2 border border-gray-300 rounded-md ${
-                selectedProvince === province
-                  ? "bg-blue-600 text-white font-bold"
-                  : "text-gray-800 hover:bg-blue-200"
-              }`}
+              className={`p-2 border border-gray-300 rounded-md w-full md:w-auto text-center transition-all duration-300 ease-in-out
+                ${selectedProvince === province ? "bg-blue-600 text-white font-bold" : "text-gray-800 hover:bg-blue-200"}
+              `}
             >
               {province}
             </button>
@@ -88,9 +86,9 @@ export default function Parks() {
               onClick={() => setSelectedPark(park)}
               className="bg-gray-50 rounded-lg shadow-md p-4 cursor-pointer hover:bg-blue-50 transition"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col md:flex-row items-start gap-4">
                 {/* Park Image */}
-                <div className="w-20 h-20 overflow-hidden flex-shrink-0">
+                <div className="w-full md:w-20 h-32 md:h-20 overflow-hidden flex-shrink-0">
                   {park.parkImageUrl && (
                     <img
                       src={park.parkImageUrl[0]}
@@ -119,7 +117,7 @@ export default function Parks() {
       </div>
 
       {/* Right side: Google Map display */}
-      <div className="w-2/3 flex items-center justify-center p-6">
+      <div className="w-full md:w-2/3 flex items-center justify-center p-4 md:p-6">
         {selectedPark ? (
           <iframe
             title={selectedPark.name}
@@ -127,7 +125,7 @@ export default function Parks() {
             height="100%"
             loading="lazy"
             allowFullScreen
-            className="rounded-lg shadow-lg"
+            className="rounded-lg shadow-lg h-64 md:h-full"
             src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(selectedPark.name)}&zoom=10`}
           ></iframe>
         ) : (

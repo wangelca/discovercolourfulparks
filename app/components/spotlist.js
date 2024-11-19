@@ -244,13 +244,13 @@ export default function Spots() {
   };
 
   return (
-    <div className="container mx-auto p-6 flex flex-col items-center w-11/12">
-      <h1 className="text-3xl font-bold mb-6">Spots</h1>
+    <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">Spots</h1>
       {/* Filter Section */}
-      <div className="flex mb-6 border-2 w-4/5 rounded-2xl bg-gray-100 shadow-2 p-3">
+      <div className="flex flex-col md:flex-row mb-6 border-2 w-full max-w-4xl rounded-2xl bg-gray-100 shadow-md p-4 space-y-4 md:space-y-0 md:space-x-6">
         {/* Admission Fee Slider */}
-        <div className="w-1/3 px-5 border-amber-200 border-r-3 ">
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="flex-1 px-2 border-r md:border-r-3 border-amber-200">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Admission Fee Range
           </label>
           <input
@@ -272,14 +272,14 @@ export default function Spots() {
         </div>
 
         {/* Park ID Checkboxes */}
-        <div className="w-1/3 px-5 justify-center">
+        <div className="flex-1 px-2">
           <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
             Park ID
           </label>
           <button
             id="dropdownDefault"
             data-dropdown-toggle="dropdown"
-            className="text-white w-4/5 bg-green-500 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            className="text-white w-full md:w-auto bg-green-500 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
             type="button"
             onClick={() => setShowDropdown(!showDropdown)}
           >
@@ -306,7 +306,7 @@ export default function Spots() {
             id="dropdown"
             className={`${
               showDropdown ? "block" : "hidden"
-            } z-10 w-full p-3 bg-white rounded-lg shadow dark:bg-gray-700 overflow-auto max-h-60`}
+            } z-10 w-full p-3 bg-white rounded-lg shadow dark:bg-gray-700 overflow-auto max-h-60 mt-2`}
           >
             <h6 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
               Select Parks
@@ -336,19 +336,19 @@ export default function Spots() {
           </div>
         </div>
 
-        {/*Dropdown menu for cateogry */}
-        <div className="w-1/3 px-5 justify-center">
+        {/*Dropdown menu for category */}
+        <div className="flex-1 px-2">
           <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
-            Spot Cateogry
+            Spot Category
           </label>
           <button
             id="dropdownDefault"
             data-dropdown-toggle="dropdown"
-            className="text-white w-4/5 bg-green-500 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            className="text-white w-full md:w-auto bg-green-500 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
             type="button"
             onClick={() => setShowCatDropdown(!showCatDropdown)}
           >
-            Filter by Cateogry
+            Filter by Category
             <svg
               className="w-4 h-4 ml-2"
               aria-hidden="true"
@@ -369,10 +369,10 @@ export default function Spots() {
             id="catDropdown"
             className={`${
               showCatDropdown ? "block" : "hidden"
-            } z-10 w-full p-3 bg-white rounded-lg shadow dark:bg-gray-700 overflow-auto max-h-60`}
+            } z-10 w-full p-3 bg-white rounded-lg shadow dark:bg-gray-700 overflow-auto max-h-60 mt-2`}
           >
             <h6 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Select Cateogry
+              Select Category
             </h6>
             <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200 w-full">
               {categories.map((category) => (
@@ -400,7 +400,7 @@ export default function Spots() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
         {spots.length > 0 ? (
           spots.map((spot) => {
             const isFavorite = profileData?.favspotId?.includes(spot.spotId);
@@ -492,7 +492,7 @@ export default function Spots() {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center mt-8 w-full max-w-7xl">
         {/* First Page Button */}
         <button
           onClick={() => handlePageChange(1)}
@@ -512,7 +512,7 @@ export default function Spots() {
         </button>
 
         {/* Page Number Display */}
-        <span className="px-4 py-2 mx-2 text-lg text-white">
+        <span className="px-4 py-2 mx-2 text-lg text-gray-800">
           Page {currentPage} of {totalPages}
         </span>
 
