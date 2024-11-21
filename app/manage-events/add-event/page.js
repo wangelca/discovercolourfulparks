@@ -60,21 +60,7 @@ const AddEventPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name === "fee" || name === "discount") {
-      if (value < 0 || value > 9999) {
-        setErrors({
-          ...errors,
-          [name]: `${
-            name === "fee" ? "Fee" : "Discount"
-          } must be between 0 and 9999`,
-        });
-      } else {
-        setErrors({
-          ...errors,
-          [name]: null, // Clear error when within range
-        });
-      }
-    }
+    
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,

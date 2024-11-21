@@ -118,7 +118,7 @@ export default function Header() {
               </li>
               <li className="text-lg group relative w-max">
                 <a href="/itinerary">
-                  <span>Generate Itinerary</span>
+                  <span>Itinerary</span>
                   <span className="absolute -bottom-1 left-0 w-0 transition-all h-1 bg-purple-500 group-hover:w-full"></span>
                 </a>
               </li>

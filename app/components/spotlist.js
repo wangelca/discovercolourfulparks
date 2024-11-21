@@ -272,7 +272,7 @@ export default function Spots() {
         </div>
 
         {/* Park ID Checkboxes */}
-        <div className="flex-1 px-2">
+        <div className="flex-1 px-2  border-r md:border-r-3 border-amber-200">
           <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
             Park ID
           </label>
@@ -337,9 +337,9 @@ export default function Spots() {
         </div>
 
         {/*Dropdown menu for category */}
-        <div className="flex-1 px-2">
+        <div className="flex-1 px-2 border-r md:border-r-3 border-amber-200">
           <label className="block font-medium text-sm leading-6 mb-3 text-gray-700">
-            Spot Category
+            Category
           </label>
           <button
             id="dropdownDefault"
@@ -512,7 +512,7 @@ export default function Spots() {
         </button>
 
         {/* Page Number Display */}
-        <span className="px-4 py-2 mx-2 text-lg text-gray-800">
+        <span className="px-4 py-2 mx-2 text-lg text-white">
           Page {currentPage} of {totalPages}
         </span>
 

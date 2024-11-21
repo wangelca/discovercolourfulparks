@@ -9,6 +9,7 @@ const Calendar = dynamic(() => import("../components/calendar"));
 const Events = dynamic(() => import("../components/eventlist"));
 const EventBookingPage = dynamic(() => import("./[eventId]/book/page"));
 
+
 export default function Home() {
   // Using a single state variable for simplicity
   const [viewMode, setViewMode] = useState("events"); // Possible values: 'events', 'calendar', 'booking'
