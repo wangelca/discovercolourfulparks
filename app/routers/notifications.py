@@ -13,6 +13,7 @@ import asyncio
 router = APIRouter()
 
 class NotificationRequest(BaseModel):
+    id: int
     email: str
     message: str
 
@@ -62,6 +63,7 @@ async def admin_create_notification(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
+    recipient_id = notification_req.id
     recipients = notification_req.email
     message = notification_req.message
 
@@ -74,6 +76,7 @@ async def admin_create_notification(
         email=user.email,
         message=notification_req.message,
         status="unread",
+        id=recipient_id,
         created_at=datetime.utcnow()
     )
     db.add(notification)

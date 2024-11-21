@@ -49,7 +49,7 @@ export default function AdminNotificationPage() {
       if (recipients === "all") {
         try {
           const response = await axios.get("http://localhost:8000/users");
-          setEmails(response.data.map((user) => user.email));
+          setSelectedEmail(response.data.map((user) => user.email));
         } catch (error) {
           console.error("Error fetching all user emails:", error);
         }

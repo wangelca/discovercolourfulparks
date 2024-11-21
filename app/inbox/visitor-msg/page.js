@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import axios from "axios";
 import { useUser } from "@clerk/nextjs";
 import { ToastContainer, toast, Bounce } from "react-toastify";
@@ -12,6 +12,17 @@ export default function VisitorSendNotificationPage() {
   const [message, setMessage] = useState("");
   const [category, setCategory] = useState("General Enquiry");
   const { isLoaded, isSignedIn, user } = useUser(); // Access loading and sign-in state
+  const [profileData, setProfileData] = useState();
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return; // Ensure user is loaded and signed in
+    fetch(`http://localhost:8000/users/${user.id}`)
+      .then((res) => res.json())
+      .then((data) => setProfileData(data))
+      .catch((error) =>
+        console.error("Error fetching profile details:", error)
+      );
+  }, [user, isLoaded, isSignedIn]);
 
   const handleSendNotification = async (e) => {
     e.preventDefault();
@@ -22,6 +33,7 @@ export default function VisitorSendNotificationPage() {
     }
 
     const userEmail = user.primaryEmailAddress?.emailAddress;
+    const userId = profileData.id;
 
     if (!userEmail) {
       toast.error("User email is not available.");
@@ -33,7 +45,7 @@ export default function VisitorSendNotificationPage() {
       return;
     }
 
-    const completeMessage = `Message category: ${category}\nFrom: ${userEmail}\nMessage: ${message}`;
+    const completeMessage = `Message category: ${category}\nFrom: ${userEmail}\nUser Id: ${userId}\nMessage: ${message}`;
 
     const requestData = {
       email: "wuiyitang@gmail.com",
