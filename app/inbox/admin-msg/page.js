@@ -4,11 +4,12 @@
 
 import { useState, useEffect } from "react";
 import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 export default function AdminNotificationPage() {
   const [query, setQuery] = useState("");
-  const [recipients, setRecipients] = useState("all");
+  const [recipients, setRecipients] = useState("");
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
   const [id, setId] = useState(""); // Holds the user id for specific user selection
@@ -43,21 +44,31 @@ export default function AdminNotificationPage() {
     fetchEmailSuggestions();
   }, [query]);
 
-  // Fetch all user emails if 'All Users' is selected
-  useEffect(() => {
-    const fetchAllEmails = async () => {
-      if (recipients === "all") {
-        try {
-          const response = await axios.get("http://localhost:8000/users");
-          setEmails(response.data.map((user) => user.email));
-        } catch (error) {
-          console.error("Error fetching all user emails:", error);
-        }
-      }
-    };
+// Fetch all user emails if 'All Users' is selected
+useEffect(() => {
+  const fetchAllEmails = async () => {
+    if (recipients === "all") {
+      try {
+        const response = await axios.get("http://localhost:8000/users");
 
-    fetchAllEmails();
-  }, [recipients]);
+        // Assuming the response data is an array of user objects
+        const users = response.data;
+
+        // Set selectedUsers to include all fetched user objects
+        setSelectedUsers(users); // users is an array of objects with fields like 'id' and 'email'
+        
+      } catch (error) {
+        toast.error("Error fetching all user emails:", error);
+      }
+    } else {
+      // Clear selected users when the recipient type is not 'all'
+      setSelectedUsers([]);
+    }
+  };
+
+  fetchAllEmails();
+}, [recipients]);
+
 
   // Handle adding selected users to the list
   const handleEmailSelect = (e) => {
@@ -96,6 +107,8 @@ export default function AdminNotificationPage() {
         email: user.email,
         message,
       };
+
+      console.log("Sending notification request data:", requestData);
 
       try {
         await axios.post(

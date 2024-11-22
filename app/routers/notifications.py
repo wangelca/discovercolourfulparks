@@ -13,6 +13,7 @@ import asyncio
 router = APIRouter()
 
 class NotificationRequest(BaseModel):
+    id: int
     email: str
     message: str
 
@@ -62,6 +63,7 @@ async def admin_create_notification(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
+    recipient_id = notification_req.id
     recipients = notification_req.email
     message = notification_req.message
 
@@ -74,6 +76,7 @@ async def admin_create_notification(
         email=user.email,
         message=notification_req.message,
         status="unread",
+        id=recipient_id,
         created_at=datetime.utcnow()
     )
     db.add(notification)
@@ -132,7 +135,7 @@ async def get_notifications(user_id: int, db: Session = Depends(get_db)):
 @router.get("/users/search-email")
 async def search_email(query: str, db: Session = Depends(get_db)):
     users = db.query(User).filter(User.email.ilike(f"%{query}%")).all()
-    return [{"email": user.email, "username": user.username} for user in users]
+    return [{"email": user.email, "id": user.id} for user in users]
 
 # Update notification status to read or unread
 @router.put("/notifications/{msgId}")

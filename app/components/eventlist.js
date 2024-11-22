@@ -297,7 +297,7 @@ export default function Events() {
         </button>
 
         {/* Page Number Display */}
-        <span className="px-4 py-2 mx-2 text-sm md:text-lg text-gray-800">
+        <span className="px-4 py-2 mx-2 text-sm md:text-lg text-white">
           Page {currentPage} of {totalPages}
         </span>
 
