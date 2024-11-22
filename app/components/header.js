@@ -17,14 +17,14 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-lg">
+    <header className="bg-white ">
       <nav className="bg-white border-green-900 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
         <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
           <a href="/" className="flex items-center">
             <Image
               src="/DCP-logo-whitebg.png"
-              width={280}
-              height={125}
+              width={250}
+              height={100}
               alt="Logo"
             />
           </a>

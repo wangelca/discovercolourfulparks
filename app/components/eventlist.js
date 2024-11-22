@@ -181,11 +181,9 @@ export default function Events() {
   const currentDate = new Date();
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8">
-        Available Events
-      </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+    <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">Available Events</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
         {events.length > 0 ? (
           events.map((event) => {
             const isPastEvent = new Date(event.startDate) < currentDate;
@@ -194,13 +192,13 @@ export default function Events() {
             return (
               <div
                 key={event.eventId}
-                className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-transform transform hover:scale-105"
+                className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
               >
-                <div className="relative">
+                <div className="relative h-48 overflow-hidden">
                   <img
                     src={event.eventImageUrl?.[0] || "/path/to/default.jpg"}
                     alt={event.eventName}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-full object-cover p-1"
                   />
                   <FaHeart
                     onClick={() => handleToggleFavorite(event.eventId)}
@@ -241,14 +239,14 @@ export default function Events() {
                   </p>
                   <a
                     href={`/events/${event.eventId}`}
-                    className="mt-auto inline-block bg-blue-500 text-white text-sm md:text-base font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600 text-center"
+                    className="w-full mt-auto inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-amber-300 text-center"
                   >
                     View Details
                   </a>
                   {isPastEvent ? (
-                    <button className="mt-4 ml-0 md:ml-3 inline-block bg-pink-400 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-pink-500 text-center">
+                    <span className="w-full  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
                       Event Passed
-                    </button>
+                    </span>
                   ) : event.requiredbooking ? (
                     <button
                       onClick={() => {
@@ -259,14 +257,14 @@ export default function Events() {
                           window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
-                      className="mt-4 ml-0 md:ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600 text-center"
+                      className="w-full  inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
                     >
                       Book Now
                     </button>
                   ) : (
-                    <button className="mt-4 ml-0 md:ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600 text-center">
-                      No booking is required
-                    </button>
+                    <span className="w-full inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
+                      No booking is Required
+                    </span>
                   )}
                 </div>
               </div>

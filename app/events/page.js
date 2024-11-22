@@ -39,7 +39,7 @@ export default function Home() {
           className={`px-4 py-2 rounded-lg text-white mr-4 ${
             viewMode === "calendar"
               ? "bg-blue-700"
-              : "bg-blue-500 hover:bg-blue-600"
+              : "bg-amber-500 hover:bg-amber-600"
           }`}
           onClick={showCalendarView}
         >
@@ -49,7 +49,7 @@ export default function Home() {
           className={`px-4 py-2 rounded-lg text-white ${
             viewMode === "events"
               ? "bg-blue-700"
-              : "bg-blue-500 hover:bg-blue-600"
+              : "bg-amber-500 hover:bg-amber-600"
           }`}
           onClick={showEventsView}
         >

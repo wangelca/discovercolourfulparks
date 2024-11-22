@@ -10,7 +10,7 @@ function getReportTypeClass(reportType) {
     case "Fire Sightings":
       return "bg-red-500 text-white";
     case "Weather Alert":
-      return "bg-blue-500 text-white";
+      return "bg-amber-500 text-white";
     case "Driving Conditions":
       return "bg-gray-500 text-white";
     case "Terrain":

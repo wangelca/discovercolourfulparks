@@ -103,7 +103,7 @@ const PaymentPage = () => {
                         <strong>Kids:</strong> {kids}
                     </p>
                 </div>
-                <button type="submit" className="bg-blue-500 text-white rounded p-2">
+                <button type="submit" className="bg-amber-500 text-white rounded p-2">
                     Submit Payment
                 </button>
             </form>
