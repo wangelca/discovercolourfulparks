@@ -48,6 +48,7 @@ export default function VisitorSendNotificationPage() {
     const completeMessage = `Message category: ${category}\nFrom: ${userEmail}\nUser Id: ${userId}\nMessage: ${message}`;
 
     const requestData = {
+      id: userId,
       email: "wuiyitang@gmail.com",
       message: completeMessage,
     };

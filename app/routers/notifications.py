@@ -135,7 +135,7 @@ async def get_notifications(user_id: int, db: Session = Depends(get_db)):
 @router.get("/users/search-email")
 async def search_email(query: str, db: Session = Depends(get_db)):
     users = db.query(User).filter(User.email.ilike(f"%{query}%")).all()
-    return [{"email": user.email, "username": user.username} for user in users]
+    return [{"email": user.email, "id": user.id} for user in users]
 
 # Update notification status to read or unread
 @router.put("/notifications/{msgId}")

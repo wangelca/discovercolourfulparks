@@ -6,6 +6,7 @@ import axios from "axios";
 import { useUser } from "@clerk/nextjs";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { toast, ToastContainer, Bounce } from "react-toastify"; //
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InboxPage() {
   const [notifications, setNotifications] = useState([]);
