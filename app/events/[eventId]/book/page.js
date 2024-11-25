@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
 export default function EventBookingPage({}) {
@@ -23,6 +23,8 @@ export default function EventBookingPage({}) {
   const [kidError, setKidError] = useState("");
   const [dateError, setDateError] = useState("");
 
+  const router = useRouter();
+
   const formatEventDate = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -38,8 +40,7 @@ export default function EventBookingPage({}) {
   
     // Return formatted date and time
     return `${formattedstartDate}, ${formattedStartTime} - ${formattedendtDate}, ${formattedEndTime}`;
-  };
-  
+  };  
 
   useEffect(() => {
     // Fetch event details
@@ -120,30 +121,22 @@ export default function EventBookingPage({}) {
 
     if (hasError) return;
 
-    const bookingData = {
+    const paymentData = {
+      fee: paymentAmount,
+      itemName: "DCP event booking",
       eventId: event.eventId,
-      id: profileData.id, // Corresponds to userId
-      bookingDate: new Date(bookingDate), // Make sure this is in a correct datetime format
+      bookingDate,
       adults,
       kids,
-      paymentAmount,
+      id: profileData.id,
     };
+  
+    const queryParams = new URLSearchParams(paymentData).toString();
+    router.push(`/payment?${queryParams}`);
 
-    fetch("http://localhost:8000/event-bookings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(bookingData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        alert("Booking confirmed! A confirmation email will be sent.");
-        push("/events");
-      })
-      .catch((error) => console.error("Error confirming booking:", error));
-  };
 
+
+  }
   return (
     <div className="container mx-auto p-6">
       <div className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">

@@ -153,7 +153,7 @@ export default function BookingPage() {
                         <div className="mt-4">
                             <button
                                 onClick={handleConfirmBooking}
-                                className="bg-blue-500 text-white rounded p-2"
+                                className="bg-amber-500 text-white rounded p-2"
                             >
                                 Confirm Booking
                             </button>

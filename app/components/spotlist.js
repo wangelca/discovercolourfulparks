@@ -414,7 +414,7 @@ export default function Spots() {
                     <img
                       src={spot.spotImageUrl}
                       alt={`Image of ${spot.spotName}`}
-                      className="w-full h-full object-cover p-2"
+                      className="w-full h-full object-cover p-1"
                     />
                   )}
                   <FaHeart
@@ -424,8 +424,8 @@ export default function Spots() {
                     } hover:text-red-600`}
                   />
                 </div>
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold mb-2">
+                <div className="p-4 flex-grow flex flex-col">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 md:mb-2">
                     {spot.spotName}
                   </h2>
                   {spot.averageRating ? (
@@ -456,7 +456,7 @@ export default function Spots() {
                   </p>
                   <a
                     href={`/spots/${spot.spotId}`}
-                    className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
+                    className="w-full mt-auto inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-amber-300 text-center"
                   >
                     View Details
                   </a>
@@ -471,14 +471,14 @@ export default function Spots() {
                           window.location.href = `/spots/${spot.spotId}/book`; // Direct to booking page
                         }
                       }}
-                      className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                      className="w-full inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
                     >
                       Book Now
                     </button>
                   ) : (
-                    <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
-                      No booking is required
-                    </button>
+                    <span className="w-full inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
+                      No Booking Required
+                    </span>
                   )}
                 </div>
               </div>

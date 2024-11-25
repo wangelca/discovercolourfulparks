@@ -1,114 +1,88 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { useSearchParams } from "next/navigation";
 
-const PaymentPage = () => {
-    const router = useRouter();
-    const { query } = router; // Get the query object
-    const { spotId, paymentAmount, bookingDate, adults, kids } = query || {}; // Destructure safely
+import CheckoutForm from "../components/CheckoutForm";
+import CompletePage from "../components/CompletePage";
 
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        emailAddress: '',
-    });
+// Make sure to call loadStripe outside of a component’s render to avoid
+// recreating the Stripe object on every render.
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+export default function App() {
+  const [clientSecret, setClientSecret] = React.useState("");
+  const [dpmCheckerLink, setDpmCheckerLink] = React.useState("");
+  const [confirmed, setConfirmed] = React.useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle payment submission logic here
-    };
+  const searchParams = useSearchParams();
+  const fee = searchParams.get("fee");
+  const itemName = searchParams.get("itemName");
+  const eventId = searchParams.get("eventId");
+  const bookingDate = searchParams.get("bookingDate");
+  const adults = searchParams.get("adults");
+  const kids = searchParams.get("kids");
+  const id = searchParams.get("id");
+  const paymentIntentClientSecret = searchParams.get("payment_intent_client_secret");
 
-    // Optional: You can add a loading state while waiting for the query parameters
-    if (!spotId || !paymentAmount || !bookingDate || !adults || !kids) {
-        return <p>Loading payment details...</p>;
+  const redirectStatus = searchParams.get("redirect_status");
+
+  React.useEffect(() => {
+    // If the user is redirected after payment, show CompletePage
+    if (paymentIntentClientSecret && redirectStatus === "succeeded") {
+      setConfirmed(true);
     }
+  }, [paymentIntentClientSecret, redirectStatus]);
 
-    return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-4">Payment Details</h1>
-            <form onSubmit={handleSubmit} className="bg-gray-200 bg-opacity-60 p-6 rounded-lg">
-                <div className="mb-4">
-                    <label>
-                        First Name:
-                        <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            className="ml-2 border rounded p-1"
-                            required
-                        />
-                    </label>
-                </div>
-                <div className="mb-4">
-                    <label>
-                        Last Name:
-                        <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            className="ml-2 border rounded p-1"
-                            required
-                        />
-                    </label>
-                </div>
-                <div className="mb-4">
-                    <label>
-                        Phone Number:
-                        <input
-                            type="tel"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            className="ml-2 border rounded p-1"
-                            required
-                        />
-                    </label>
-                </div>
-                <div className="mb-4">
-                    <label>
-                        Email Address:
-                        <input
-                            type="email"
-                            name="emailAddress"
-                            value={formData.emailAddress}
-                            onChange={handleChange}
-                            className="ml-2 border rounded p-1"
-                            required
-                        />
-                    </label>
-                </div>
-                <div className="mb-4">
-                    <p>
-                        <strong>Spot ID:</strong> {spotId}
-                    </p>
-                    <p>
-                        <strong>Payment Amount:</strong> ${paymentAmount}
-                    </p>
-                    <p>
-                        <strong>Booking Date:</strong> {bookingDate}
-                    </p>
-                    <p>
-                        <strong>Adults:</strong> {adults}
-                    </p>
-                    <p>
-                        <strong>Kids:</strong> {kids}
-                    </p>
-                </div>
-                <button type="submit" className="bg-blue-500 text-white rounded p-2">
-                    Submit Payment
-                </button>
-            </form>
-        </div>
-    );
-};
 
-export default PaymentPage;
+  React.useEffect(() => {
+    // Create PaymentIntent as soon as the page loads, if not already confirmed
+    if (!confirmed) {
+      fetch("http://localhost:8000/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: [{ id: itemName, amount: parseFloat(fee) * 100 }] }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setClientSecret(data.clientSecret);
+        });
+    }
+  }, [fee, itemName, confirmed]);
+
+  const appearance = {
+    theme: 'stripe',
+  };
+  const options = {
+    clientSecret,
+    appearance,
+  };
+
+  return (
+    <div className="App">
+      {confirmed ? (
+        clientSecret && (
+          <Elements options={options} stripe={stripePromise}>
+            <CompletePage />
+          </Elements>
+        )
+      ) : (
+        clientSecret && (
+          <Elements options={options} stripe={stripePromise}>
+            <CheckoutForm
+              fee={fee}
+              itemName={itemName}
+              eventId={eventId}
+              bookingDate={bookingDate}
+              adults={adults}
+              kids={kids}
+              id={id}
+            />
+          </Elements>
+        )
+      )}
+    </div>
+  );
+}

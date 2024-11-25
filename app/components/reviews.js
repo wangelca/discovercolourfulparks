@@ -158,7 +158,7 @@ const renderStars = (rating) => (
             onClick={() => handlePageChange(index + 1)}
             className={`px-3 py-1 rounded ${
               currentPage === index + 1
-                ? "bg-blue-500 text-white"
+                ? "bg-amber-500 text-white"
                 : "bg-gray-200 text-gray-700"
             }`}
           >
@@ -192,7 +192,7 @@ const renderStars = (rating) => (
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <button
               onClick={handleAddReview}
-              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600"
+              className="bg-amber-500 text-white font-bold py-2 px-4 rounded hover:bg-amber-600"
             >
               Submit Review
             </button>

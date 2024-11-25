@@ -160,7 +160,7 @@ export default function EventsAdmin() {
         <h1 className="text-3xl font-bold">Events Database (Support Desktop Device only)</h1>
         <button
           onClick={() => router.push("/manage-events/add-event")}
-          className="bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-800 transition"
+          className="bg-amber-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-800 transition"
         >
           Add Event
         </button>
