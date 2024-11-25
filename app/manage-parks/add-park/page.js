@@ -142,7 +142,7 @@ const AddParkPage = () => {
           <button
             type="button"
             onClick={handleReview}
-            className="btn bg-blue-500 text-white"
+            className="btn bg-amber-500 text-white"
           >
             Review
           </button>

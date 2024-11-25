@@ -1,42 +1,49 @@
-from lib2to3.pytree import Base
 from fastapi import FastAPI, HTTPException, Query, Depends, File, UploadFile, Form, APIRouter
-from pydantic import BaseModel, Field
-from typing import List, Optional, Tuple
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import database, SessionLocal, Base, engine, get_db
 from models import Park, Spot, Event, User, Booking, Review
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from PIL import Image
-from datetime import date, datetime, time, timezone
-from app.routers import users, notifications, reviews, favorite
+from datetime import date, datetime, time, timezone, timedelta
+from app.routers import users, notifications, reviews, favorite, report, payment
 import os
 import shutil
 import openai
-from database import get_db
-from datetime import timedelta
 import random
+import smtplib
+import stripe
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import logging
 
 app = FastAPI()
 
-app.include_router(users.router)
-app.include_router(notifications.router)
-app.include_router(reviews.router)
-app.include_router(favorite.router)
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-UPLOAD_DIR = "public\avatars"
-
-# CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Frontend URLs
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+UPLOAD_DIR = "public/avatars"
+
+logger = logging.getLogger("uvicorn.error")
+
+app.include_router(users.router)
+app.include_router(notifications.router)
+app.include_router(reviews.router)
+app.include_router(report.router, prefix="/reports")
+app.include_router(favorite.router)
+app.include_router(payment.router)
+
 
 # Dependency to get the SQLAlchemy session
 def get_db():
@@ -57,6 +64,26 @@ def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
+    
+class ReportBase(BaseModel):
+    parkId: int
+    userId: int
+    reportType: str
+    details: str
+
+class ReportCreate(ReportBase):
+    pass
+
+class ReportResponse(BaseModel):
+    reportID: int
+    parkId: int
+    userId: int
+    reportType: str
+    details: str
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 class ParkResponse(BaseModel):
     parkId: int
@@ -75,6 +102,7 @@ class ParkUpdateRequest(BaseModel):
     parkImageUrl: Optional[List[str]] = None
     parameters: Optional[str] = None      
 
+
 class EventResponse(BaseModel):
     eventId: int
     parkId: int
@@ -85,13 +113,14 @@ class EventResponse(BaseModel):
     discount: Optional[float] = None
     startDate: datetime
     endDate: datetime
-    eventImageUrl: List[str]
+    eventImageUrl: List[str] = []  # Default to an empty list if None
     parameters: Optional[str] = None
     requiredbooking: bool    
 
     class Config:
-        orm_mode=True
+        orm_mode = True
         arbitrary_types_allowed = True
+
 
 class SpotResponse(BaseModel):
     spotId: int
@@ -141,6 +170,10 @@ class BookingResponse(BaseModel):
     adults: int
     kids: int
     paymentAmount: float
+    # New fields for itinerary bookings
+    itinerary_data: Optional[List[Dict]] = None  # List of day-by-day itinerary activities
+    destination: Optional[str] = None  # Province or area for the itinerary
+    total_cost: Optional[float] = None  # Total cost for the itinerary booking
 
     class Config:
         orm_mode=True
@@ -165,6 +198,23 @@ class ReviewResponse(ReviewBase):
     class Config:
         orm_mode = True
 
+class ScheduleItem(BaseModel):
+    time: str
+    activity: str
+    cost: str
+
+class ActivityDay(BaseModel):
+    day: int
+    schedule: List[ScheduleItem]
+
+class Itinerary(BaseModel):
+    days: int
+    location: str
+    activities: List[ActivityDay]
+
+class SendItineraryRequest(BaseModel):
+    email: EmailStr
+    itinerary: Itinerary
 
 @app.post("/event-bookings", response_model=BookingResponse)
 async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
@@ -236,16 +286,63 @@ async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
     return parks
 
-# get all events
+#get all events
 @app.get("/events", response_model=List[EventResponse])
-async def get_events(db: Session = Depends(get_db)):
-    events = db.query(Event).all()
+
+async def get_events(
+    page: int = Query(1, ge=1, description="Page number, starting from 1"),
+    limit: int = Query(10, ge=1, le=100, description="Number of events per page, maximum 100"),
+    db: Session = Depends(get_db)
+):
+    # Calculate the offset based on page number and limit
+    offset = (page - 1) * limit
+
+    # Fetch events with pagination
+    events = db.query(Event).offset(offset).limit(limit).all()
+
+    # Return only the list of events
+
     return events
+
+# Get total count of events
+@app.get("/events/count", response_model=int)
+async def get_events_count(db: Session = Depends(get_db)):
+    total_events = db.query(Event).count()
+    return total_events
 
 # get spots based on parkId and admission rate range
 @app.get("/spots", response_model=List[SpotResponse])
 async def get_spots(
     db: Session = Depends(get_db),
+    min_hourly_rate: Optional[float] = Query(0),
+    max_hourly_rate: Optional[float] = Query(1000),
+    park_id: Optional[List[int]] = Query(None),
+    category: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),  # Page number, must be >= 1
+    limit: int = Query(9, ge=1)  # Limit number of spots per page, must be >= 1
+):
+    # Start with all spots
+    query = db.query(Spot)
+
+    # Filter by hourly rate range
+    query = query.filter(Spot.spotAdmission.between(min_hourly_rate, max_hourly_rate))
+
+    # Filter by multiple park IDs
+    if park_id:
+        query = query.filter(Spot.parkId.in_(park_id))
+
+    # Filter by category
+    if category:
+        query = query.filter(Spot.category == category)
+
+    # Apply pagination
+    offset = (page - 1) * limit
+    spots = query.offset(offset).limit(limit).all()
+
+    return spots
+
+@app.get("/spots/count", response_model=int)
+async def get_spots_count(db: Session = Depends(get_db),
     min_hourly_rate: Optional[float] = Query(0),
     max_hourly_rate: Optional[float] = Query(1000),
     park_id: Optional[List[int]] = Query(None),
@@ -265,8 +362,9 @@ async def get_spots(
     if category:
         query = query.filter(Spot.category == category)
 
-    spots = query.all()
-    return spots
+    total_spots = query.count()
+
+    return total_spots
 
 # get all users
 @app.get("/users", response_model=List[UserResponse])
@@ -387,12 +485,13 @@ async def get_park_spots(parkId: int, db: Session = Depends(get_db)):
     return park.spots
 
 #get event details by eventId
-@app.get("/events/{event_id}", response_model=EventResponse)
-async def get_event(event_id: int, db: Session = Depends(get_db)):
-    event = db.query(Event).filter(Event.eventId == event_id).first()
-    if event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return event
+@app.get("/events/{eventID}", response_model=EventResponse)
+async def get_events(db: Session = Depends(get_db), eventID: int = None):
+    if eventID:
+        event = db.query(Event).filter(Event.eventId == eventID).first()
+        if event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return event
 
 #add a new event
 @app.post("/events/add", response_model=EventResponse)
@@ -645,7 +744,7 @@ async def get_spot_revenue(
         "total_revenue": r.total_revenue
     } for r in revenue_data])
 
-# generat description using AI
+# generate description using AI
 @app.post("/generate-description")
 async def generate_description(parkName: str = Form(...), name: str = Form(...), entityType: str = Form(...)):
     """
@@ -678,85 +777,272 @@ async def generate_description(parkName: str = Form(...), name: str = Form(...),
     except Exception as e:
         print(f"Error generating description: {e}")
         raise HTTPException(status_code=500, detail="Error generating description")
+    
+def parse_cost(cost):
+    if cost in ["Free", "None", None]:
+        return 0
+    try:
+        return float(str(cost).replace("$", ""))
+    except (ValueError, TypeError):
+        return 0
+
+def ai_select_activities(parks: List, spots: List, events: List, used_parks, used_spots, used_events, user_preferences=None, remaining_budget=0) -> Tuple[List, List, object]:
+    """
+    Selects activities for the itinerary, ensuring unique parks, spots, and an event each day,
+    while respecting the remaining budget.
+    """
+    if user_preferences:
+        user_preferences = user_preferences.split(",")  # Convert string back to a list
+
+    # Filter out already-used parks and spots
+    available_parks = [park for park in parks if park.parkId not in used_parks]
+    available_spots = [spot for spot in spots if spot.spotId not in used_spots]
+    available_events = [event for event in events if event.eventId not in used_events]
+
+    # Select up to 2 unique parks without exceeding the budget
+    selected_parks = []
+    for park in available_parks:
+        cost = parse_cost(park.duration)  # Adjust cost parsing based on park structure
+        if cost <= remaining_budget:
+            selected_parks.append(park)
+            remaining_budget -= cost
+        if len(selected_parks) >= 2:
+            break
+
+    # Select up to 3 unique spots from the chosen parks within budget
+    selected_spots = []
+    for park in selected_parks:
+        park_spots = [spot for spot in available_spots if spot.parkId == park.parkId]
+        for spot in park_spots:
+            cost = parse_cost(spot.spotAdmission)
+            if cost <= remaining_budget:
+                selected_spots.append(spot)
+                remaining_budget -= cost
+            if len(selected_spots) >= 3:
+                break
+
+    # Select one unique event if available within budget
+    selected_event = None
+    for event in available_events:
+        cost = parse_cost(event.fee)
+        if cost <= remaining_budget:
+            selected_event = event
+            remaining_budget -= cost
+            break
+
+    return selected_parks, selected_spots, selected_event
+
+
+def generate_schedule(activities, start_time):
+    schedule = []
+    current_time = datetime.strptime(start_time, "%H:%M")
+
+    for activity in activities:
+        duration = activity.get("duration", 60)
+        end_time = current_time + timedelta(minutes=duration)
+        
+        schedule.append({
+            "activity_name": activity["name"],
+            "start_time": current_time.strftime("%I:%M %p"),
+            "end_time": end_time.strftime("%I:%M %p"),
+            "location": activity["location"],
+            "type": activity["type"],
+            "duration": duration,
+            "cost": activity.get("cost", "Free")
+        })
+
+        current_time = end_time + timedelta(minutes=15)
+
+    return schedule
+
 
 @app.get("/itinerary")
-async def generate_itinerary(days: int = Query(1, ge=1, le=3), db: Session = Depends(get_db)):
-    # Fetch data from the database
-    parks = db.query(Park).all()
-    spots = db.query(Spot).all()
-    events = db.query(Event).all()
+async def generate_itinerary(
+    days: int = Query(1, ge=1, le=3),
+    preference: str = Query(None),
+    budget: int = Query(100),
+    traveling_with: str = Query("solo"),
+    start_time: str = Query("08:00"),
+    experience_type: str = Query("relaxation"),
+    meal_preferences: str = Query("none"),
+    province: str = Query("Alberta"),
+    db: Session = Depends(get_db)
+):
+    # Validate the province
+    if province not in ["Alberta", "British Columbia"]:
+        return {"error": "Invalid province. Please select either 'Alberta' or 'British Columbia'."}
+
+    parks = db.query(Park).filter(Park.province == province).all()
+    if not parks:
+        return {"error": f"No parks found in {province}."}
+
+    park_ids = [park.parkId for park in parks]
+    spots = db.query(Spot).filter(Spot.parkId.in_(park_ids)).all()
+    events = db.query(Event).filter(Event.parkId.in_(park_ids)).all()
 
     itinerary = []
+    used_parks, used_spots, used_events = set(), set(), set()
+    remaining_budget = budget  # Start with the full budget
 
     for day in range(days):
-        # Select 1-2 parks for the day's itinerary
-        selected_parks = random.sample(parks, min(2, len(parks)))
+        selected_parks, selected_spots, selected_event = ai_select_activities(
+            parks, spots, events, used_parks, used_spots, used_events, preference, remaining_budget
+        )
 
-        # Select 2-3 spots across the selected parks for the day
-        selected_spots = []
+        used_parks.update([park.parkId for park in selected_parks])
+        used_spots.update([spot.spotId for spot in selected_spots])
+        if selected_event:
+            used_events.add(selected_event.eventId)
+
+        paid_activities = []
+        free_activities = []
+
         for park in selected_parks:
-            park_spots = [spot for spot in spots if spot.parkId == park.parkId]
-            selected_spots.extend(random.sample(park_spots, min(3, len(park_spots))))
-
-        # Pick one random event if available for the day
-        selected_event = random.choice(events) if events else None
-
-        # Calculate the day's total cost based on spots and event
-        day_cost = sum(spot.spotAdmission for spot in selected_spots) + (selected_event.fee if selected_event else 0)
-
-        # Prepare parks, spots, and event details
-        parks_data = [
-            {
+            entry = {
                 "type": "Park",
                 "name": park.name,
                 "location": park.location,
-                "province": park.province,
-                "duration": park.duration  # Estimated time in minutes
+                "duration": park.duration or 60,
+                "cost": "Free" if park.duration == 0 else f"${park.duration}",
             }
-            for park in selected_parks
-        ]
+            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
 
-        spots_data = [
-            {
+        for spot in selected_spots:
+            entry = {
                 "type": "Spot",
                 "name": spot.spotName,
                 "description": spot.spotDescription,
-                "cost": spot.spotAdmission,
                 "location": spot.spotLocation,
-                "duration": spot.duration  # Estimated time in minutes
+                "duration": spot.duration or 60,
+                "cost": "Free" if spot.spotAdmission == 0 else f"${spot.spotAdmission}",
             }
-            for spot in selected_spots
-        ]
+            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
 
-        event_data = {
-            "type": "Event",
-            "name": selected_event.eventName,
-            "location": selected_event.eventLocation,
-            "cost": selected_event.fee,
-            "location": selected_event.eventLocation,
-            "duration": selected_event.duration  # Estimated time in minutes
-        } if selected_event else None
+        if selected_event:
+            entry = {
+                "type": "Event",
+                "name": selected_event.eventName,
+                "location": selected_event.eventLocation,
+                "duration": selected_event.duration or 60,
+                "cost": "Free" if selected_event.fee == 0 else f"${selected_event.fee}",
+            }
+            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
 
-        # Combine activities for the day's itinerary
-        activities = parks_data + spots_data
-        if event_data:
-            activities.append(event_data)
+        # Calculate day cost and update remaining budget
+        day_cost = sum(parse_cost(activity["cost"]) for activity in paid_activities)
+        remaining_budget -= day_cost  # Deduct day's cost from the remaining budget
 
-        # Add the day's itinerary with parks, spots, and event details
-        day_itinerary = {
+        # Print debug information
+        print(f"Day {day + 1} cost: {day_cost}, Remaining budget: {remaining_budget}")
+
+        activities = paid_activities + free_activities
+        schedule = generate_schedule(activities, start_time)
+
+        itinerary.append({
             "day": day + 1,
-            "parks": parks_data,
-            "spots": spots_data,
-            "event": event_data,
-            "activities": activities,
-            "day_cost": day_cost
-        }
+            "paid_activities": paid_activities,
+            "free_activities": free_activities,
+            "day_cost": day_cost,
+            "schedule": schedule
+        })
 
-        itinerary.append(day_itinerary)
-
-    # Calculate total cost across all days
-    total_cost = sum(day["day_cost"] for day in itinerary)
-
-    return {"itinerary": itinerary, "total_cost": total_cost}
+        if remaining_budget <= 0:
+            break  # Stop adding days if the budget is exceeded
 
 
+    total_cost = budget - remaining_budget  # Calculate actual spent budget
+    print(f"Total cost: {total_cost}")
+
+    return {
+        "itinerary": itinerary,
+        "total_cost": total_cost,
+        "destination": province
+    }
+
+def send_email(recipient_email, subject, body):
+    sender_email = "your_email@example.com"  # Replace with your email
+    sender_password = "your_password"  # Replace with your email password
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, recipient_email, msg.as_string())
+
+
+@app.post("/itinerary-bookings", response_model=List[BookingResponse])
+async def book_itinerary(
+    itinerary: Dict[str, Any],  # Expecting a dictionary with specific structure
+    id: str = Query(...),  # User ID
+    booking_date: str = Query(...),
+    adults: int = Query(1),
+    kids: int = Query(0),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Validate booking date
+        booking_date = datetime.strptime(booking_date, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid booking date format. Use YYYY-MM-DD.")
+
+    # Extract paid activities
+    paid_activities = [activity for day in itinerary["itinerary"] for activity in day["paid_activities"]]
+    if not paid_activities:
+        raise HTTPException(status_code=400, detail="No paid activities in the itinerary to book.")
+
+    # Initialize list to store booking responses
+    booking_responses = []
+
+    for activity in paid_activities:
+        if activity["type"] == "Spot":
+            new_booking = Booking(
+                id=id,  # User ID
+                bookingDate=booking_date,
+                bookingStatus="confirmed",
+                adults=adults,
+                kids=kids,
+                paymentAmount=parse_cost(activity["cost"]),
+                spotId=activity.get("spot_id"),
+                eventId=None,  # Not an event
+                destination=itinerary.get("destination", "Unknown"),
+                total_cost=parse_cost(activity["cost"])
+            )
+        elif activity["type"] == "Event":
+            new_booking = Booking(
+                id=id,  # User ID
+                bookingDate=booking_date,
+                bookingStatus="confirmed",
+                adults=adults,
+                kids=kids,
+                paymentAmount=parse_cost(activity["cost"]),
+                spotId=None,  # Not a spot
+                eventId=activity.get("event_id"),
+                destination=itinerary.get("destination", "Unknown"),
+                total_cost=parse_cost(activity["cost"])
+            )
+        else:
+            continue  # Ignore activities that are neither Spot nor Event
+
+        # Add booking to the database
+        db.add(new_booking)
+        db.commit()
+        db.refresh(new_booking)
+
+        # Add to response list
+        booking_responses.append(BookingResponse(
+            bookingId=new_booking.bookingId,
+            id=new_booking.id,
+            bookingDate=new_booking.bookingDate,
+            bookingStatus=new_booking.bookingStatus,
+            paymentAmount=new_booking.paymentAmount,
+            spotId=new_booking.spotId,
+            eventId=new_booking.eventId
+        ))
+
+    # Return list of created bookings
+    return booking_responses

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useUser } from "@clerk/nextjs";
@@ -7,47 +9,75 @@ import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const { isSignedIn, user } = useUser(); // Single useUser hook to avoid multiple updates
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const eventsPerPage = 9;
+  const { isSignedIn, user } = useUser();
   const [profileData, setProfileData] = useState(null);
+
+  // Fetch total count of events
+  useEffect(() => {
+    const fetchTotalEventsCount = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/events/count");
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch total events count: " + response.statusText
+          );
+        }
+        const totalCount = await response.json();
+        setTotalPages(Math.ceil(totalCount / eventsPerPage));
+      } catch (error) {
+        console.error("Error fetching total events count:", error);
+      }
+    };
+
+    fetchTotalEventsCount();
+  }, []);
 
   // Fetch events data from the backend
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("http://localhost:8000/events");
+        const response = await fetch(
+          `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
+        );
         if (!response.ok) {
-          throw new Error("Failed to fetch events: " + response.statusText);
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
         }
         const data = await response.json();
 
-        // Fetch ratings for each event and attach it
-        const eventsWithRatings = await Promise.all(
-          data.map(async (event) => {
-            try {
-              const ratingResponse = await fetch(
-                `http://localhost:8000/ratings/event/${event.eventId}`
-              );
-              if (ratingResponse.ok) {
-                const ratingData = await ratingResponse.json();
-                return { ...event, averageRating: ratingData.average_rating };
-              } else {
-                return { ...event, averageRating: null }; // Handle the case where rating is unavailable
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          const eventsWithRatings = await Promise.all(
+            data.events.map(async (event) => {
+              try {
+                const ratingResponse = await fetch(
+                  `http://localhost:8000/ratings/event/${event.eventId}`
+                );
+                if (ratingResponse.ok) {
+                  const ratingData = await ratingResponse.json();
+                  return { ...event, averageRating: ratingData.average_rating };
+                }
+                return { ...event, averageRating: null };
+              } catch {
+                return { ...event, averageRating: null };
               }
-            } catch {
-              return { ...event, averageRating: null };
-            }
-          })
-        );
+            })
+          );
 
-        setEvents(eventsWithRatings);
+          setEvents(eventsWithRatings);
+          setTotalPages(Math.ceil(data.total / eventsPerPage));
+        }
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
 
     fetchEvents();
-  }, []);
-
+  }, [currentPage]);
   // Fetch profile data if the user is signed in
   useEffect(() => {
     if (!user) return;
@@ -85,7 +115,7 @@ export default function Events() {
         : `http://localhost:8000/user/${profileData.id}/favorites`;
 
       const options = {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -133,8 +163,8 @@ export default function Events() {
       {[...Array(5)].map((_, index) => (
         <span
           key={index}
-          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }} // Yellow for filled stars, grey for empty
-          className="text-2xl"
+          style={{ color: index < Math.round(rating) ? "#FFD700" : "#E0E0E0" }}
+          className="text-xl md:text-2xl"
         >
           ★
         </span>
@@ -142,12 +172,18 @@ export default function Events() {
     </div>
   );
 
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
   const currentDate = new Date();
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Available Events</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">Available Events</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
         {events.length > 0 ? (
           events.map((event) => {
             const isPastEvent = new Date(event.startDate) < currentDate;
@@ -156,57 +192,61 @@ export default function Events() {
             return (
               <div
                 key={event.eventId}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105"
               >
-                <div className="relative">
+                <div className="relative h-48 overflow-hidden">
                   <img
-                    src={event.eventImageUrl}
+                    src={event.eventImageUrl?.[0] || "/path/to/default.jpg"}
                     alt={event.eventName}
-                    className="w-full h-48 object-cover p-2"
+                    className="w-full h-full object-cover p-1"
                   />
                   <FaHeart
                     onClick={() => handleToggleFavorite(event.eventId)}
-                    className={`absolute top-4 right-4 text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
+                    className={`absolute top-4 right-4 text-2xl md:text-3xl cursor-pointer drop-shadow-lg transition-colors z-10 ${
                       isFavorite ? "text-red-500" : "text-white"
                     } hover:text-red-600`}
                   />
                 </div>
 
-                <div className="p-4">
-                  <h2 className="text-xl font-bold mb-2">{event.eventName}</h2>
+                <div className="p-4 flex-grow flex flex-col">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 md:mb-2">
+                    {event.eventName}
+                  </h2>
                   {event.averageRating ? (
                     <div className="flex items-center mb-2">
                       {renderStars(event.averageRating)}
-                      <span className="ml-2 text-gray-700">
+                      <span className="ml-2 text-sm md:text-base text-gray-700">
                         {event.averageRating.toFixed(1)} / 5
                       </span>
                     </div>
                   ) : (
                     <p className="text-gray-500 mb-2">No ratings yet</p>
                   )}
-                  <p className="text-gray-700 mb-2">
+                  <p className="text-sm md:text-base text-gray-700 mb-2">
                     {event.eventLocation || "Location not available"}
                   </p>
-                  <p className="text-gray-900 font-semibold">
+                  <p className="text-sm md:text-base text-gray-900 font-semibold">
                     {event.fee ? `$${event.fee}` : "Free"}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-sm md:text-base text-gray-600">
                     {format(new Date(event.startDate), "MMMM d, yyyy")}
                   </p>
-                  <p className="text-gray-600">{event.startTime}</p>
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-sm md:text-base text-gray-600">
+                    {event.startTime}
+                  </p>
+                  <p className="text-sm md:text-base text-gray-600 mb-4 line-clamp-2">
                     {event.description}
                   </p>
                   <a
                     href={`/events/${event.eventId}`}
-                    className="mt-4 inline-block bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-blue-600"
+                    className="w-full mt-auto inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-amber-300 text-center"
                   >
                     View Details
                   </a>
                   {isPastEvent ? (
-                    <button className="mt-4 ml-3 inline-block bg-pink-400 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-pink-500">
+                    <span className="w-full  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
                       Event Passed
-                    </button>
+                    </span>
                   ) : event.requiredbooking ? (
                     <button
                       onClick={() => {
@@ -217,22 +257,65 @@ export default function Events() {
                           window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
-                      className="mt-4 ml-3 inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-green-600"
+                      className="w-full  inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
                     >
                       Book Now
                     </button>
                   ) : (
-                    <button className="mt-4 ml-3 inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition hover:bg-gray-600">
-                      No booking is required.
-                    </button>
+                    <span className="w-full inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
+                      No Booking Required
+                    </span>
                   )}
                 </div>
               </div>
             );
           })
         ) : (
-          <p className="text-center col-span-3">No events found.</p>
+          <p className="text-center col-span-full">No events found.</p>
         )}
+      </div>
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8">
+        {/* First Page Button */}
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          First
+        </button>
+
+        {/* Previous Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        {/* Page Number Display */}
+        <span className="px-4 py-2 mx-2 text-sm md:text-lg text-white">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        {/* Next Page Button */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Next
+        </button>
+
+        {/* Last Page Button */}
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+        >
+          Last
+        </button>
       </div>
       <ToastContainer
         position="top-right"

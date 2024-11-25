@@ -121,7 +121,7 @@ export default function ReportPage() {
       <div className="flex space-x-4">
         <button
           onClick={fetchReport}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600"
         >
           Generate Report
         </button>

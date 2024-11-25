@@ -57,19 +57,19 @@ const Calendar = () => {
         <div className="space-x-4">
           <button
             onClick={() => setView("Day")}
-            className={`px-4 py-2 rounded-lg text-white ${view === "Day" ? "bg-blue-700" : "bg-blue-500 hover:bg-blue-600"}`}
+            className={`px-4 py-2 rounded-lg text-white ${view === "Day" ? "bg-blue-700" : "bg-amber-500 hover:bg-amber-600"}`}
           >
             Day
           </button>
           <button
             onClick={() => setView("Week")}
-            className={`px-4 py-2 rounded-lg text-white ${view === "Week" ? "bg-blue-700" : "bg-blue-500 hover:bg-blue-600"}`}
+            className={`px-4 py-2 rounded-lg text-white ${view === "Week" ? "bg-blue-700" : "bg-amber-500 hover:bg-amber-600"}`}
           >
             Week
           </button>
           <button
             onClick={() => setView("Month")}
-            className={`px-4 py-2 rounded-lg text-white ${view === "Month" ? "bg-blue-700" : "bg-blue-500 hover:bg-blue-600"}`}
+            className={`px-4 py-2 rounded-lg text-white ${view === "Month" ? "bg-blue-700" : "bg-amber-500 hover:bg-amber-600"}`}
           >
             Month
           </button>
@@ -116,10 +116,17 @@ const Calendar = () => {
             durationBarVisible={false}
             businessBeginsHour={8}
             businessEndsHour={22}
+            timeHeaders={[
+              { groupBy: "Day", format: "dddd d MMMM yyyy" },
+              { groupBy: "Hour" }
+            ]}
+            timeRangeSelectedHandling={"Disabled"} // Disable selection outside of the view
+            scrollToHour={8} // Set the initial scroll position to 8:00 AM
+            heightSpec={"BusinessHoursNoScroll"} // Restrict the height to show only business hours
             onTimeRangeSelected={onTimeRangeSelected}
             controlRef={setWeekView}
             onEventClick={(args) => router.push(`/events/${args.e.data.id}`)}
-            onEventHover={(args) => new DayPilotPopover({ target: args.e, content: args.e.data.description })}
+            onEventHover={(args) => new DayPilotPopover({ target: args.e, content: args.e.data.description })}  
           />
           <DayPilotMonth
             startDate={startDate}

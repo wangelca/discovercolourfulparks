@@ -3,15 +3,35 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import PlaceGallery from "../../components/googlePhoto";
+import { useUser } from "@clerk/nextjs";
+
+function getReportTypeClass(reportType) {
+  switch (reportType) {
+    case "Fire Sightings":
+      return "bg-red-500 text-white";
+    case "Weather Alert":
+      return "bg-amber-500 text-white";
+    case "Driving Conditions":
+      return "bg-gray-500 text-white";
+    case "Terrain":
+      return "bg-brown-500 text-white"; 
+    default:
+      return "bg-gray-300 text-black"; 
+  }
+}
 
 export default function ParkPage() {
   const [park, setPark] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedSpots, setRelatedSpots] = useState([]);
   const [relatedEvents, setRelatedEvents] = useState([]);
+  const [parkReports, setParkReports] = useState([]);
+  const [currentReportIndex, setCurrentReportIndex] = useState(0); // Tracks the starting index of displayed reports
+  const reportsPerPage = 3; // Number of reports to show per "page"
   const { parkId } = useParams();
+  const { user } = useUser();
 
-  // Fetch park details, related spots, and events
+  // Fetch park details, related spots, events, and reports
   useEffect(() => {
     async function fetchParkData() {
       try {
@@ -36,6 +56,16 @@ export default function ParkPage() {
         const eventsData = await eventsResponse.json();
         setRelatedEvents(eventsData);
 
+        // Fetch park reports with corrected endpoint
+        const reportsResponse = await fetch(`http://localhost:8000/reports/park/${parkId}`);
+        if (!reportsResponse.ok) {
+          console.warn(`Failed to fetch reports: ${reportsResponse.status}`);
+          setParkReports([]);
+        } else {
+          const reportsData = await reportsResponse.json();
+          setParkReports(reportsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))); // Sort by most recent
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching park data:", error);
@@ -45,15 +75,83 @@ export default function ParkPage() {
     fetchParkData();
   }, [parkId]);
 
+  const handleNextReports = () => {
+    setCurrentReportIndex((prevIndex) => Math.min(prevIndex + reportsPerPage, parkReports.length));
+  };
+
+  const handlePreviousReports = () => {
+    setCurrentReportIndex((prevIndex) => Math.max(prevIndex - reportsPerPage, 0));
+  };
+
   if (loading) {
     return <p>Loading park details...</p>;
   }
 
   return (
     <div className="relative flex flex-col min-h-screen p-6">
+
+      {/* Park Reports Section */}
+      <section className="container mx-auto px-6 py-6 bg-white bg-opacity-50">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+          Recent Park Reports
+        </h2>
+        <div className="space-y-4">
+  {parkReports.length > 0 ? (
+    parkReports.slice(currentReportIndex, currentReportIndex + reportsPerPage).map((report) => (
+      <div 
+        key={report.reportID} 
+        className="bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200"
+      >
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center space-x-3">
+            <div className={`px-3 py-1 rounded-full text-xs font-bold ${getReportTypeClass(report.reportType)}`}>
+              {report.reportType}
+            </div>
+            <span className="text-sm text-gray-500">
+              {new Date(report.created_at).toLocaleString()}
+            </span>
+          </div>
+        </div>
+        <p className="text-gray-700 text-base">{report.details}</p>
+
+        {report.resolved && (
+          <div className="mt-2 p-2 bg-green-100 rounded-lg">
+            <span className="text-green-600 font-bold">Resolved</span>
+            {report.comment && (
+              <p className="text-gray-600 text-sm">Comment: {report.comment}</p>
+            )}
+          </div>
+        )}
+      </div>
+    ))
+  ) : (
+    <p>No reports available for this park.</p>
+  )}
+</div>
+
+        <div className="flex justify-center mt-4 space-x-4">
+          {currentReportIndex > 0 && (
+            <button
+              onClick={handlePreviousReports}
+              className="text-black hover:underline focus:outline-none focus:ring-0"
+            >
+              Previous
+            </button>
+          )}
+          {currentReportIndex + reportsPerPage < parkReports.length && (
+            <button
+              onClick={handleNextReports}
+              className="text-black hover:underline focus:outline-none focus:ring-0"
+            >
+              Next
+            </button>
+          )}
+        </div>
+      </section>
+
       {/* Park Details Section */}
-      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">{park.name}</h1>
+      <section className="container mx-auto px-6 py-6 bg-white bg-opacity-50">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">{park.name}</h1>
         <div className="flex">
           <img
             src={park.parkImageUrl[0]}
@@ -71,12 +169,11 @@ export default function ParkPage() {
       </section>
 
       {/* Google Maps Section */}
-      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
-        <h2 className="text-3xl font-semibold text-gray-800 mb-6">
+      <section className="container mx-auto px-6 py-6 bg-white bg-opacity-50">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-4">
           Location Map
         </h2>
         <div className="h-[400px] w-full rounded-lg shadow-lg">
-          {/* Google Maps Integration */}
           <iframe
             src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${park.name}&zoom=10`}
             className="w-full h-full rounded-lg"
@@ -86,8 +183,8 @@ export default function ParkPage() {
       </section>
 
       {/* Related Spots Section */}
-      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
-        <h2 className="text-3xl font-semibold text-gray-800 mb-6">
+      <section className="container mx-auto px-6 py-6 bg-white bg-opacity-50">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-4">
           Related Spots
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -128,8 +225,8 @@ export default function ParkPage() {
       </section>
 
       {/* Related Events Section */}
-      <section className="container mx-auto px-6 py-12 bg-white bg-opacity-50">
-        <h2 className="text-3xl font-semibold text-gray-800 mb-6">
+      <section className="container mx-auto px-6 py-6 bg-white bg-opacity-50">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-4">
           Upcoming Events
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

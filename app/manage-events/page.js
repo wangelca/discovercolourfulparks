@@ -13,29 +13,94 @@ export default function EventsAdmin() {
     direction: "asc",
   }); // Sorting state
   const [filteredEvents, setFilteredEvents] = useState([]); // For search results
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const eventsPerPage = 9;
+
   const formatEventDate = (dateInput) => {
     const date = new Date(dateInput);
-  
+
     // Format the date and time separately
-    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
-  
+    const dateOptions = { year: "numeric", month: "long", day: "numeric" };
+    const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
+
     const formattedDate = date.toLocaleDateString(undefined, dateOptions);
-    const formattedTime = date.toLocaleTimeString(undefined, timeOptions)
-  
+    const formattedTime = date.toLocaleTimeString(undefined, timeOptions);
+
     // Return formatted date and time
     return `${formattedDate}, ${formattedTime}`;
   };
 
   const router = useRouter();
 
+  // Fetch total count of events
   useEffect(() => {
-    fetch("http://localhost:8000/events")
-      .then((response) => response.json())
-      .then((data) => setEvents(data))
-      .catch((error) => console.error("Error fetching events:", error));
+    const fetchTotalEventsCount = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/events/count");
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch total events count: " + response.statusText
+          );
+        }
+        const totalCount = await response.json();
+        setTotalPages(Math.ceil(totalCount / eventsPerPage));
+      } catch (error) {
+        console.error("Error fetching total events count:", error);
+      }
+    };
+
+    fetchTotalEventsCount();
   }, []);
+
+  // Fetch events data from the backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          const eventsWithRatings = await Promise.all(
+            data.events.map(async (event) => {
+              try {
+                const ratingResponse = await fetch(
+                  `http://localhost:8000/ratings/event/${event.eventId}`
+                );
+                if (ratingResponse.ok) {
+                  const ratingData = await ratingResponse.json();
+                  return { ...event, averageRating: ratingData.average_rating };
+                }
+                return { ...event, averageRating: null };
+              } catch {
+                return { ...event, averageRating: null };
+              }
+            })
+          );
+
+          setEvents(eventsWithRatings);
+          setTotalPages(Math.ceil(data.total / eventsPerPage));
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, [currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   // Handle changing event data during edit
   const handleInputChange = (e, field) => {
@@ -92,17 +157,17 @@ export default function EventsAdmin() {
   return (
     <div className="container mx-auto p-6 mb-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Events Database</h1>
+        <h1 className="text-3xl font-bold">Events Database (Support Desktop Device only)</h1>
         <button
           onClick={() => router.push("/manage-events/add-event")}
-          className="bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-800 transition"
+          className="bg-amber-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-800 transition"
         >
           Add Event
         </button>
       </div>
 
-            {/* Search Bar */}
-            <div className="mb-4">
+      {/* Search Bar */}
+      <div className="mb-4">
         <input
           type="text"
           placeholder="Search by event name or location..."
@@ -118,16 +183,50 @@ export default function EventsAdmin() {
           <thead>
             <tr className="bg-gray-700 text-left text-white font-semibold">
               <th className="w-1/10 py-3 px-3">Image</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('eventId')}>Event ID</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('eventName')}>Event Name</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('parkId')}>Park ID</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('fee')}>Fee</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('discount')}>Discount</th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("eventId")}
+              >
+                Event ID
+              </th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("eventName")}
+              >
+                Event Name
+              </th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("parkId")}
+              >
+                Park ID
+              </th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("fee")}
+              >
+                Fee
+              </th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("discount")}
+              >
+                Discount
+              </th>
               <th className="w-1/5 py-3 px-3">Description</th>
               <th className="py-3 px-3">Location</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('startDate')}>Start Date</th>
-              <th className="py-3 px-3 cursor-pointer" onClick={() => handleSort('endDate')}>End Date</th>
-              <th className="w-6 py-3 px-3">Parameters</th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("startDate")}
+              >
+                Start Date
+              </th>
+              <th
+                className="py-3 px-3 cursor-pointer"
+                onClick={() => handleSort("endDate")}
+              >
+                End Date
+              </th>
               <th className="py-3 px-3">Req. booking</th>
               <th className="py-3 px-3">Details</th>
               <th className="py-3 px-3">Edit</th>
@@ -247,9 +346,6 @@ export default function EventsAdmin() {
                       formatEventDate(event.endDate)
                     )}
                   </td>
-                  <td className=" max-w-6 py-3 px-3 break-all ">
-                    {event.parameters}{" "}
-                  </td>
                   <td className="py-3 px-3">{event.requiredbooking}</td>
                   <td className="py-3 px-3">
                     <a
@@ -290,6 +386,49 @@ export default function EventsAdmin() {
             )}
           </tbody>
         </table>
+        {/* Pagination Controls */}
+        <div className="flex justify-center mt-8">
+          {/* First Page Button */}
+          <button
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+          >
+            First
+          </button>
+
+          {/* Previous Page Button */}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          {/* Page Number Display */}
+          <span className="px-4 py-2 mx-2 text-sm md:text-lg text-white">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          {/* Next Page Button */}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+          >
+            Next
+          </button>
+
+          {/* Last Page Button */}
+          <button
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
+          >
+            Last
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import DrawerMenu from './components/drawer';
 import Header from './components/header';
 import Footer from './components/footer';
 import BackToTopButton from './components/scroll-back-button';
-import NotificationBubble from './components/notificationBubble';
 
 export default function RootLayout({ children }) {
     return (
