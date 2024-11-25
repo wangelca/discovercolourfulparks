@@ -263,7 +263,7 @@ export default function Events() {
                     </button>
                   ) : (
                     <span className="w-full inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
-                      No booking is Required
+                      No Booking Required
                     </span>
                   )}
                 </div>

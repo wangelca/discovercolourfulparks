@@ -7,15 +7,16 @@ from sqlalchemy import func
 from database import database, SessionLocal, Base, engine, get_db
 from models import Park, Spot, Event, User, Booking, Review
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone, timedelta
-from app.routers import users, notifications, reviews, favorite, report
+from app.routers import users, notifications, reviews, favorite, report, payment
 import os
 import shutil
 import openai
 import random
 import smtplib
+import stripe
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import logging
@@ -41,6 +42,8 @@ app.include_router(notifications.router)
 app.include_router(reviews.router)
 app.include_router(report.router, prefix="/reports")
 app.include_router(favorite.router)
+app.include_router(payment.router)
+
 
 # Dependency to get the SQLAlchemy session
 def get_db():
