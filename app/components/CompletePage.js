@@ -50,7 +50,12 @@ export default function CompletePage() {
     // Retrieve booking data from sessionStorage
     const storedBookingData = sessionStorage.getItem("bookingData");
     const parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
-    setBookingData(parsedBookingData);
+
+    if (parsedBookingData) {
+      setBookingData(parsedBookingData);
+    } else {
+      console.error("No booking data found in sessionStorage");
+    }  
 
     const params = new URLSearchParams(window.location.search);
     const clientSecret = params.get("payment_intent_client_secret");

@@ -24,6 +24,20 @@ export default function CheckoutForm({
     e.preventDefault();
     if (!stripe || !elements) return;
 
+        // Save booking data to sessionStorage
+        const bookingData = {
+          fee,
+          itemName,
+          eventId,
+          bookingDate,
+          adults,
+          kids,
+          id,
+          email,
+        };
+    
+        sessionStorage.setItem("bookingData", JSON.stringify(bookingData));
+
     setIsLoading(true);
 
     try {
