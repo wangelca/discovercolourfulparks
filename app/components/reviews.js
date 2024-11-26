@@ -119,7 +119,7 @@ const renderStars = (rating) => (
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="p-4 bg-white shadow rounded-lg max-w-2xl mx-auto">
+    <div className="p-4 bg-white shadow rounded-lg mt-2 max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Reviews</h2>
 
       {averageRating !== null ? (

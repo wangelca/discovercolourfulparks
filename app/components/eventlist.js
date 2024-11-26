@@ -257,7 +257,7 @@ export default function Events() {
                           window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
-                      className="w-full  inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
+                      className="w-full inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
                     >
                       Book Now
                     </button>

@@ -42,9 +42,20 @@ const STATUS_CONTENT_MAP = {
 export default function CompletePage() {
   const stripe = useStripe();
   const [status, setStatus] = React.useState("default");
+  const [bookingData, setBookingData] = React.useState(null);
 
   React.useEffect(() => {
     if (!stripe) return;
+
+    // Retrieve booking data from sessionStorage
+    const storedBookingData = sessionStorage.getItem("bookingData");
+    const parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
+
+    if (parsedBookingData) {
+      setBookingData(parsedBookingData);
+    } else {
+      console.error("No booking data found in sessionStorage");
+    }  
 
     const params = new URLSearchParams(window.location.search);
     const clientSecret = params.get("payment_intent_client_secret");
@@ -55,29 +66,30 @@ export default function CompletePage() {
       if (paymentIntent) {
         setStatus(paymentIntent.status);
 
-        if (paymentIntent.status === "succeeded") {
-          // Finalize booking in the backend
-          const bookingData = {
-            eventId: params.get("eventId"),
-            bookingDate: params.get("bookingDate"),
-            adults: params.get("adults"),
-            kids: params.get("kids"),
-            paymentAmount: params.get("fee"),
-            id: params.get("id"),
-          };
-
-          await fetch("http://localhost:8000/event-bookings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(bookingData),
-          });
+        if (paymentIntent.status === "succeeded" && parsedBookingData) {
+          try {
+            await fetch("http://localhost:8000/event-bookings/confirm", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                eventId: parsedBookingData.eventId,
+                bookingDate: parsedBookingData.bookingDate,
+                adults: parsedBookingData.adults,
+                kids: parsedBookingData.kids,
+                paymentAmount: parsedBookingData.fee,
+                id: parsedBookingData.id,
+                email: parsedBookingData.email, // Ensure email is included
+              }),
+            });
+          } catch (error) {
+            console.error("Error confirming booking:", error);
+          }
         }
       }
     });
   }, [stripe]);
 
   const content = STATUS_CONTENT_MAP[status] || STATUS_CONTENT_MAP["default"];
-  const params = new URLSearchParams(window.location.search); // Declare params here
 
   return (
     <div id="payment-status" className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-lg">
@@ -92,30 +104,32 @@ export default function CompletePage() {
         {content.text}
       </h2>
 
-      <div id="details-table" className="mt-4 bg-gray-100 p-4 rounded shadow-md">
-        <h3 className="font-bold text-lg mb-2">Booking Details</h3>
-        <ul className="text-sm space-y-1">
-          <li>
-            <strong>Event:</strong> {params.get("eventId")}
-          {/* Add the event link here */}
-          </li>
-          <li>
-            <strong>Event details page:</strong> <a href={`/events/${params.get("eventId")}`}>Event Details</a>
-          </li>
-          <li>
-            <strong>Booking Date:</strong> {params.get("bookingDate")}
-          </li>
-          <li>
-            <strong>Adults:</strong> {params.get("adults")}
-          </li>
-          <li>
-            <strong>Kids:</strong> {params.get("kids")}
-          </li>
-          <li>
-            <strong>Total Fee:</strong> ${params.get("fee")}
-          </li>
-        </ul>
-      </div>
+      {bookingData && (
+        <div id="details-table" className="mt-4 bg-gray-100 p-4 rounded shadow-md">
+          <h3 className="font-bold text-lg mb-2">Booking Details</h3>
+          <ul className="text-sm space-y-1">
+            <li>
+              <strong>Event:</strong> {bookingData.itemName}
+            </li>
+            <li>
+              <strong>Event details page:</strong>{" "}
+              <a href={`/events/${bookingData.eventId}`}>Event Details</a>
+            </li>
+            <li>
+              <strong>Booking Date:</strong> {bookingData.bookingDate}
+            </li>
+            <li>
+              <strong>Adults:</strong> {bookingData.adults}
+            </li>
+            <li>
+              <strong>Kids:</strong> {bookingData.kids}
+            </li>
+            <li>
+              <strong>Total Fee:</strong> ${bookingData.fee}
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="actions mt-6 flex justify-between">
         <a href="/" className="text-blue-500 underline hover:text-blue-700 text-sm">
