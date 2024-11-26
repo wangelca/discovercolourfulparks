@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import CheckoutForm from "../../../components/CheckoutForm";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+);
 
 export default function EventBookingPage({}) {
   const { eventId } = useParams(); // Get dynamic route params
@@ -12,7 +19,13 @@ export default function EventBookingPage({}) {
   const [kids, setKids] = useState(0);
   const [bookingDate, setBookingDate] = useState("");
   const [paymentAmount, setPaymentAmount] = useState(0);
-  const [error, setError] = useState("");
+  const [showPaymentSection, setShowPaymentSection] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
+  const [errors, setErrors] = useState({
+    adults: "",
+    kids: "",
+    bookingDate: "",
+  });
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -28,19 +41,19 @@ export default function EventBookingPage({}) {
   const formatEventDate = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-  
+
     // Format the date and time separately
-    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
-  
+    const dateOptions = { year: "numeric", month: "long", day: "numeric" };
+    const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
+
     const formattedstartDate = start.toLocaleDateString(undefined, dateOptions);
     const formattedendtDate = end.toLocaleDateString(undefined, dateOptions);
     const formattedStartTime = start.toLocaleTimeString(undefined, timeOptions);
     const formattedEndTime = end.toLocaleTimeString(undefined, timeOptions);
-  
+
     // Return formatted date and time
     return `${formattedstartDate}, ${formattedStartTime} - ${formattedendtDate}, ${formattedEndTime}`;
-  };  
+  };
 
   useEffect(() => {
     // Fetch event details
@@ -61,10 +74,16 @@ export default function EventBookingPage({}) {
   }, [user, isLoaded, isSignedIn]);
 
   useEffect(() => {
-    if (event) {
-      calculateFee();
-    }
-  }, [adults, kids]);
+    if (event) calculateFee();
+  }, [adults, kids, event]);
+
+  const appearance = {
+    theme: "stripe",
+  };
+  const options = {
+    clientSecret,
+    appearance,
+  };
 
   const calculateFee = () => {
     if (!event) {
@@ -74,74 +93,50 @@ export default function EventBookingPage({}) {
     const gst = 0.05;
     const feeWithoutGst = adults * event.fee; // Only adults are charged
     const gstAmount = feeWithoutGst * gst;
-    const total = feeWithoutGst + gstAmount;
-    setPaymentAmount(total); // Update the total fee
+    setPaymentAmount(feeWithoutGst + gstAmount);
   };
 
-  const handleConfirmBooking = () => {
-    let hasError = false;
-
-    // Validation
-    if (adults <= 0) {
-      setAdultError("Please select at least one adult.");
-      hasError = true;
-    } else {
-      setAdultError("");
-    }
-
-    if (kids > 0 && adults === 0) {
-      setKidError("At least one adult is required for kids.");
-      hasError = true;
-    } else {
-      setKidError("");
-    }
-
+  const validateBooking = () => {
+    const newErrors = {};
+    if (adults <= 0) newErrors.adults = "Please select at least one adult.";
+    if (kids > 0 && adults === 0) newErrors.kids = "At least one adult is required for kids.";
     if (!bookingDate) {
-      setDateError("Please select a booking date.");
-      hasError = true;
+      newErrors.bookingDate = "Please select a booking date.";
     } else {
-      // Convert the booking date string to a Date object
       const bookingDateObj = new Date(bookingDate);
-  
-      // Convert event startDate and endDate to Date objects
-      const eventStartDate = new Date(event.startDate.split('T')[0]); // Extract date without time
-      const eventEndDate = new Date(event.endDate.split('T')[0]); // Extract date without time
-  
-      // Compare dates (ignoring time)
+      const eventStartDate = new Date(event.startDate.split("T")[0]);
+      const eventEndDate = new Date(event.endDate.split("T")[0]);
       if (bookingDateObj < eventStartDate || bookingDateObj > eventEndDate) {
-        setDateError("Booking date must be within the event date range.");
-        hasError = true;
-      } else if (bookingDateObj < new Date().setHours(0, 0, 0, 0)) {
-        setDateError("Booking date cannot be in the past.");
-        hasError = true;
-      } else {
-        setDateError("");
+        newErrors.bookingDate = "Booking date must be within the event date range.";
       }
     }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    if (hasError) return;
+  const handleValidateAndShowPayment = async () => {
+    if (!validateBooking()) return;
 
-    const paymentData = {
-      fee: paymentAmount,
-      itemName: "DCP event booking",
-      eventId: event.eventId,
-      bookingDate,
-      adults,
-      kids,
-      id: profileData.id,
-    };
-  
-    const queryParams = new URLSearchParams(paymentData).toString();
-    router.push(`/payment?${queryParams}`);
+    try {
+      const res = await fetch("http://localhost:8000/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: [{ id: event.eventName, amount: paymentAmount * 100 }] }),
+      });
 
+      const { clientSecret } = await res.json();
+      setClientSecret(clientSecret);
+      setShowPaymentSection(true);
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+    }
+  };
 
-
-  }
   return (
     <div className="container mx-auto p-6">
-      <div className="max-w-lg mx-auto bg-gray-200 bg-opacity-60 p-6 rounded-lg">
+      <div>
         {event ? (
-          <div>
+          <div className="max-w-lg mx-auto  p-6 rounded-lg bg-gray-200 bg-opacity-60"> 
             <h1 className="text-3xl font-bold mb-4">Book {event.eventName}</h1>
             <p>
               <strong>Location:</strong> {event.eventLocation}
@@ -150,7 +145,8 @@ export default function EventBookingPage({}) {
               <strong>Admission Fee:</strong> ${event.fee}
             </p>
             <p>
-              <strong>Event Date:</strong> {formatEventDate(event.startDate, event.endDate)}
+              <strong>Event Date:</strong>{" "}
+              {formatEventDate(event.startDate, event.endDate)}
             </p>
 
             <div className="mt-6">
@@ -175,7 +171,11 @@ export default function EventBookingPage({}) {
                   className="border rounded p-2 m-2"
                   min={0}
                 />
-                {adultError && <p className="p-2 error-message shadow-info-3">{adultError}</p>}
+                {adultError && (
+                  <p className="p-2 error-message shadow-info-3">
+                    {adultError}
+                  </p>
+                )}
               </p>
               <p>
                 <label>Kids (below 12):</label>
@@ -189,7 +189,9 @@ export default function EventBookingPage({}) {
                   className="border rounded p-2 m-2 align-right"
                   min={0}
                 />
-                {kidError && <p className="p-2 error-message shadow-info-3">{kidError}</p>}
+                {kidError && (
+                  <p className="p-2 error-message shadow-info-3">{kidError}</p>
+                )}
               </p>
               <p>
                 <label>Booking Date:</label>
@@ -201,7 +203,9 @@ export default function EventBookingPage({}) {
                   min={event.startDate} // Prevents past dates from being selected
                   max={event.endDate} // Prevents booking after event end date
                 />
-                {dateError && <p className="p-2 error-message shadow-info-3">{dateError}</p>}
+                {dateError && (
+                  <p className="p-2 error-message shadow-info-3">{dateError}</p>
+                )}
               </p>
 
               <p>
@@ -211,17 +215,34 @@ export default function EventBookingPage({}) {
             </div>
             <div className="mt-6">
               <button
-                onClick={handleConfirmBooking}
+                onClick={handleValidateAndShowPayment}
                 className="bg-green-500 text-white py-2 px-4 rounded self-center"
               >
-                Validation and Confirm Booking
+                Validate and proceed to payment
               </button>
             </div>
           </div>
         ) : (
-          <p>Loading event details...</p>
+          <div className="text-center text-3xl text-gray-500 py-20">Loading event details...</div>
         )}
       </div>
+
+      {showPaymentSection && clientSecret && (
+        <div className="mt-8 p-6 bg-white rounded-lg shadow-lg transition-all transform translate-y-0">
+          <Elements stripe={stripePromise} options={options}>
+            <CheckoutForm
+              fee={paymentAmount}
+              itemName={event.eventName}
+              eventId={eventId}
+              bookingDate={bookingDate}
+              adults={adults}
+              kids={kids}
+              id={profileData.id}
+              email={profileData.emailAddress}
+            />
+          </Elements>
+        </div>
+      )}
     </div>
   );
 }

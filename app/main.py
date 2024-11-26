@@ -301,7 +301,6 @@ async def get_events(
     events = db.query(Event).offset(offset).limit(limit).all()
 
     # Return only the list of events
-
     return events
 
 # Get total count of events
