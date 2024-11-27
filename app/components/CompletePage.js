@@ -53,6 +53,7 @@ export default function CompletePage() {
 
     if (parsedBookingData) {
       setBookingData(parsedBookingData);
+      console.log("Booking data found in sessionStorage:", parsedBookingData);
     } else {
       console.error("No booking data found in sessionStorage");
     }  
@@ -72,13 +73,16 @@ export default function CompletePage() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                eventId: parsedBookingData.eventId,
-                bookingDate: parsedBookingData.bookingDate,
+                type: parsedBookingData.type,
+                bookingDate: parsedBookingData.bookingDate + "T00:00:00", // Ensure ISO 8601 format
                 adults: parsedBookingData.adults,
                 kids: parsedBookingData.kids,
                 paymentAmount: parsedBookingData.fee,
                 id: parsedBookingData.id,
-                email: parsedBookingData.email, // Ensure email is included
+                email: parsedBookingData.email || "", // Provide default if undefined
+                ...(parsedBookingData.type === "event"
+                  ? { eventId: parsedBookingData.itemId }
+                  : { spotId: parsedBookingData.itemId }),
               }),
             });
           } catch (error) {
@@ -108,12 +112,12 @@ export default function CompletePage() {
         <div id="details-table" className="mt-4 bg-gray-100 p-4 rounded shadow-md">
           <h3 className="font-bold text-lg mb-2">Booking Details</h3>
           <ul className="text-sm space-y-1">
-            <li>
-              <strong>Event:</strong> {bookingData.itemName}
+          <li>
+              <strong>{bookingData.type === "event" ? "Event" : "Spot"}:</strong> {bookingData.itemName}
             </li>
             <li>
-              <strong>Event details page:</strong>{" "}
-              <a href={`/events/${bookingData.eventId}`}>Event Details</a>
+              <strong>{bookingData.type === "event" ? "Event" : "Spot"} page:</strong>{" "}
+              <a href={`/${bookingData.type}s/${bookingData.itemId}`}>View Details</a>
             </li>
             <li>
               <strong>Booking Date:</strong> {bookingData.bookingDate}
@@ -135,8 +139,8 @@ export default function CompletePage() {
         <a href="/" className="text-blue-500 underline hover:text-blue-700 text-sm">
           Go to Homepage
         </a>
-        <a href="/events" className="text-blue-500 underline hover:text-blue-700 text-sm">
-          Go to Events
+        <a href={`/${bookingData?.type}s`} className="text-blue-500 underline hover:text-blue-700 text-sm">
+          Go to {bookingData?.type === "event" ? "Events" : "Spots"}
         </a>
       </div>
     </div>

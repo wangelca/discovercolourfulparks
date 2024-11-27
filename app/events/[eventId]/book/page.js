@@ -36,8 +36,6 @@ export default function EventBookingPage({}) {
   const [kidError, setKidError] = useState("");
   const [dateError, setDateError] = useState("");
 
-  const router = useRouter();
-
   const formatEventDate = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -233,7 +231,8 @@ export default function EventBookingPage({}) {
             <CheckoutForm
               fee={paymentAmount}
               itemName={event.eventName}
-              eventId={eventId}
+              itemId={eventId}
+              type="event"
               bookingDate={bookingDate}
               adults={adults}
               kids={kids}

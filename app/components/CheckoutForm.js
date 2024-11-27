@@ -8,12 +8,13 @@ import {
 export default function CheckoutForm({
   fee,
   itemName,
-  eventId,
   bookingDate,
   adults,
   kids,
   id,
   email,
+  type, // Add a type prop ("event" or "spot")
+  itemId, // This replaces eventId/spotId
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -25,15 +26,16 @@ export default function CheckoutForm({
     if (!stripe || !elements) return;
 
         // Save booking data to sessionStorage
-        const bookingData = {
-          fee,
-          itemName,
-          eventId,
-          bookingDate,
-          adults,
-          kids,
-          id,
-          email,
+        const bookingData = { 
+          fee, 
+          itemName, 
+          bookingDate, 
+          adults, 
+          kids, 
+          id, 
+          email, 
+          type, 
+          itemId 
         };
     
         sessionStorage.setItem("bookingData", JSON.stringify(bookingData));

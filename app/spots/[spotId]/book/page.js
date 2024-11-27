@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation"; // Import useRouter
+import { useParams } from "next/navigation"; // Removed unused useRouter
 import { useUser } from "@clerk/nextjs";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -13,7 +13,6 @@ const stripePromise = loadStripe(
 
 export default function BookingPage() {
   const { spotId } = useParams(); // Get dynamic route params
-  const router = useRouter(); // Initialize useRouter
   const { isLoaded, isSignedIn, user } = useUser(); // Access loading and sign-in state
   const [spot, setSpot] = useState(null);
   const [adults, setAdults] = useState(0);
@@ -22,16 +21,17 @@ export default function BookingPage() {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [showPaymentSection, setShowPaymentSection] = useState(false);
   const [clientSecret, setClientSecret] = useState("");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    adults: "",
+    kids: "",
+    bookingDate: "",
+  });
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
     phoneNumber: "",
     emailAddress: "",
   });
-  const [adultError, setAdultError] = useState("");
-  const [kidError, setKidError] = useState("");
-  const [dateError, setDateError] = useState("");
 
   useEffect(() => {
     // Fetch spot details
@@ -52,25 +52,36 @@ export default function BookingPage() {
   }, [user, isLoaded, isSignedIn]);
 
   useEffect(() => {
-    if (spot) {
-      calculateFee();
-    }
-  }, [adults, kids]);
+    if (spot) calculateFee();
+  }, [adults, kids, spot]);
+
+  const appearance = {
+    theme: "stripe",
+  };
+  const options = {
+    clientSecret,
+    appearance,
+  };
 
   const calculateFee = () => {
-    if (!spot) return; // Return early if spot is not yet loaded
+    if (!spot) return;
 
     const gst = 0.05;
     const totalPersons = adults + kids;
 
     if (totalPersons > spot.spotLimit) {
-      setError("Number of persons exceeds the limit for this spot.");
+      setErrors((prev) => ({
+        ...prev,
+        general: "Number of persons exceeds the limit for this spot.",
+      }));
       return;
     }
 
-    const feeWithoutGst = adults * spot.spotAdmission; // Only adults are charged
+    const feeWithoutGst =
+      adults * spot.spotAdmission + kids * spot.spotDiscount;
     const gstAmount = feeWithoutGst * gst;
-    setPaymentAmount(feeWithoutGst + gstAmount); // Update the total fee
+    const roundAmount = Math.round((feeWithoutGst + gstAmount) * 100) / 100;
+    setPaymentAmount(roundAmount);
   };
 
   const validateBooking = () => {
@@ -82,8 +93,7 @@ export default function BookingPage() {
       newErrors.bookingDate = "Please select a booking date.";
     } else {
       const bookingDateObj = new Date(bookingDate);
-      const today = new Date();
-      if (bookingDateObj < today) {
+      if (bookingDateObj < new Date()) {
         newErrors.bookingDate = "Booking date must be in the future.";
       }
     }
@@ -103,8 +113,12 @@ export default function BookingPage() {
         }),
       });
 
-      const { clientSecret } = await res.json();
-      setClientSecret(clientSecret);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setClientSecret(data.clientSecret);
       setShowPaymentSection(true);
     } catch (error) {
       console.error("Error creating payment intent:", error);
@@ -113,10 +127,13 @@ export default function BookingPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
-      <div>
-        {spot ? (
-          <div className="max-w-lg mx-auto  p-6 rounded-lg bg-gray-200 bg-opacity-60">
+      {spot && spot.requiredBooking ? (
+        <>
+          <div className="max-w-lg mx-auto p-6 rounded-lg bg-gray-200 bg-opacity-60">
             <h1 className="text-3xl font-bold mb-4"> Book {spot.spotName}</h1>
+            <p>
+              <strong>Spot Description:</strong> {spot.spotDescription}
+            </p>
             <p>
               <strong>Location:</strong> {spot.spotLocation}
             </p>
@@ -124,12 +141,18 @@ export default function BookingPage() {
               <strong>Admission Fee:</strong> ${spot.spotAdmission}
             </p>
             <p>
-              <strong>Spot Limit:</strong> {spot.spotLimit} persons
+              <strong>Discounted Fee for Kids:</strong> ${spot.spotDiscount}
+            </p>
+            <p>
+              <strong>Spot Limit:</strong>{" "}
+              {spot.spotLimit > 200
+                ? "Unlimited"
+                : `${spot.spotLimit} persons`}
             </p>
 
             <div className="mt-6">
               <h2 className="text-xl font-semibold">Your Information</h2>
-              <p>Email: {profileData.email}</p>
+              <p>Email: {profileData.emailAddress}</p>
               <p>
                 Name: {profileData.firstName} {profileData.lastName}
               </p>
@@ -146,13 +169,12 @@ export default function BookingPage() {
                     setAdults(Number(e.target.value));
                     calculateFee();
                   }}
-                  min="0"
+                  min={0}
                   className="border rounded p-2 m-2"
                 />
-
-                {adultError && (
+                {errors.adults && (
                   <p className="p-2 error-message shadow-info-3">
-                    {adultError}
+                    {errors.adults}
                   </p>
                 )}
               </p>
@@ -165,12 +187,13 @@ export default function BookingPage() {
                     setKids(Number(e.target.value));
                     calculateFee();
                   }}
-                  min="0"
+                  min={0}
                   className="border rounded p-2 m-2"
                 />
-
-                {kidError && (
-                  <p className="p-2 error-message shadow-info-3">{kidError}</p>
+                {errors.kids && (
+                  <p className="p-2 error-message shadow-info-3">
+                    {errors.kids}
+                  </p>
                 )}
               </p>
               <p>
@@ -181,9 +204,10 @@ export default function BookingPage() {
                   onChange={(e) => setBookingDate(e.target.value)}
                   className="border rounded p-2 m-2"
                 />
-
-                {dateError && (
-                  <p className="p-2 error-message shadow-info-3">{dateError}</p>
+                {errors.bookingDate && (
+                  <p className="p-2 error-message shadow-info-3">
+                    {errors.bookingDate}
+                  </p>
                 )}
               </p>
               <p>
@@ -191,6 +215,7 @@ export default function BookingPage() {
                 {paymentAmount.toFixed(2)}
               </p>
             </div>
+
             <div className="mt-6">
               <button
                 onClick={handleValidateAndShowPayment}
@@ -200,28 +225,30 @@ export default function BookingPage() {
               </button>
             </div>
           </div>
-        ) : (
-          <div className="text-center text-3xl text-gray-500 py-20">
-            Loading spot details...
-          </div>
-        )}
-      </div>
 
-      {showPaymentSection && clientSecret && (
-        <div className="mt-8 p-6 bg-white rounded-lg shadow-lg transition-all transform translate-y-0">
-          <Elements stripe={stripePromise} options={options}>
-            <CheckoutForm
-              fee={paymentAmount}
-              itemName={spot.spotName}
-              spotId={spotId}
-              bookingDate={bookingDate}
-              adults={adults}
-              kids={kids}
-              id={profileData.id}
-              email={profileData.emailAddress}
-            />
-          </Elements>
-        </div>
+          {showPaymentSection && clientSecret && (
+            <div className="mt-8 p-6 bg-white rounded-lg shadow-lg transition-all transform translate-y-0">
+              <Elements stripe={stripePromise} options={options}>
+                <CheckoutForm
+                  fee={paymentAmount}
+                  itemName={spot.spotName}
+                  type="spot"
+                  itemId={spotId}
+                  bookingDate={bookingDate}
+                  adults={adults}
+                  kids={kids}
+                  id={profileData.id}
+                  email={profileData.emailAddress}
+                />
+              </Elements>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+        <div className="text-center text-3xl text-gray-500 py-20">No booking is required.</div>
+            <p className="text-blue-500 underline hover:text-blue-700 text-sm text-center"><a href="/spots">Back to spots</a></p>
+        </>
       )}
     </div>
   );
