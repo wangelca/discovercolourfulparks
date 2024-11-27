@@ -133,7 +133,7 @@ export default function EventBookingPage({}) {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-4 sm:p-6">
       <div>
         {event ? (
           <div className="max-w-lg mx-auto  p-6 rounded-lg bg-gray-200 bg-opacity-60"> 
@@ -186,7 +186,7 @@ export default function EventBookingPage({}) {
                     setKids(Number(e.target.value));
                     calculateFee();
                   }}
-                  className="border rounded p-2 m-2 align-right"
+                  className="border rounded p-2 m-2"
                   min={0}
                 />
                 {kidError && (

@@ -151,7 +151,7 @@ async def send_booking_confirmation_email(to_email: str, subject: str, body: str
                 </main>
                 <footer style="background-color: #f4f4f4; padding: 10px; text-align: center; font-size: 0.8em;">
                     <p style="margin: 0;">Discover Colorful Parks Team</p>
-                    <p style="margin: 0;">Contact us at <a href="mailto:wuiyitang@gmail.com">wuiyitang@gmail.com</a></p>
+                    <p style="margin: 0;">Contact us at using in-app inbox.</a></p>
                 </footer>
             </div>
         </body>
