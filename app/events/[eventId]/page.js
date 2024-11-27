@@ -82,11 +82,11 @@ export default function EventDetails() {
               {event.description}
             </p>
             <p className="text-lg">
-              <span className="font-semibold text-gray-800">Fee:</span> $
+              <span className="font-semibold text-gray-800">Fee:</span> ${" "}
               {event.fee}
             </p>
             <p className="text-lg">
-              <span className="font-semibold text-gray-800">Discount:</span> $
+              <span className="font-semibold text-gray-800">Discount:</span> ${" "}
               {event.discount}
             </p>
             <p className="text-lg">

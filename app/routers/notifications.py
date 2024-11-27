@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from database import get_db
 from models import Notification, User, Booking
 from email.message import EmailMessage
-from typing import Optional, List
+from typing import Optional, List, Union, Literal
 from datetime import datetime
 import aiosmtplib
 import os
@@ -21,15 +21,27 @@ class NotificationRequest(BaseModel):
 class NotificationStatusUpdate(BaseModel):
     status: str
 
-# Request model for creating a booking
-class BookingConfirmationRequest(BaseModel):
-    eventId: int
+# Base Booking Model
+class BaseBookingRequest(BaseModel):
+    type: Literal["event", "spot"]
     bookingDate: datetime
     adults: int
     kids: int
     paymentAmount: float
     id: int
     email: Optional[str] = None
+
+# Event Booking Model
+class EventBookingRequest(BaseBookingRequest):
+    type: Literal["event"]
+    eventId: int
+
+# Spot Booking Model
+class SpotBookingRequest(BaseBookingRequest):
+    type: Literal["spot"]
+    spotId: int
+
+BookingRequest = Union[EventBookingRequest, SpotBookingRequest]
 
 # Function to send the email (runs in the background)
 async def send_email(to_email: str, subject:str, body: str):
@@ -112,12 +124,12 @@ async def send_booking_confirmation_email(to_email: str, subject: str, body: str
             f"Dear {body['user_name']},\n\n"
             f"Your booking has been successfully confirmed!\n\n"
             f"Booking Details:\n"
-            f"- Event ID: {body['event_id']}\n"
+            f"- {body['item_type']} ID: {body['item_id']}\n"  # Use item_type dynamically
             f"- Booking Date: {body['booking_date']}\n"
             f"- Adults: {body['adults']}\n"
             f"- Kids: {body['kids']}\n"
             f"- Total Payment: ${body['payment_amount']:.2f}\n\n"
-            "Thank you for choosing Discover Colorful Parks. We look forward to seeing you at the event!\n\n"
+            "Thank you for choosing Discover Colorful Parks. We look forward to seeing you!\n\n"
             "Best Regards,\nDiscover Colorful Parks Team"
         )
         
@@ -139,19 +151,19 @@ async def send_booking_confirmation_email(to_email: str, subject: str, body: str
                     <p style="margin: 0 0 16px;">Your booking has been successfully confirmed!</p>
                     <h2 style="margin-bottom: 16px;">Booking Details:</h2>
                     <ul style="padding-left: 20px; margin: 0;">
-                        <li><strong>Event ID:</strong> {body['event_id']}</li>
+                        <li><strong>{body['item_type']} ID:</strong> {body['item_id']}</li>
                         <li><strong>Booking Date:</strong> {body['booking_date']}</li>
                         <li><strong>Adults:</strong> {body['adults']}</li>
                         <li><strong>Kids:</strong> {body['kids']}</li>
                         <li><strong>Total Payment:</strong> ${body['payment_amount']:.2f}</li>
                     </ul>
                     <p style="margin-top: 16px;">
-                        Thank you for choosing Discover Colorful Parks. We look forward to seeing you at the event!
+                        Thank you for choosing Discover Colorful Parks. We look forward to seeing you!
                     </p>
                 </main>
                 <footer style="background-color: #f4f4f4; padding: 10px; text-align: center; font-size: 0.8em;">
                     <p style="margin: 0;">Discover Colorful Parks Team</p>
-                    <p style="margin: 0;">Contact us at <a href="mailto:wuiyitang@gmail.com">wuiyitang@gmail.com</a></p>
+                    <p style="margin: 0;">Contact us at using in-app inbox.</a></p>
                 </footer>
             </div>
         </body>
@@ -174,38 +186,52 @@ async def send_booking_confirmation_email(to_email: str, subject: str, body: str
 # API to confirm booking and send email
 @router.post("/event-bookings/confirm")
 async def confirm_booking(
-    booking_request: BookingConfirmationRequest,
+    booking_request: BookingRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
+    
+    print("Incoming payload:", booking_request.dict())
+
     try:
           # Prepare email content
         user = db.query(User).filter(User.id == booking_request.id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Determine booking type
+        item_id = (
+            booking_request.eventId if booking_request.type == "event" else booking_request.spotId
+        )
+
+        # Create booking
         booking = Booking(
-            eventId=booking_request.eventId,
+            eventId=item_id if booking_request.type == "event" else None,
+            spotId=item_id if booking_request.type == "spot" else None,
             id=booking_request.id,
             bookingDate=booking_request.bookingDate,
             bookingStatus="confirmed",
             adults=booking_request.adults,
             kids=booking_request.kids,
             paymentAmount=booking_request.paymentAmount,
-            spotId=None,  # Not relevant for event bookings
         )
         db.add(booking)
 
         
-        email_subject = f"DCP Booking Confirmation: Event ID {booking_request.eventId}"
+        email_subject = f"DCP Booking Confirmation: {booking_request.type.capitalize()} ID {item_id}"
         email_body = {
             "user_name": f"{user.firstName} {user.lastName}",
-            "event_id": booking_request.eventId,
+            "item_type": booking_request.type.capitalize(),
+            "item_id": item_id,
             "booking_date": booking_request.bookingDate.strftime('%Y-%m-%d'),
             "adults": booking_request.adults,
             "kids": booking_request.kids,
             "payment_amount": booking_request.paymentAmount,
         }
+        print("Email body:", email_body)
         to_email = booking_request.email or user.email
+        if not to_email:
+            raise HTTPException(status_code=422, detail="Email is required")
 
         # Schedule email sending in the background
         background_tasks.add_task(
@@ -226,7 +252,7 @@ async def confirm_booking(
         db.commit()
 
         return {
-            "status": "Booking confirmed and email sent",
+            "status": f"{booking_request.type.capitalize()} booking confirmed and email sent",
             "booking_id": booking.bookingId,
             "notification_id": notification.msgId,
         }
