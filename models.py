@@ -29,7 +29,6 @@ class User(Base):
     updatedAt = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
     
     booking = relationship("Booking", back_populates="user")
-    payments = relationship("Payment", back_populates="user")
     notifications = relationship("Notification", back_populates="user_notifications")
     reviews = relationship("Review", back_populates="user")
     reports = relationship("Report", back_populates="user")
@@ -129,26 +128,11 @@ class Booking(Base):
     user = relationship("User", back_populates="booking")
     event = relationship("Event", back_populates="booking")
     spot = relationship("Spot", back_populates="booking")
-    payment = relationship("Payment", back_populates="booking", uselist=False)
 
     def __repr__(self):
         return (f"<Booking(bookingId={self.bookingId}, eventId={self.eventId}, userId={self.id}, "
                 f"itinerary_data={self.itinerary_data}, destination={self.destination})>")
 
-
-class Payment(Base):
-    __tablename__ = 'payments'
-    
-    paymentId = Column(Integer, primary_key=True, index=True)
-    bookingId = Column(Integer, ForeignKey('booking.bookingId'))
-    id = Column(Integer, ForeignKey('user.id'))
-    paymentStatus = Column(String)
-    
-    booking = relationship("Booking", back_populates="payment")
-    user = relationship("User", back_populates="payments")
-
-    def __repr__(self):
-        return f"<Payment(paymentId={self.paymentId}, bookingId={self.bookingId}, userId={self.id})>"
 
 class Notification(Base):
     __tablename__ = "notifications"

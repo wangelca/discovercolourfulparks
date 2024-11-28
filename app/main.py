@@ -14,11 +14,6 @@ from app.routers import users, notifications, reviews, favorite, report, payment
 import os
 import shutil
 import openai
-import random
-import smtplib
-import stripe
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import logging
 
 app = FastAPI()
@@ -178,25 +173,6 @@ class BookingResponse(BaseModel):
     class Config:
         orm_mode=True
         arbitrary_types_allowed = True
-
-
-
-class ReviewBase(BaseModel):
-    user_id: int
-    spot_id: int
-    event_id: int
-    rating: int = Field(..., ge=1, le=5)
-    review: Optional[str] = None
-
-class ReviewCreate(ReviewBase):
-    pass
-
-class ReviewResponse(ReviewBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 class ScheduleItem(BaseModel):
     time: str
@@ -957,22 +933,6 @@ async def generate_itinerary(
         "total_cost": total_cost,
         "destination": province
     }
-
-def send_email(recipient_email, subject, body):
-    sender_email = "your_email@example.com"  # Replace with your email
-    sender_password = "your_password"  # Replace with your email password
-
-    msg = MIMEMultipart()
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-
 
 @app.post("/itinerary-bookings", response_model=List[BookingResponse])
 async def book_itinerary(

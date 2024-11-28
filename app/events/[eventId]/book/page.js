@@ -221,7 +221,7 @@ export default function EventBookingPage({}) {
             </div>
           </div>
         ) : (
-          <div className="text-center text-3xl text-gray-500 py-20">Loading event details...</div>
+          <div className="loading-text">Loading event details...</div>
         )}
       </div>
 
