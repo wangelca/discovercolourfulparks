@@ -3,26 +3,26 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import styles from "./itinerary.module.css";
 
 export default function Itinerary() {
   const [days, setDays] = useState(1);
   const [activities, setActivities] = useState([]);
   const [budget, setBudget] = useState(100);
   const [travelingWith, setTravelingWith] = useState("solo");
+  const [adults, setAdults] = useState(1);
+  const [kids, setKids] = useState(0);
   const [startTime, setStartTime] = useState("08:00");
   const [experienceType, setExperienceType] = useState("relaxation");
-  const [mealPreferences, setMealPreferences] = useState("none");
+  //const [mealPreferences, setMealPreferences] = useState("none");
   const [spotLocation, setSpotLocation] = useState("Alberta");
+  const [province, setProvince] = useState("Alberta"); // Changed spotLocation to province
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [totalAmount, setTotalAmount] = useState(0);
   const { user } = useUser();
-
 
   const formatTime = (timeString) => {
     const [hour, minute] = timeString.split(":");
@@ -65,18 +65,21 @@ export default function Itinerary() {
       days: days.toString(),
       preference: activities.join(","),
       budget: budget.toString(),
-      traveling_with: travelingWith,
+      adults: adults.toString(),
+      kids: kids.toString(),
       start_time: startTime,
       experience_type: experienceType,
-      meal_preferences: mealPreferences,
-      spotLocation,
+      province,
     });
 
     try {
-      const response = await fetch(`http://localhost:8000/itinerary?${params.toString()}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `http://localhost:8000/itinerary?${params.toString()}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch itinerary");
@@ -90,12 +93,13 @@ export default function Itinerary() {
         throw new Error("Invalid itinerary data structure");
       }
     } catch (error) {
-      setError(`An error occurred while generating the itinerary: ${error.message}`);
+      setError(
+        `An error occurred while generating the itinerary: ${error.message}`
+      );
     } finally {
       setLoading(false);
     }
   };
-  
 
   const calculateTotalAmount = (itineraryDays) => {
     if (!itineraryDays || !Array.isArray(itineraryDays)) {
@@ -110,10 +114,10 @@ export default function Itinerary() {
 
     setTotalAmount(amount);
   };
-  
 
   const handleBooking = async () => {
-    const paidActivities = itinerary?.itinerary.flatMap((day) => day.paid_activities) || [];
+    const paidActivities =
+      itinerary?.itinerary.flatMap((day) => day.paid_activities) || [];
 
     if (paidActivities.length === 0) {
       toast.info("No activities require booking.");
@@ -136,7 +140,9 @@ export default function Itinerary() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(`Booking successful! Your booking ID is ${data.bookingId}`);
+        toast.success(
+          `Booking successful! Your booking ID is ${data.bookingId}`
+        );
       } else {
         toast.error(`Booking failed: ${data.detail}`);
       }
@@ -146,29 +152,53 @@ export default function Itinerary() {
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Generate Itinerary</h1>
-      <form onSubmit={handleGenerateItinerary} className={styles.form}>
-        <div className={styles.label}>
-          <label>Days:</label>
-          <select value={days} onChange={(e) => setDays(Number(e.target.value))} className={styles.select}>
+    <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Generate Itinerary
+      </h1>
+      <form
+        onSubmit={handleGenerateItinerary}
+        className="w-full max-w-2xl bg-gray-200 bg-opacity-60 p-6 rounded-lg shadow-lg"
+      >
+        {/* Days */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">Days:</label>
+          <select
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="w-full p-2 border rounded"
+          >
             <option value="1">1 Day</option>
             <option value="2">2 Days</option>
             <option value="3">3 Days</option>
           </select>
         </div>
 
-        <div className={styles.label}>
-          <label>Location:</label>
-          <select value={spotLocation} onChange={(e) => setSpotLocation(e.target.value)} className={styles.select}>
+        {/* Location */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">Location:</label>
+          <select
+            value={province}
+            onChange={(e) => setProvince(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
             <option value="Alberta">Alberta</option>
             <option value="British Columbia">British Columbia</option>
           </select>
         </div>
 
-        <div className={styles.label}>
-          <label>Preferred Activities:</label>
-          <select multiple onChange={(e) => setActivities([...e.target.selectedOptions].map(o => o.value))} className={styles.select}>
+        {/* Preferred Activities */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Preferred Activities:
+          </label>
+          <select
+            multiple
+            onChange={(e) =>
+              setActivities([...e.target.selectedOptions].map((o) => o.value))
+            }
+            className="w-full p-2 border rounded h-32"
+          >
             <option value="hiking">Hiking</option>
             <option value="wildlife">Wildlife Viewing</option>
             <option value="water">Water Activities</option>
@@ -176,30 +206,74 @@ export default function Itinerary() {
           </select>
         </div>
 
-        <div className={styles.label}>
-          <label>Budget:</label>
-          <input type="range" min="50" max="2000" step="50" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className={styles.range} />
-          <p>Selected Budget: ${budget}</p>
+        {/* Budget */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Budget Per Person:
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="2000"
+            step="50"
+            value={budget}
+            onChange={(e) => setBudget(Number(e.target.value))}
+            className="w-full"
+          />
+          <p className="mt-2">Selected Budget: ${budget}</p>
         </div>
 
-        <div className={styles.label}>
-          <label>Traveling With:</label>
-          <select value={travelingWith} onChange={(e) => setTravelingWith(e.target.value)} className={styles.select}>
-            <option value="solo">Solo</option>
-            <option value="family">Family</option>
-            <option value="friends">Friends</option>
-            <option value="pets">Pets</option>
-          </select>
+        {/* Number of Adults */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Number of Adults:
+          </label>
+          <input
+            type="number"
+            value={adults}
+            onChange={(e) => setAdults(Number(e.target.value))}
+            min="1"
+            className="w-full p-2 border rounded"
+          />
         </div>
 
-        <div className={styles.label}>
-          <label>Preferred Start Time:</label>
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className={styles.input} />
+        {/* Number of Kids */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Number of Kids:
+          </label>
+          <input
+            type="number"
+            value={kids}
+            onChange={(e) => setKids(Number(e.target.value))}
+            min="0"
+            className="w-full p-2 border rounded"
+          />
         </div>
 
-        <div className={styles.label}>
-          <label>Experience Type:</label>
-          <select value={experienceType} onChange={(e) => setExperienceType(e.target.value)} className={styles.select}>
+        {/* Preferred Start Time */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Preferred Start Time:
+          </label>
+          <input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* Experience Type */}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Experience Type:
+          </label>
+          <select
+            value={experienceType}
+            onChange={(e) => setExperienceType(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
             <option value="relaxation">Relaxation</option>
             <option value="adventure">Adventure</option>
             <option value="educational">Educational</option>
@@ -207,77 +281,98 @@ export default function Itinerary() {
           </select>
         </div>
 
-        <div className={styles.label}>
-          <label>Meal Preferences:</label>
-          <select value={mealPreferences} onChange={(e) => setMealPreferences(e.target.value)} className={styles.select}>
-            <option value="none">No Preference</option>
-            <option value="vegetarian">Vegetarian</option>
-            <option value="vegan">Vegan</option>
-            <option value="halal">Halal</option>
-          </select>
-        </div>
-
-        <button type="submit" disabled={loading} className={styles.button}>
-          Generate Itinerary
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors"
+        >
+          {loading ? "Generating..." : "Generate Itinerary"}
         </button>
       </form>
 
-      {loading && <p className={styles.loading}>Loading...</p>}
-      {error && <p className={styles.error}>{error}</p>}
+      {/* Loading and Error Messages */}
+      {loading && (
+        <p className="mt-6 text-xl text-gray-500 animate-pulse">
+          Generating your itinerary...
+        </p>
+      )}
+      {error && <p className="mt-6 text-red-500 font-semibold">{error}</p>}
 
-      {itinerary && itinerary.itinerary && Array.isArray(itinerary.itinerary) && itinerary.itinerary.length > 0 ? (
-        <div className={styles.itineraryContainer}>
-          <h2 className={styles.title}>Travel Itinerary</h2>
+      {/* Display Itinerary */}
+      {itinerary &&
+      itinerary.itinerary &&
+      Array.isArray(itinerary.itinerary) &&
+      itinerary.itinerary.length > 0 ? (
+        <div className="mt-10 w-full max-w-4xl">
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Your Travel Itinerary
+          </h2>
           {itinerary.itinerary.map((day, index) => (
-            <div key={index} className={styles.dayContainer}>
-              <div className={styles.dayHeader}>Day {day.day}</div>
-              <table className={styles.table}>
+            <div key={index} className="mb-8">
+              <div className="bg-blue-500 text-white p-3 rounded-t">
+                <h3 className="text-xl font-semibold">Day {day.day}</h3>
+              </div>
+              <table className="w-full border border-gray-200">
                 <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Activity</th>
-                    <th>Cost</th>
-                    <th>Book</th>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">Time</th>
+                    <th className="p-2 border">Activity</th>
+                    <th className="p-2 border">Location</th>
+                    <th className="p-2 border">Park</th>
+                    <th className="p-2 border">Cost</th>
+                    <th className="p-2 border">Book</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {day.schedule.map((activity, i) => (
-                    <tr key={i}>
-                      <td className={styles.timeColumn}>
-                        {activity.start_time} - {activity.end_time}
-                      </td>
-                      <td className={styles.activityColumn}>
-                        {activity.type}: {activity.activity_name}
-                      </td>
-                      <td className={styles.costColumn}>
-                        {activity.cost === "Free" ? "Free" : `$${activity.cost}`}
-                      </td>
-                      <td>
-                        {activity.type !== "Park" &&
-                          activity.cost !== "Free" &&
-                          activity.cost !== "$$None" && (
-                            <a
-                              href={`/${activity.type.toLowerCase()}s/${activity.id}/book`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.bookButton}
-                            >
-                              Book Now
-                            </a>
-                          )}
-                      </td>
-                    </tr>
-                  ))}
+                  {day.schedule.map((activity, i) =>
+                    activity.type !== "Park" ? (
+                      <tr key={i} className="text-center">
+                        <td className="p-2 border">
+                          {formatTime(activity.start_time)} -{" "}
+                          {formatTime(activity.end_time)}
+                        </td>
+                        <td className="p-2 border">
+                          {activity.type}: {activity.activity_name}
+                        </td>
+                        <td className="p-2 border">{activity.location}</td>
+                        <td className="p-2 border">{activity.park_name}</td>
+                        <td className="p-2 border">
+                          {activity.cost === "Free"
+                            ? "Free"
+                            : `$${activity.cost}`}
+                        </td>
+                        <td className="p-2 border">
+                          {activity.cost !== "Free" &&
+                            activity.cost !== "$$None" && (
+                              <a
+                                href={`/${activity.type.toLowerCase()}s/${
+                                  activity.id
+                                }/book?adults=${adults}&kids=${kids}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 transition-colors"
+                              >
+                                Book Now
+                              </a>
+                            )}
+                        </td>
+                      </tr>
+                    ) : null
+                  )}
                 </tbody>
               </table>
             </div>
           ))}
-          <h3 className={styles.totalAmount}>
+          <h3 className="text-xl font-bold mt-4">
             Total Amount: ${Number(totalAmount).toFixed(2)}
           </h3>
         </div>
       ) : (
-        !loading && !error && <p>No itinerary data available.</p>
+        !loading &&
+        !error && (
+          <p className="mt-6 text-gray-500">No itinerary data available.</p>
+        )
       )}
       <ToastContainer transition={Bounce} />
     </div>

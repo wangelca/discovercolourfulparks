@@ -1,19 +1,20 @@
 'use client';
 
-import { useUser, SignedIn } from '@clerk/nextjs';
 import { slide as Menu } from 'react-burger-menu';
-import { useState } from 'react';
+import { useState,useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faUser, faHeart, faStar, faTag, faInbox, faUsers, faTree, faCalendar, faMapMarkerAlt, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import NotificationBubble from './notificationBubble';
+import { debounce } from "lodash";
 
-export default function DrawerMenu() {
-  const { user, isLoaded } = useUser(); // Check if user data is loaded
+export default function DrawerMenu({ user }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleStateChange = (state) => {
+const handleStateChange = useCallback((state) => {
+  debounce(() => {
     setMenuOpen(state.isOpen);
-  };
+  }, 300)();
+}, []);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -23,13 +24,8 @@ export default function DrawerMenu() {
     setMenuOpen(false);
   };
 
-  if (!isLoaded) {
-    // While user data is being fetched, return null or a loading spinner
-    return null;
-  }
-
   return (
-    <SignedIn>
+    <>
       <div className="burger-icon" onClick={toggleMenu}>
         <img
           src="/burger-bar.png"
@@ -55,7 +51,6 @@ export default function DrawerMenu() {
             </a>
             <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
             <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
-            <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faTag} />  Coupons</a>
             <a className="menu-item text-white" href="/inbox" onClick={closeMenu}><FontAwesomeIcon icon={faInbox} />  Inbox <NotificationBubble menuOpen={menuOpen} /></a>
           </>
         )}
@@ -72,7 +67,7 @@ export default function DrawerMenu() {
           </>
         )}
       </Menu>
-    </SignedIn>
+      </>
   );
 }
 

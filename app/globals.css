@@ -96,3 +96,12 @@ body {
 .error-message {
   @apply text-red-500 bg-red-100 my-2 p-1 rounded-md text-sm
 }
+
+.loading-spinner {
+  @apply animate-spin h-5 w-5 border-2 border-primary-500 rounded-full
+}
+
+.loading-text
+{
+  @apply text-center text-3xl text-gray-500 py-20
+}

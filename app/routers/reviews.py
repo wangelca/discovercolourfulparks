@@ -70,3 +70,9 @@ def get_reviews(item_type: str, item_id: int, db: Session = Depends(get_db)):
 def get_average_rating_endpoint(item_type: str, item_id: int, db: Session = Depends(get_db)):
     avg_rating = get_average_rating(db=db, item_id=item_id, item_type=item_type)
     return {"average_rating": avg_rating}
+
+#Get reviews by user
+@router.get("/reviews/user/{user_id}", response_model=List[ReviewResponse])
+def get_reviews_by_user(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Review).filter(Review.id == user_id).all()
+

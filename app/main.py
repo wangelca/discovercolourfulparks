@@ -10,15 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from PIL import Image
 from datetime import date, datetime, time, timezone, timedelta
-from app.routers import users, notifications, reviews, favorite, report, payment
+from app.routers import users, notifications, reviews, favorite, report, payment, itinerary
 import os
 import shutil
 import openai
-import random
-import smtplib
-import stripe
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import logging
 
 app = FastAPI()
@@ -43,6 +38,7 @@ app.include_router(reviews.router)
 app.include_router(report.router, prefix="/reports")
 app.include_router(favorite.router)
 app.include_router(payment.router)
+app.include_router(itinerary.router)
 
 
 # Dependency to get the SQLAlchemy session
@@ -101,7 +97,6 @@ class ParkUpdateRequest(BaseModel):
     location: str
     parkImageUrl: Optional[List[str]] = None
     parameters: Optional[str] = None      
-
 
 class EventResponse(BaseModel):
     eventId: int
@@ -179,42 +174,6 @@ class BookingResponse(BaseModel):
         orm_mode=True
         arbitrary_types_allowed = True
 
-
-
-class ReviewBase(BaseModel):
-    user_id: int
-    spot_id: int
-    event_id: int
-    rating: int = Field(..., ge=1, le=5)
-    review: Optional[str] = None
-
-class ReviewCreate(ReviewBase):
-    pass
-
-class ReviewResponse(ReviewBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        orm_mode = True
-
-class ScheduleItem(BaseModel):
-    time: str
-    activity: str
-    cost: str
-
-class ActivityDay(BaseModel):
-    day: int
-    schedule: List[ScheduleItem]
-
-class Itinerary(BaseModel):
-    days: int
-    location: str
-    activities: List[ActivityDay]
-
-class SendItineraryRequest(BaseModel):
-    email: EmailStr
-    itinerary: Itinerary
 
 @app.post("/event-bookings", response_model=BookingResponse)
 async def book_event(booking: BookingResponse, db: Session = Depends(get_db)):
@@ -776,272 +735,4 @@ async def generate_description(parkName: str = Form(...), name: str = Form(...),
     except Exception as e:
         print(f"Error generating description: {e}")
         raise HTTPException(status_code=500, detail="Error generating description")
-    
-def parse_cost(cost):
-    if cost in ["Free", "None", None]:
-        return 0
-    try:
-        return float(str(cost).replace("$", ""))
-    except (ValueError, TypeError):
-        return 0
-
-def ai_select_activities(parks: List, spots: List, events: List, used_parks, used_spots, used_events, user_preferences=None, remaining_budget=0) -> Tuple[List, List, object]:
-    """
-    Selects activities for the itinerary, ensuring unique parks, spots, and an event each day,
-    while respecting the remaining budget.
-    """
-    if user_preferences:
-        user_preferences = user_preferences.split(",")  # Convert string back to a list
-
-    # Filter out already-used parks and spots
-    available_parks = [park for park in parks if park.parkId not in used_parks]
-    available_spots = [spot for spot in spots if spot.spotId not in used_spots]
-    available_events = [event for event in events if event.eventId not in used_events]
-
-    # Select up to 2 unique parks without exceeding the budget
-    selected_parks = []
-    for park in available_parks:
-        cost = parse_cost(park.duration)  # Adjust cost parsing based on park structure
-        if cost <= remaining_budget:
-            selected_parks.append(park)
-            remaining_budget -= cost
-        if len(selected_parks) >= 2:
-            break
-
-    # Select up to 3 unique spots from the chosen parks within budget
-    selected_spots = []
-    for park in selected_parks:
-        park_spots = [spot for spot in available_spots if spot.parkId == park.parkId]
-        for spot in park_spots:
-            cost = parse_cost(spot.spotAdmission)
-            if cost <= remaining_budget:
-                selected_spots.append(spot)
-                remaining_budget -= cost
-            if len(selected_spots) >= 3:
-                break
-
-    # Select one unique event if available within budget
-    selected_event = None
-    for event in available_events:
-        cost = parse_cost(event.fee)
-        if cost <= remaining_budget:
-            selected_event = event
-            remaining_budget -= cost
-            break
-
-    return selected_parks, selected_spots, selected_event
-
-
-def generate_schedule(activities, start_time):
-    schedule = []
-    current_time = datetime.strptime(start_time, "%H:%M")
-
-    for activity in activities:
-        duration = activity.get("duration", 60)
-        end_time = current_time + timedelta(minutes=duration)
-        
-        schedule.append({
-            "activity_name": activity["name"],
-            "start_time": current_time.strftime("%I:%M %p"),
-            "end_time": end_time.strftime("%I:%M %p"),
-            "location": activity["location"],
-            "type": activity["type"],
-            "duration": duration,
-            "cost": activity.get("cost", "Free")
-        })
-
-        current_time = end_time + timedelta(minutes=15)
-
-    return schedule
-
-
-@app.get("/itinerary")
-async def generate_itinerary(
-    days: int = Query(1, ge=1, le=3),
-    preference: str = Query(None),
-    budget: int = Query(100),
-    traveling_with: str = Query("solo"),
-    start_time: str = Query("08:00"),
-    experience_type: str = Query("relaxation"),
-    meal_preferences: str = Query("none"),
-    province: str = Query("Alberta"),
-    db: Session = Depends(get_db)
-):
-    # Validate the province
-    if province not in ["Alberta", "British Columbia"]:
-        return {"error": "Invalid province. Please select either 'Alberta' or 'British Columbia'."}
-
-    parks = db.query(Park).filter(Park.province == province).all()
-    if not parks:
-        return {"error": f"No parks found in {province}."}
-
-    park_ids = [park.parkId for park in parks]
-    spots = db.query(Spot).filter(Spot.parkId.in_(park_ids)).all()
-    events = db.query(Event).filter(Event.parkId.in_(park_ids)).all()
-
-    itinerary = []
-    used_parks, used_spots, used_events = set(), set(), set()
-    remaining_budget = budget  # Start with the full budget
-
-    for day in range(days):
-        selected_parks, selected_spots, selected_event = ai_select_activities(
-            parks, spots, events, used_parks, used_spots, used_events, preference, remaining_budget
-        )
-
-        used_parks.update([park.parkId for park in selected_parks])
-        used_spots.update([spot.spotId for spot in selected_spots])
-        if selected_event:
-            used_events.add(selected_event.eventId)
-
-        paid_activities = []
-        free_activities = []
-
-        for park in selected_parks:
-            entry = {
-                "type": "Park",
-                "name": park.name,
-                "location": park.location,
-                "duration": park.duration or 60,
-                "cost": "Free" if park.duration == 0 else f"${park.duration}",
-            }
-            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
-
-        for spot in selected_spots:
-            entry = {
-                "type": "Spot",
-                "name": spot.spotName,
-                "description": spot.spotDescription,
-                "location": spot.spotLocation,
-                "duration": spot.duration or 60,
-                "cost": "Free" if spot.spotAdmission == 0 else f"${spot.spotAdmission}",
-            }
-            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
-
-        if selected_event:
-            entry = {
-                "type": "Event",
-                "name": selected_event.eventName,
-                "location": selected_event.eventLocation,
-                "duration": selected_event.duration or 60,
-                "cost": "Free" if selected_event.fee == 0 else f"${selected_event.fee}",
-            }
-            (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
-
-        # Calculate day cost and update remaining budget
-        day_cost = sum(parse_cost(activity["cost"]) for activity in paid_activities)
-        remaining_budget -= day_cost  # Deduct day's cost from the remaining budget
-
-        # Print debug information
-        print(f"Day {day + 1} cost: {day_cost}, Remaining budget: {remaining_budget}")
-
-        activities = paid_activities + free_activities
-        schedule = generate_schedule(activities, start_time)
-
-        itinerary.append({
-            "day": day + 1,
-            "paid_activities": paid_activities,
-            "free_activities": free_activities,
-            "day_cost": day_cost,
-            "schedule": schedule
-        })
-
-        if remaining_budget <= 0:
-            break  # Stop adding days if the budget is exceeded
-
-
-    total_cost = budget - remaining_budget  # Calculate actual spent budget
-    print(f"Total cost: {total_cost}")
-
-    return {
-        "itinerary": itinerary,
-        "total_cost": total_cost,
-        "destination": province
-    }
-
-def send_email(recipient_email, subject, body):
-    sender_email = "your_email@example.com"  # Replace with your email
-    sender_password = "your_password"  # Replace with your email password
-
-    msg = MIMEMultipart()
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-
-
-@app.post("/itinerary-bookings", response_model=List[BookingResponse])
-async def book_itinerary(
-    itinerary: Dict[str, Any],  # Expecting a dictionary with specific structure
-    id: str = Query(...),  # User ID
-    booking_date: str = Query(...),
-    adults: int = Query(1),
-    kids: int = Query(0),
-    db: Session = Depends(get_db)
-):
-    try:
-        # Validate booking date
-        booking_date = datetime.strptime(booking_date, '%Y-%m-%d').date()
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid booking date format. Use YYYY-MM-DD.")
-
-    # Extract paid activities
-    paid_activities = [activity for day in itinerary["itinerary"] for activity in day["paid_activities"]]
-    if not paid_activities:
-        raise HTTPException(status_code=400, detail="No paid activities in the itinerary to book.")
-
-    # Initialize list to store booking responses
-    booking_responses = []
-
-    for activity in paid_activities:
-        if activity["type"] == "Spot":
-            new_booking = Booking(
-                id=id,  # User ID
-                bookingDate=booking_date,
-                bookingStatus="confirmed",
-                adults=adults,
-                kids=kids,
-                paymentAmount=parse_cost(activity["cost"]),
-                spotId=activity.get("spot_id"),
-                eventId=None,  # Not an event
-                destination=itinerary.get("destination", "Unknown"),
-                total_cost=parse_cost(activity["cost"])
-            )
-        elif activity["type"] == "Event":
-            new_booking = Booking(
-                id=id,  # User ID
-                bookingDate=booking_date,
-                bookingStatus="confirmed",
-                adults=adults,
-                kids=kids,
-                paymentAmount=parse_cost(activity["cost"]),
-                spotId=None,  # Not a spot
-                eventId=activity.get("event_id"),
-                destination=itinerary.get("destination", "Unknown"),
-                total_cost=parse_cost(activity["cost"])
-            )
-        else:
-            continue  # Ignore activities that are neither Spot nor Event
-
-        # Add booking to the database
-        db.add(new_booking)
-        db.commit()
-        db.refresh(new_booking)
-
-        # Add to response list
-        booking_responses.append(BookingResponse(
-            bookingId=new_booking.bookingId,
-            id=new_booking.id,
-            bookingDate=new_booking.bookingDate,
-            bookingStatus=new_booking.bookingStatus,
-            paymentAmount=new_booking.paymentAmount,
-            spotId=new_booking.spotId,
-            eventId=new_booking.eventId
-        ))
-
-    # Return list of created bookings
-    return booking_responses
+   

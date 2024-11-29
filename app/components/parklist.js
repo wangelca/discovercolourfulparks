@@ -20,7 +20,6 @@ export default function Parks() {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching parks:', error);
-        setLoading(false);
       }
     }
 
@@ -34,7 +33,7 @@ export default function Parks() {
     : [];
 
   if (loading) {
-    return <p>Loading parks...</p>;
+    return <p className='loading-text'>Loading parks...</p>;
   }
 
   return (
@@ -70,7 +69,7 @@ export default function Parks() {
               key={province}
               onClick={() => setSelectedProvince(province)}
               className={`p-2 border border-gray-300 rounded-md w-full md:w-auto text-center transition-all duration-300 ease-in-out
-                ${selectedProvince === province ? "bg-blue-600 text-white font-bold" : "text-gray-800 hover:bg-blue-200"}
+                ${selectedProvince === province ? "bg-gray-200 text-gray-800 font-bold" : "text-gray-800 hover:bg-gray-200"}
               `}
             >
               {province}
