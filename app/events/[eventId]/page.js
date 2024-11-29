@@ -38,7 +38,7 @@ export default function EventDetails() {
         const eventData = await response.json();
         setEvent(eventData);
         setLoading(false);
-        if (new Date(eventData.startDate) < new Date()) {
+        if (new Date(eventData.endDate) > new Date()) {
           setIsPastEvent(true);
         }
       } catch (error) {
