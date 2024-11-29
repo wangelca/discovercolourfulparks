@@ -10,14 +10,11 @@ export default function Itinerary() {
   const [days, setDays] = useState(1);
   const [activities, setActivities] = useState([]);
   const [budget, setBudget] = useState(100);
-  const [travelingWith, setTravelingWith] = useState("solo");
   const [adults, setAdults] = useState(1);
   const [kids, setKids] = useState(0);
   const [startTime, setStartTime] = useState("08:00");
   const [experienceType, setExperienceType] = useState("relaxation");
-  //const [mealPreferences, setMealPreferences] = useState("none");
-  const [spotLocation, setSpotLocation] = useState("Alberta");
-  const [province, setProvince] = useState("Alberta"); // Changed spotLocation to province
+  const [province, setProvince] = useState("Alberta");
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,35 +28,16 @@ export default function Itinerary() {
     return format(date, "hh:mm a");
   };
 
-  const filterActivitiesByBudget = (itinerary, budget) => {
-    return itinerary.map((day) => {
-      let totalCost = 0;
-      const paidActivities = [];
-      const freeActivities = day.free_activities || [];
-
-      for (const activity of day.paid_activities || []) {
-        const activityCost = parseFloat(activity.cost.replace("$", "").trim());
-        if (totalCost + activityCost <= budget) {
-          paidActivities.push(activity);
-          totalCost += activityCost;
-        } else {
-          break;
-        }
-      }
-
-      return {
-        ...day,
-        paid_activities: paidActivities,
-        free_activities: freeActivities,
-        day_cost: totalCost,
-      };
-    });
-  };
-
   const handleGenerateItinerary = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (adults < 1) {
+      setError("At least one adult is required.");
+      setLoading(false);
+      return;
+    }
 
     const params = new URLSearchParams({
       days: days.toString(),
@@ -112,7 +90,8 @@ export default function Itinerary() {
       return acc + (isNaN(dayCost) ? 0 : dayCost);
     }, 0);
 
-    setTotalAmount(amount);
+    const totalPeople = adults + kids;
+    setTotalAmount(amount * totalPeople);
   };
 
   const handleBooking = async () => {
@@ -132,17 +111,15 @@ export default function Itinerary() {
           itinerary: { paid_activities: paidActivities },
           id: user.id,
           booking_date: format(new Date(), "yyyy-MM-dd"),
-          adults: 2,
-          kids: 1,
+          adults: adults,
+          kids: kids,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(
-          `Booking successful! Your booking ID is ${data.bookingId}`
-        );
+        toast.success("Booking successful!");
       } else {
         toast.error(`Booking failed: ${data.detail}`);
       }
@@ -154,7 +131,7 @@ export default function Itinerary() {
   return (
     <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-center">
-        Generate Itinerary
+        Itinerary Planning
       </h1>
       <form
         onSubmit={handleGenerateItinerary}
@@ -285,7 +262,7 @@ export default function Itinerary() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors"
+          className="mt-5 w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors"
         >
           {loading ? "Generating..." : "Generate Itinerary"}
         </button>
@@ -304,69 +281,82 @@ export default function Itinerary() {
       itinerary.itinerary &&
       Array.isArray(itinerary.itinerary) &&
       itinerary.itinerary.length > 0 ? (
-        <div className="mt-10 w-full max-w-4xl">
+        <div className="mt-10 w-full max-w-2xl bg-gray-200 bg-opacity-60 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-bold mb-6 text-center">
             Your Travel Itinerary
           </h2>
           {itinerary.itinerary.map((day, index) => (
             <div key={index} className="mb-8">
-              <div className="bg-blue-500 text-white p-3 rounded-t">
-                <h3 className="text-xl font-semibold">Day {day.day}</h3>
+              <div className="bg-gray-500 text-white p-3 rounded-t mb-4">
+                <h3 className="text-xl text-center font-semibold">Day {day.day}</h3>
               </div>
-              <table className="w-full border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">Time</th>
-                    <th className="p-2 border">Activity</th>
-                    <th className="p-2 border">Location</th>
-                    <th className="p-2 border">Park</th>
-                    <th className="p-2 border">Cost</th>
-                    <th className="p-2 border">Book</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {day.schedule.map((activity, i) =>
-                    activity.type !== "Park" ? (
-                      <tr key={i} className="text-center">
-                        <td className="p-2 border">
-                          {formatTime(activity.start_time)} -{" "}
-                          {formatTime(activity.end_time)}
-                        </td>
-                        <td className="p-2 border">
-                          {activity.type}: {activity.activity_name}
-                        </td>
-                        <td className="p-2 border">{activity.location}</td>
-                        <td className="p-2 border">{activity.park_name}</td>
-                        <td className="p-2 border">
-                          {activity.cost === "Free"
-                            ? "Free"
-                            : `$${activity.cost}`}
-                        </td>
-                        <td className="p-2 border">
-                          {activity.cost !== "Free" &&
-                            activity.cost !== "$$None" && (
-                              <a
-                                href={`/${activity.type.toLowerCase()}s/${
-                                  activity.id
-                                }/book?adults=${adults}&kids=${kids}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 transition-colors"
-                              >
-                                Book Now
-                              </a>
-                            )}
-                        </td>
-                      </tr>
-                    ) : null
-                  )}
-                </tbody>
-              </table>
+              {/* Timeline Component */}
+              <ul className="relative border-l border-gray-200">
+                {day.schedule.map((activity, i) => (
+                  <li key={i} className="mb-10 ml-6">
+                                          <span className="text-lg font-semibold text-gray-800">
+                        {formatTime(activity.start_time)} -{" "}
+                        {formatTime(activity.end_time)}
+                      </span>
+                    <span
+                      className="absolute flex items-center justify-center w-8 h-8 bg-green-500 rounded-full -left-4 ring-2 ring-white ring-opacity-45"
+                    >
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {activity.type}: {activity.activity_name}
+                      </h4>
+                    </div>
+                    <p className="text-gray-600">
+                      <strong>Location:</strong> {activity.location}
+                    </p>
+                    <p className="text-gray-600">
+                      <strong>Park:</strong> {activity.park_name}
+                    </p>
+                    <p className="text-gray-600">
+                      <strong>Cost:</strong>{" "}
+                      {activity.cost === "Free" ? "Free" : `${activity.cost}`}
+                    </p>
+                    {activity.cost !== "Free" && activity.cost !== "$$None" && (
+                      <a
+                        href={`/${activity.type.toLowerCase()}s/${
+                          activity.id
+                        }/book?adults=${adults}&kids=${kids}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-2 bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 transition-colors"
+                      >
+                        Book Now
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
-          <h3 className="text-xl font-bold mt-4">
-            Total Amount: ${Number(totalAmount).toFixed(2)}
+          <h3 className="text-xl text-center font-bold mt-4">
+            Total Amount for {adults + kids} people: $
+            {Number(totalAmount).toFixed(2)}
           </h3>
+
+          {/* Booking Button */}
+          <button
+            onClick={handleBooking}
+            className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors mt-4"
+          >
+            Book Entire Itinerary
+          </button>
         </div>
       ) : (
         !loading &&

@@ -132,8 +132,8 @@ export default function EventBookingPage({}) {
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
-      <div>
-        {event ? (
+        {event && event.requiredBooking ? (
+          <>
           <div className="max-w-lg mx-auto  p-6 rounded-lg bg-gray-200 bg-opacity-60"> 
             <h1 className="text-3xl font-bold mb-4">Book {event.eventName}</h1>
             <p>
@@ -220,11 +220,7 @@ export default function EventBookingPage({}) {
               </button>
             </div>
           </div>
-        ) : (
-          <div className="loading-text">Loading event details...</div>
-        )}
-      </div>
-
+       
       {showPaymentSection && clientSecret && (
         <div className="mt-8 p-6 bg-white rounded-lg shadow-lg transition-all transform translate-y-0">
           <Elements stripe={stripePromise} options={options}>
@@ -241,6 +237,14 @@ export default function EventBookingPage({}) {
             />
           </Elements>
         </div>
+       
+      )}
+       </>
+       ): (
+        <>
+        <div className="text-center text-3xl text-gray-500 py-20">No booking is required.</div>
+            <p className="text-blue-500 underline hover:text-blue-700 text-sm text-center"><a href="/events">Back to events</a></p>
+        </>
       )}
     </div>
   );
