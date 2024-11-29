@@ -62,22 +62,22 @@ const AboutUs = () => {
               <div className="bg-green-100 rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-shadow">
                 <img src="/team/ebube.jpg" alt="Ebube" className="w-32 h-32 rounded-full mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-green-900">Ebube</h3>
-                <p className="text-gray-700">Lead Developer</p>
+                <p className="text-gray-700"><a href='https://www.linkedin.com/in/ebubechukwu-okonmah-297594287'>Linkedin Page</a></p>
               </div>
               <div className="bg-green-100 rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-shadow">
                 <img src="/team/wui.jpg" alt="Wui" className="w-32 h-32 rounded-full mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-green-900">Wui</h3>
-                <p className="text-gray-700">Customer Support Specialist</p>
+                <p className="text-gray-700"><a href='https://www.linkedin.com/in/queenie-tang-61680594/'>Linkedin Page</a></p>
               </div>
               <div className="bg-green-100 rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-shadow">
                 <img src="/team/angelica.jpg" alt="Angelica" className="w-32 h-32 rounded-full mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-green-900">Angelica</h3>
-                <p className="text-gray-700">Community Outreach</p>
+                <p className="text-gray-700"><a href='https://www.linkedin.com/in/angelica-pekas-72511827b'>Linkedin Page</a></p>
               </div>
               <div className="bg-green-100 rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-shadow">
                 <img src="/team/ruth.jpg" alt="Ruth" className="w-32 h-32 rounded-full mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-green-900">Ruth</h3>
-                <p className="text-gray-700">Marketing Specialist</p>
+                <p className="text-gray-700"><a href='https://www.linkedin.com/in/ruthmreyes'>Linkedin Page</a></p>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/spots(.*)",
   "/fees(.*)",
   "/aboutus(.*)",
+  "/itinerary(.*)",
   "/",
 ]);
 

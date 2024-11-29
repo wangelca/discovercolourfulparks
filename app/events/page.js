@@ -59,7 +59,7 @@ export default function Home() {
 
       {/* Main content - use Suspense to handle loading state */}
       <div className="flex-grow">
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="loading-text">Loading...</div>}>
           {viewMode === "calendar" && <Calendar />}
           {viewMode === "booking" && selectedEvent && (
             <EventBookingPage eventName={selectedEvent} />

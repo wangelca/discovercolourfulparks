@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import {
-  useUser,
   SignInButton,
   UserButton,
 } from "@clerk/nextjs";
 import Image from "next/image";
 
-export default function Header() {
-  const { isSignedIn } = useUser(); // Check if the user is signed in
+export default function Header({ user, isSignedIn }) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMenuToggle = () => {
@@ -26,6 +24,7 @@ export default function Header() {
               width={250}
               height={100}
               alt="Logo"
+              priority
             />
           </a>
           <div className="flex items-center lg:order-2">
@@ -40,7 +39,7 @@ export default function Header() {
                 <UserButton
                   appearance={{
                     userButtonPopoverActionButton:
-                      "bg-slate-500 hover:bg-slate-400 text-sm",
+                      "bg-slate-500 hover:bg-slate-400 text-xl",
                   }}
                 />               
               ) }
