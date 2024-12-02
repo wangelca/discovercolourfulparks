@@ -127,7 +127,7 @@ export default function BookingPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
-      {spot && spot.requiredBooking ? (
+      {spot && spot.requiredbooking ? (
         <>
           <div className="max-w-lg mx-auto p-6 rounded-lg bg-gray-200 bg-opacity-60">
             <h1 className="text-3xl font-bold mb-4"> Book {spot.spotName}</h1>
