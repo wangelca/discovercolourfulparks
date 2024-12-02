@@ -2,38 +2,45 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  FaCalendar,
+  FaMapMarkerAlt,
+  FaTicketAlt,
+  FaEdit,
+  FaSearch,
+  FaPlus,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
 
 export default function EventsAdmin() {
-  const [events, setEvents] = useState([]); // Initialize with an empty array
-  const [editingId, setEditingId] = useState(null); // Track which event is being edited
-  const [editedEvent, setEditedEvent] = useState(null); // Store edited event data
-  const [searchTerm, setSearchTerm] = useState(""); // Search term state
+  const [events, setEvents] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editedEvent, setEditedEvent] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "eventName",
     direction: "asc",
-  }); // Sorting state
-  const [filteredEvents, setFilteredEvents] = useState([]); // For search results
+  });
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const eventsPerPage = 9;
+  const [loading, setLoading] = useState(true);
+  const eventsPerPage = 5;
 
   const formatEventDate = (dateInput) => {
     const date = new Date(dateInput);
-
-    // Format the date and time separately
     const dateOptions = { year: "numeric", month: "long", day: "numeric" };
     const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
 
     const formattedDate = date.toLocaleDateString(undefined, dateOptions);
     const formattedTime = date.toLocaleTimeString(undefined, timeOptions);
 
-    // Return formatted date and time
     return `${formattedDate}, ${formattedTime}`;
   };
 
   const router = useRouter();
 
-  // Fetch total count of events
   useEffect(() => {
     const fetchTotalEventsCount = async () => {
       try {
@@ -53,10 +60,10 @@ export default function EventsAdmin() {
     fetchTotalEventsCount();
   }, []);
 
-  // Fetch events data from the backend
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        setLoading(true);
         const response = await fetch(
           `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
         );
@@ -67,6 +74,7 @@ export default function EventsAdmin() {
 
         if (Array.isArray(data)) {
           setEvents(data);
+          setFilteredEvents(data);
         } else {
           const eventsWithRatings = await Promise.all(
             data.events.map(async (event) => {
@@ -86,10 +94,13 @@ export default function EventsAdmin() {
           );
 
           setEvents(eventsWithRatings);
+          setFilteredEvents(eventsWithRatings);
           setTotalPages(Math.ceil(data.total / eventsPerPage));
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching events:", error);
+        setLoading(false);
       }
     };
 
@@ -102,12 +113,10 @@ export default function EventsAdmin() {
     }
   };
 
-  // Handle changing event data during edit
   const handleInputChange = (e, field) => {
     setEditedEvent({ ...editedEvent, [field]: e.target.value });
   };
 
-  // Filter events based on search term
   useEffect(() => {
     const filtered = events.filter(
       (event) =>
@@ -132,9 +141,7 @@ export default function EventsAdmin() {
     setFilteredEvents(sortedEvents);
   };
 
-  // Handle save action
   const handleSave = (eventId) => {
-    // Update the event using FastAPI
     fetch(`http://localhost:8000/events/${eventId}`, {
       method: "PUT",
       headers: {
@@ -149,290 +156,297 @@ export default function EventsAdmin() {
             event.eventId === eventId ? { ...event, ...editedEvent } : event
           )
         );
-        setEditingId(null); // Exit editing mode
+        setEditingId(null);
       })
       .catch((error) => console.error("Error updating event:", error));
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-6 py-10">
+        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden w-full">
+          <div className="bg-gray-700 px-8 py-5">
+            <div className="h-12 bg-gray-600 animate-pulse rounded w-3/4 mx-auto"></div>
+          </div>
+          <div className="p-8">
+            {[1, 2, 3, 4, 5].map((row) => (
+              <div key={row} className="mb-6 flex items-center">
+                <div className="h-5 bg-gray-300 animate-pulse rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-6">
+        <div className="text-center w-full max-w-screen-lg">
+          <svg
+            className="mx-auto h-24 w-24 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <h2 className="mt-6 text-3xl font-bold text-gray-600">
+            No Events Found
+          </h2>
+          <p className="mt-3 text-gray-500">
+            There are currently no events in the system.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-6 mb-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Events Database (Support Desktop Device only)</h1>
-        <button
-          onClick={() => router.push("/manage-events/add-event")}
-          className="bg-amber-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-800 transition"
-        >
-          Add Event
-        </button>
-      </div>
+    <div className="container mx-auto px-8 py-10 max-w-[2300px]">
+      <div className="bg-white shadow-2xl rounded-2xl overflow-hidden w-full">
+        <div className="bg-gray-700 px-8 py-5 flex justify-between items-center">
+          <h1 className="text-4xl font-bold text-white">Events Database</h1>
+          <div className="flex items-center space-x-6">
+            <span className="text-white font-bold text-lg">
+              Total Events: {events.length}
+            </span>
+            <button
+              onClick={() => router.push("/manage-events/add-event")}
+              className="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition flex items-center space-x-2"
+            >
+              <FaPlus />
+              <span>Add Event</span>
+            </button>
+          </div>
+        </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search by event name or location..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 w-full rounded"
-          max-width="50%"
-        />
-      </div>
+        <div className="p-8 bg-gray-50 border-b">
+          <div className="relative">
+            <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by event name or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full py-3 px-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+          </div>
+        </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white opacity-85 border text-black text-sm font-medium border-gray-200 rounded-lg table-fixed">
-          <thead>
-            <tr className="bg-gray-700 text-left text-white font-semibold">
-              <th className="w-1/10 py-3 px-3">Image</th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("eventId")}
-              >
-                Event ID
-              </th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("eventName")}
-              >
-                Event Name
-              </th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("parkId")}
-              >
-                Park ID
-              </th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("fee")}
-              >
-                Fee
-              </th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("discount")}
-              >
-                Discount
-              </th>
-              <th className="w-1/5 py-3 px-3">Description</th>
-              <th className="py-3 px-3">Location</th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("startDate")}
-              >
-                Start Date
-              </th>
-              <th
-                className="py-3 px-3 cursor-pointer"
-                onClick={() => handleSort("endDate")}
-              >
-                End Date
-              </th>
-              <th className="py-3 px-3">Req. booking</th>
-              <th className="py-3 px-3">Details</th>
-              <th className="py-3 px-3">Edit</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map((event) => (
-                <tr
-                  key={event.eventId}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="w-1/10 py-3 px-6">
-                    {event.eventImageUrl && (
-                      <img
-                        src={event.eventImageUrl}
-                        alt={`Image of ${event.eventName}`}
-                        className="w-auto h-auto rounded-lg "
-                      />
-                    )}
-                  </td>
-                  <td className="py-3 px-3">{event.eventId}</td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.eventName || event.eventName}
-                        onChange={(e) => handleInputChange(e, "eventName")}
-                        className="border p-1 rounded max-w-xs"
-                      />
-                    ) : (
-                      event.eventName
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.parkId || event.parkId}
-                        onChange={(e) => handleInputChange(e, "parkId")}
-                        className="border p-1 rounded max-w-5"
-                      />
-                    ) : (
-                      event.parkId
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.fee || event.fee}
-                        onChange={(e) => handleInputChange(e, "fee")}
-                        className="border p-1 rounded max-w-5"
-                      />
-                    ) : (
-                      event.fee
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.discount || event.discount}
-                        onChange={(e) => handleInputChange(e, "discount")}
-                        className="border p-1 rounded max-w-5"
-                      />
-                    ) : (
-                      event.discount
-                    )}
-                  </td>
-                  <td className="w-1/5 py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <textarea
-                        value={editedEvent?.description || event.description}
-                        onChange={(e) => handleInputChange(e, "description")}
-                        className="border p-1 rounded"
-                      />
-                    ) : (
-                      event.description
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={
-                          editedEvent?.eventLocation || event.eventLocation
-                        }
-                        onChange={(e) => handleInputChange(e, "eventLocation")}
-                        className="border p-1 rounded"
-                      />
-                    ) : (
-                      event.eventLocation
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.startDate || event.startDate}
-                        onChange={(e) => handleInputChange(e, "startDate")}
-                        className="border p-1 rounded"
-                      />
-                    ) : (
-                      formatEventDate(event.startDate)
-                    )}
-                  </td>
-                  <td className="py-3 px-3">
-                    {editingId === event.eventId ? (
-                      <input
-                        type="text"
-                        value={editedEvent?.endDate || event.endDate}
-                        onChange={(e) => handleInputChange(e, "endDate")}
-                        className="border p-1 rounded"
-                      />
-                    ) : (
-                      formatEventDate(event.endDate)
-                    )}
-                  </td>
-                  <td className="py-3 px-3">{event.requiredbooking}</td>
-                  <td className="py-3 px-3">
-                    <a
-                      href={`/events/${event.eventId}`}
-                      className="text-blue-600 hover:underline"
+        <div className="p-8">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100 border-b-2 border-gray-300">
+                  {[
+                    { label: "Image", icon: FaCalendar },
+                    { label: "Event ID", icon: FaTicketAlt },
+                    { label: "Event Name", icon: FaCalendar },
+                    { label: "Park ID", icon: FaMapMarkerAlt },
+                    { label: "Fee", icon: FaTicketAlt },
+                    { label: "Discount", icon: FaTicketAlt },
+                    { label: "Description", icon: FaCalendar },
+                    { label: "Location", icon: FaMapMarkerAlt },
+                    { label: "Start Date", icon: FaCalendar },
+                    { label: "End Date", icon: FaCalendar },
+                    { label: "Req. Booking", icon: FaTicketAlt },
+                    { label: "Details", icon: FaCalendar },
+                    { label: "Edit", icon: FaEdit },
+                  ].map(({ label, icon: Icon }, index) => (
+                    <th
+                      key={index}
+                      className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                     >
-                      View
-                    </a>
-                  </td>
-                  <td className="py-3 px-6">
-                    {editingId === event.eventId ? (
-                      <button
-                        onClick={() => handleSave(event.eventId)}
-                        className="text-green-600 hover:underline"
-                      >
-                        Save
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingId(event.eventId);
-                          setEditedEvent(event); // Start editing the current event
-                        }}
+                      <div className="flex items-center space-x-3">
+                        <Icon className="text-gray-500" />
+                        <span>{label}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((event) => (
+                  <tr
+                    key={event.eventId}
+                    className="border-b border-gray-200 hover:bg-gray-50 transition duration-200"
+                  >
+                    <td className="py-4 px-6">
+                      {event.eventImageUrl && (
+                        <img
+                          src={event.eventImageUrl}
+                          alt={`Image of ${event.eventName}`}
+                          className="w-auto h-auto rounded-lg"
+                        />
+                      )}
+                    </td>
+                    <td className="py-4 px-4">{event.eventId}</td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.eventName || event.eventName}
+                          onChange={(e) => handleInputChange(e, "eventName")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        event.eventName
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.parkId || event.parkId}
+                          onChange={(e) => handleInputChange(e, "parkId")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        event.parkId
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.fee || event.fee}
+                          onChange={(e) => handleInputChange(e, "fee")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        event.fee
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.discount || event.discount}
+                          onChange={(e) => handleInputChange(e, "discount")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        event.discount
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <textarea
+                          value={editedEvent?.description || event.description}
+                          onChange={(e) =>
+                            handleInputChange(e, "description")
+                          }
+                          className="border p-2 rounded max-w-full"
+                        />
+                      ) : (
+                        event.description
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={
+                            editedEvent?.eventLocation || event.eventLocation
+                          }
+                          onChange={(e) =>
+                            handleInputChange(e, "eventLocation")
+                          }
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        event.eventLocation
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.startDate || event.startDate}
+                          onChange={(e) => handleInputChange(e, "startDate")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        formatEventDate(event.startDate)
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <input
+                          type="text"
+                          value={editedEvent?.endDate || event.endDate}
+                          onChange={(e) => handleInputChange(e, "endDate")}
+                          className="border p-2 rounded max-w-md"
+                        />
+                      ) : (
+                        formatEventDate(event.endDate)
+                      )}
+                    </td>
+                    <td className="py-4 px-4">{event.requiredbooking}</td>
+                    <td className="py-4 px-4">
+                      <a
+                        href={`/events/${event.eventId}`}
                         className="text-blue-600 hover:underline"
                       >
-                        Edit
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center py-3 text-gray-500">
-                  No Events found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        {/* Pagination Controls */}
-        <div className="flex justify-center mt-8">
-          {/* First Page Button */}
-          <button
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
-          >
-            First
-          </button>
+                        View
+                      </a>
+                    </td>
+                    <td className="py-4 px-4">
+                      {editingId === event.eventId ? (
+                        <button
+                          onClick={() => handleSave(event.eventId)}
+                          className="text-green-600 hover:underline"
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingId(event.eventId);
+                            setEditedEvent(event);
+                          }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-          {/* Previous Page Button */}
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
-          >
-            Previous
-          </button>
+        <div className="bg-gray-50 px-8 py-6 flex justify-center items-center space-x-6">
+        <button
+  onClick={() => handlePageChange(currentPage - 1)}
+  disabled={currentPage === 1}
+  className="p-3 rounded-full bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition"
+>
+  <FaChevronLeft className="text-gray-600" />
+</button>
 
-          {/* Page Number Display */}
-          <span className="px-4 py-2 mx-2 text-sm md:text-lg text-white">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          {/* Next Page Button */}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
-          >
-            Next
-          </button>
-
-          {/* Last Page Button */}
-          <button
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 mx-2 bg-gray-300 rounded-lg disabled:opacity-50"
-          >
-            Last
-          </button>
+<button
+  onClick={() => handlePageChange(currentPage + 1)}
+  disabled={currentPage === totalPages}
+  className="p-3 rounded-full bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition"
+>
+  <FaChevronRight className="text-gray-600" />
+</button>
         </div>
       </div>
     </div>
   );
 }
+
 
 {
   /*ChatGPT Prompt
