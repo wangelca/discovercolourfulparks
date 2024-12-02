@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser } from "@clerk/nextjs";
+import { useUser  } from "@clerk/nextjs";
 import axios from 'axios';
 
 export default function ParkReportPage() {
   const { parkId } = useParams();
   const router = useRouter();
-  const { user } = useUser(); // Get the Clerk user
+  const { user } = useUser (); // Get the Clerk user
 
   // State variables
   const [park, setPark] = useState(null);
   const [reportType, setReportType] = useState('');
   const [details, setDetails] = useState('');
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser , setCurrentUser ] = useState(null);
   const [error, setError] = useState(null);
 
   // Report type options
@@ -40,7 +40,7 @@ export default function ParkReportPage() {
 
         // Fetch user data using Clerk user ID
         const userResponse = await axios.get(`http://localhost:8000/users/${user.id}`);
-        setCurrentUser(userResponse.data);
+        setCurrentUser (userResponse.data);
 
         setLoading(false);
       } catch (error) {
@@ -67,7 +67,7 @@ export default function ParkReportPage() {
       return;
     }
 
-    if (!currentUser) {
+    if (!currentUser ) {
       setError('Please log in to submit a report');
       return;
     }
@@ -75,7 +75,7 @@ export default function ParkReportPage() {
     try {
       const reportData = {
         parkId: parseInt(parkId),
-        userId: currentUser.id,
+        userId: currentUser .id,
         reportType,
         details,
       };
@@ -101,31 +101,31 @@ export default function ParkReportPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center">Loading...</div>;
   }
 
   if (!park) {
-    return <div>Park not found</div>;
+    return <div className="text-center">Park not found</div>;
   }
 
   return (
-    <div className="container mx-auto mt-10 p-8 bg-white bg-opacity-80 shadow-lg rounded-lg max-w-3xl">
+    <div className="container mx-auto mt-10 p-8 bg-gradient-to-r from-blue-50 to-white shadow-lg rounded-lg max-w-3xl">
       {error && (
         <div
           className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
           role="alert"
         >
-          <span className="block sm:inline">{error}</span>
+          <span className="block sm:inline">{error }</span>
         </div>
       )}
 
-      <h1 className="text-3xl font-bold mb-6 text-center text-black">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         Report for {park.name}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-lg font-medium text-black mb-4">
+          <label className="block text-lg font-medium text-gray-700 mb-4">
             Select Report Type
           </label>
           <div className="grid grid-cols-2 gap-4">
@@ -138,7 +138,7 @@ export default function ParkReportPage() {
                   flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all duration-300
                   ${reportType === option.value
                     ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-black border-blue-300 hover:bg-blue-50'
+                    : 'bg-white text-gray-800 border-blue-300 hover:bg-blue-50'
                   }
                 `}
               >
@@ -150,7 +150,7 @@ export default function ParkReportPage() {
         </div>
 
         <div>
-          <label className="block text-lg font-medium text-black mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             Detailed Description
           </label>
           <textarea
@@ -159,12 +159,12 @@ export default function ParkReportPage() {
             placeholder={`Provide comprehensive details about the ${reportType || 'report'}...`}
             className="
               w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-              resize-none h-32 text-black
+              resize-none h-32 text-gray-800
             "
             required
             maxLength={500}
           />
-          <p className="text-sm text-black mt-1 text-right">
+          <p className="text-sm text-gray-600 mt-1 text-right">
             {details.length}/500 characters
           </p>
         </div>
