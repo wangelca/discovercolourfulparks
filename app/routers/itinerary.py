@@ -54,15 +54,14 @@ def parse_cost(cost):
     except (ValueError, TypeError):
         return 0
 
-def ai_select_activities(spots: List, events: List, used_spots, used_events, user_preferences=None, remaining_budget=0) -> Tuple[List, List, object]:
-    """
-    Selects activities for the itinerary, ensuring unique parks, spots, and an event each day,
-    while respecting the remaining budget.
-    """
-    if user_preferences:
-        user_preferences = user_preferences.split(",")  # Convert string back to a list
-
-    # Filter out already-used parks and spots
+def ai_select_activities(
+    spots: List[Spot],
+    events: List[Event],
+    used_spots: set,
+    used_events: set,
+    user_preferences: Optional[str] = None,
+    remaining_budget: float = 0.0
+) -> Tuple[List[Spot], Optional[Event]]:
     available_spots = [spot for spot in spots if spot.spotId not in used_spots]
     available_events = [event for event in events if event.eventId not in used_events]
 
@@ -77,7 +76,7 @@ def ai_select_activities(spots: List, events: List, used_spots, used_events, use
             break
 
     # Select one unique event if available within budget
-    selected_event = None
+    selected_event = []
     for event in available_events:
         cost = parse_cost(event.fee)
         if cost <= remaining_budget:
@@ -87,29 +86,66 @@ def ai_select_activities(spots: List, events: List, used_spots, used_events, use
 
     return selected_spots, selected_event
 
-def generate_schedule(activities, start_time):
+def generate_schedule(activities: List[Dict], day_date: datetime, start_time: str) -> List[Dict]:
     schedule = []
-    current_time = datetime.strptime(start_time, "%H:%M")
+    current_time = datetime.combine(day_date, datetime.strptime(start_time, "%H:%M").time())
 
-    for activity in activities:
-        duration = activity.get("duration", 60)
-        end_time = current_time + timedelta(minutes=duration)
-        
+    events = [a for a in activities if a["type"] == "Event"]
+    spots = [a for a in activities if a["type"] == "Spot"]
+
+    events = sorted(events, key=lambda e: e["event_start_datetime"])
+
+    for event in events:
+        event_start = event["event_start_datetime"]
+        event_end = event["event_end_datetime"]
+
+        while current_time + timedelta(minutes=30) < event_start and spots:
+            spot = spots.pop(0)
+            duration = spot.get("duration", 120)
+            end_time = current_time + timedelta(minutes=duration)
+            if end_time > event_start:
+                break
+            schedule.append({
+                **spot,
+                "start_time": current_time.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+            })
+            current_time = end_time + timedelta(minutes=15)
+
+        if current_time < event_start:
+            current_time = event_start
+
         schedule.append({
-            "activity_name": activity["name"],
+            "activity_name": event["name"],
+            "location": event["location"],
+            "type": event["type"],
+            "park_name": event.get("park_name", ""),
+            "duration": duration,
+            "cost": event.get("cost", "Free"),
+            "id": event.get("id"),
+            "start_time": event_start.strftime("%H:%M"),
+            "end_time": event_end.strftime("%H:%M")
+        })
+        current_time = event_end + timedelta(minutes=15)
+
+    for spot in spots:
+        duration = spot.get("duration", 120)
+        end_time = current_time + timedelta(minutes=duration)
+        schedule.append({
+            "activity_name": spot["name"],
+            "location": spot["location"],
+            "type": spot["type"],
+            "park_name": spot.get("park_name", ""),
+            "duration": duration,
+            "cost": spot.get("cost", "Free"),
+            "id": spot.get("id"),
             "start_time": current_time.strftime("%H:%M"),
             "end_time": end_time.strftime("%H:%M"),
-            "location": activity["location"],
-            "type": activity["type"],
-            "park_name": activity.get("park_name", ""),
-            "duration": duration,
-            "cost": activity.get("cost", "Free"),
-            "id": activity.get("id")
         })
-
         current_time = end_time + timedelta(minutes=15)
 
     return schedule
+
 
 
 @router.get("/itinerary")
@@ -122,25 +158,43 @@ async def generate_itinerary(
     start_time: str = Query("08:00"),
     experience_type: str = Query("relaxation"),
     province: str = Query("Alberta"),
+    start_date: str = Query(...),  # Required start date
+    end_date: str = Query(...),    # Required end date
     db: Session = Depends(get_db)
 ):
-    # Validate the province
+    try:
+        trip_start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        trip_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if trip_end_date < trip_start_date:
+        raise HTTPException(status_code=400, detail="End date must be after start date.")
+
+    days = (trip_end_date - trip_start_date).days + 1
+
     if province not in ["Alberta", "British Columbia"]:
-        return {"error": "Invalid province. Please select either 'Alberta' or 'British Columbia'."}
+        raise HTTPException(status_code=400, detail="Invalid province. Select Alberta or British Columbia.")
 
     parks = db.query(Park).filter(Park.province == province).all()
     if not parks:
-        return {"error": f"No parks found in {province}."}
+        raise HTTPException(status_code=404, detail=f"No parks found in {province}.")
 
     park_ids = [park.parkId for park in parks]
     spots = db.query(Spot).filter(Spot.parkId.in_(park_ids)).all()
-    events = db.query(Event).filter(Event.parkId.in_(park_ids)).all()
+    events = db.query(Event).filter(
+        Event.parkId.in_(park_ids),
+        Event.startDate <= trip_end_date,
+        Event.endDate >= trip_start_date
+    ).all()
 
     itinerary = []
     used_spots, used_events = set(), set()
-    remaining_budget = budget  # Start with the full budget
+    remaining_budget = budget
 
     for day in range(days):
+        day_date = trip_start_date + timedelta(days=day)
+
         selected_spots, selected_event = ai_select_activities(
             spots, events, used_spots, used_events, preference, remaining_budget
         )
@@ -151,7 +205,6 @@ async def generate_itinerary(
 
         paid_activities = []
         free_activities = []
-
 
         for spot in selected_spots:
             park = db.query(Park).filter(Park.parkId == spot.parkId).first()
@@ -173,25 +226,25 @@ async def generate_itinerary(
                 "type": "Event",
                 "id": selected_event.eventId,
                 "name": selected_event.eventName,
+                "description": selected_event.description,
                 "location": selected_event.eventLocation,
                 "park_name": park.name if park else "",
                 "duration": selected_event.duration or 60,
                 "cost": "Free" if selected_event.fee == 0 else f"${selected_event.fee}",
+                "event_start_datetime": selected_event.startDate,
+                "event_end_datetime": selected_event.endDate,
             }
             (free_activities if entry["cost"] == "Free" else paid_activities).append(entry)
 
-        # Calculate day cost and update remaining budget
         day_cost = sum(parse_cost(activity["cost"]) for activity in paid_activities)
-        remaining_budget -= day_cost  # Deduct day's cost from the remaining budget
-
-        # Print debug information
-        print(f"Day {day + 1} cost: {day_cost}, Remaining budget: {remaining_budget}")
+        remaining_budget -= day_cost
 
         activities = paid_activities + free_activities
-        schedule = generate_schedule(activities, start_time)
+        schedule = generate_schedule(activities, day_date, start_time)
 
         itinerary.append({
             "day": day + 1,
+            "date": day_date.strftime("%Y-%m-%d"),
             "paid_activities": paid_activities,
             "free_activities": free_activities,
             "day_cost": day_cost,
@@ -199,12 +252,9 @@ async def generate_itinerary(
         })
 
         if remaining_budget <= 0:
-            break  # Stop adding days if the budget is exceeded
+            break
 
-
-    total_cost = budget - remaining_budget  # Calculate actual spent budget
-    print(f"Total cost: {total_cost}")
-
+    total_cost = budget - remaining_budget
     return {
         "itinerary": itinerary,
         "total_cost": total_cost,
@@ -251,13 +301,13 @@ async def book_itinerary(
         elif activity["type"] == "Event":
             new_booking = Booking(
                 id=id,  # User ID
-                bookingDate=booking_date,
+                bookingDate=activity.get("event_start_datetime").date(),
                 bookingStatus="confirmed",
                 adults=adults,
                 kids=kids,
                 paymentAmount=parse_cost(activity["cost"]),
                 spotId=None,  # Not a spot
-                eventId=activity.get("event_id"),
+                eventId=activity.get("id"),
                 destination=itinerary.get("destination", "Unknown"),
                 total_cost=parse_cost(activity["cost"])
             )
