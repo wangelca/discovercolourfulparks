@@ -352,6 +352,11 @@ itinerary.itinerary.length > 0 ? (
                 <p className="text-gray-600">
                   <strong>Cost:</strong> {activity.cost === "Free" ? "Free" : activity.cost}
                 </p>
+                {i < day.schedule.length - 1 && (
+        <p className="text-gray-500 mt-2 italic">
+          Commute Time: {activity.commute_time} minutes
+        </p>
+      )}
               </div>
               {activity.cost !== "Free" && (
                 <a
