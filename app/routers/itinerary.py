@@ -6,8 +6,13 @@ from sqlalchemy.orm import Session
 from database import database, SessionLocal, Base, engine, get_db
 from models import Park, Spot, Event, User, Booking, Review
 from datetime import date, datetime, time, timezone, timedelta
+import os
+import openai
+import re
 
 router = APIRouter()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class BookingResponse(BaseModel):
     bookingId: Optional[int] = None
@@ -54,6 +59,86 @@ def parse_cost(cost):
     except (ValueError, TypeError):
         return 0
 
+def estimate_commute_time(origin: str, destination: str) -> int:
+    """
+    Use OpenAI to estimate commute time between two locations.
+    
+    Args:
+        origin (str): The starting location.
+        destination (str): The ending location.
+        
+    Returns:
+        int: Estimated commute time in minutes.
+    """
+    try:
+        # Prompt for OpenAI
+        prompt = f"Estimate the commute time by driving between the following two locations:\n\n" \
+                 f"Origin: {origin}\nDestination: {destination}\n\n" \
+                 f"Please provide the time in minutes."
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant estimating travel times."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=50
+        )
+
+        # Extract commute time from the response
+        answer = response['choices'][0]['message']['content']
+
+        # Extract commute time using regex
+        match = re.search(r"(\d+)\s*(hours?|hrs?)", answer, re.IGNORECASE)
+        hours = int(match.group(1)) if match else 0
+
+        match = re.search(r"(\d+)\s*(minutes?|mins?)", answer, re.IGNORECASE)
+        minutes = int(match.group(1)) if match else 0
+
+        commute_time = (hours * 60) + minutes
+        return commute_time
+    except Exception as e:
+        print(f"Error estimating commute time: {e}")
+        return 15  # Default to 15 minutes if estimation fails
+
+def generate_schedule_with_commute(activities: List[Dict], day_date: datetime, start_time: str) -> List[Dict]:
+    schedule = []
+    current_time = datetime.combine(day_date, datetime.strptime(start_time, "%H:%M").time())
+
+    for i, activity in enumerate(activities):
+        duration = activity.get("duration", 120)
+
+        # Add the activity
+        start_time_str = current_time.strftime("%I:%M %p")
+        end_time = current_time + timedelta(minutes=duration)
+        end_time_str = end_time.strftime("%I:%M %p")
+
+        commute_time = 0  # Default to 0
+        if i < len(activities) - 1:
+            next_activity = activities[i + 1]
+            commute_time = estimate_commute_time(activity["location"], next_activity["location"])
+            # Validate and handle commute time
+            if not isinstance(commute_time, int) or commute_time < 0:
+                print(f"Invalid commute time ({commute_time}) between {activity['location']} and {next_activity['location']}. Defaulting to 30 minutes.")
+                commute_time = 30  # Default to 15 minutes if invalid
+
+        schedule.append({
+            "start_time": start_time_str,
+            "end_time": end_time_str,
+            "activity_name": activity["name"],
+            "location": activity["location"],
+            "type": activity["type"],
+            "park_name": activity.get("park_name", ""),
+            "cost": activity.get("cost", "Free"),
+            "commute_time": commute_time
+        })
+
+        # Update current_time to include commute time
+        current_time = end_time + timedelta(minutes=commute_time)
+        print(f"Commute time from {activity['location']} to {next_activity['location']}: {commute_time} minutes")
+
+    return schedule
+
 def ai_select_activities(
     spots: List[Spot],
     events: List[Event],
@@ -86,68 +171,6 @@ def ai_select_activities(
 
     return selected_spots, selected_event
 
-def generate_schedule(activities: List[Dict], day_date: datetime, start_time: str) -> List[Dict]:
-    schedule = []
-    current_time = datetime.combine(day_date, datetime.strptime(start_time, "%H:%M").time())
-
-    events = [a for a in activities if a["type"] == "Event"]
-    spots = [a for a in activities if a["type"] == "Spot"]
-
-    events = sorted(events, key=lambda e: e["event_start_datetime"])
-
-    for event in events:
-        event_start = event["event_start_datetime"]
-        event_end = event["event_end_datetime"]
-
-        while current_time + timedelta(minutes=30) < event_start and spots:
-            spot = spots.pop(0)
-            duration = spot.get("duration", 120)
-            end_time = current_time + timedelta(minutes=duration)
-            if end_time > event_start:
-                break
-            schedule.append({
-                **spot,
-                "start_time": current_time.strftime("%H:%M"),
-                "end_time": end_time.strftime("%H:%M"),
-            })
-            current_time = end_time + timedelta(minutes=15)
-
-        if current_time < event_start:
-            current_time = event_start
-
-        schedule.append({
-            "activity_name": event["name"],
-            "location": event["location"],
-            "type": event["type"],
-            "park_name": event.get("park_name", ""),
-            "duration": duration,
-            "cost": event.get("cost", "Free"),
-            "id": event.get("id"),
-            "start_time": event_start.strftime("%H:%M"),
-            "end_time": event_end.strftime("%H:%M")
-        })
-        current_time = event_end + timedelta(minutes=15)
-
-    for spot in spots:
-        duration = spot.get("duration", 120)
-        end_time = current_time + timedelta(minutes=duration)
-        schedule.append({
-            "activity_name": spot["name"],
-            "location": spot["location"],
-            "type": spot["type"],
-            "park_name": spot.get("park_name", ""),
-            "duration": duration,
-            "cost": spot.get("cost", "Free"),
-            "id": spot.get("id"),
-            "start_time": current_time.strftime("%H:%M"),
-            "end_time": end_time.strftime("%H:%M"),
-        })
-        current_time = end_time + timedelta(minutes=15)
-
-    return schedule
-
-
-
 @router.get("/itinerary")
 async def generate_itinerary(
     days: int = Query(1, ge=1, le=3),
@@ -167,9 +190,6 @@ async def generate_itinerary(
         trip_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
-    if trip_end_date < trip_start_date:
-        raise HTTPException(status_code=400, detail="End date must be after start date.")
 
     days = (trip_end_date - trip_start_date).days + 1
 
@@ -240,7 +260,7 @@ async def generate_itinerary(
         remaining_budget -= day_cost
 
         activities = paid_activities + free_activities
-        schedule = generate_schedule(activities, day_date, start_time)
+        schedule = generate_schedule_with_commute(activities, day_date, start_time)
 
         itinerary.append({
             "day": day + 1,
