@@ -49,8 +49,8 @@ const handleStateChange = useCallback((state) => {
             <a className="menu-item text-white" href="/userreports/make-report" onClick={closeMenu}>
               <FontAwesomeIcon icon={faFileAlt} /> Make A Report
             </a>
-            <a id="about" className="menu-item text-white" href="/">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
-            <a className="menu-item text-white" href="/" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
+            <a className="menu-item text-white" href="/favorite">  <FontAwesomeIcon icon={faHeart} />  Favorite</a>
+            <a className="menu-item text-white" href="/review" onClick={closeMenu}><FontAwesomeIcon icon={faStar} />  Review</a>
             <a className="menu-item text-white" href="/inbox" onClick={closeMenu}><FontAwesomeIcon icon={faInbox} />  Inbox <NotificationBubble menuOpen={menuOpen} /></a>
           </>
         )}
