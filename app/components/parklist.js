@@ -69,7 +69,7 @@ export default function Parks() {
               key={province}
               onClick={() => setSelectedProvince(province)}
               className={`p-2 border border-gray-300 rounded-md w-full md:w-auto text-center transition-all duration-300 ease-in-out
-                ${selectedProvince === province ? "bg-gray-200 text-gray-800 font-bold" : "text-gray-800 hover:bg-gray-200"}
+                ${selectedProvince === province ? "button-whitebg-selected" : "button-whitebg-not-selected"}
               `}
             >
               {province}

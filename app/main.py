@@ -245,27 +245,44 @@ async def get_parks(db: Session = Depends(get_db)):
     parks = db.query(Park).all()
     return parks
 
-#get all events
-@app.get("/events", response_model=List[EventResponse])
+def apply_filter(query, filter_type: str):
+    now = datetime.now()
+    if filter_type == "passed":
+        return query.filter(Event.startDate < now)
+    elif filter_type == "upcoming":
+        return query.filter(Event.startDate > now)
+    else:
+        # "all" or any other value returns all events without filtering
+        return query
 
+@app.get("/events", response_model=List[EventResponse])
 async def get_events(
     page: int = Query(1, ge=1, description="Page number, starting from 1"),
     limit: int = Query(10, ge=1, le=100, description="Number of events per page, maximum 100"),
+    filter: str = Query("all", regex="^(all|passed|upcoming)$", description="Filter events by type"),
     db: Session = Depends(get_db)
 ):
-    # Calculate the offset based on page number and limit
     offset = (page - 1) * limit
 
-    # Fetch events with pagination
-    events = db.query(Event).offset(offset).limit(limit).all()
+    # Start a base query
+    query = db.query(Event)
 
-    # Return only the list of events
+    # Apply filter
+    query = apply_filter(query, filter)
+
+    # Pagination
+    events = query.offset(offset).limit(limit).all()
+
     return events
 
-# Get total count of events
 @app.get("/events/count", response_model=int)
-async def get_events_count(db: Session = Depends(get_db)):
-    total_events = db.query(Event).count()
+async def get_events_count(
+    filter: str = Query("all", regex="^(all|passed|upcoming)$", description="Filter events count by type"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Event)
+    query = apply_filter(query, filter)
+    total_events = query.count()
     return total_events
 
 # get spots based on parkId and admission rate range

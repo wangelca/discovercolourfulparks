@@ -9,18 +9,20 @@ import { FaHeart } from "react-icons/fa";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-
+  const [filter, setFilter] = useState("all"); // 'all', 'passed', 'upcoming'
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const eventsPerPage = 9;
   const { isSignedIn, user } = useUser();
   const [profileData, setProfileData] = useState(null);
 
-  // Fetch total count of events
+  // Fetch total events count whenever filter changes
   useEffect(() => {
     const fetchTotalEventsCount = async () => {
       try {
-        const response = await fetch("http://localhost:8000/events/count");
+        const response = await fetch(
+          `http://localhost:8000/events/count?filter=${filter}`
+        );
         if (!response.ok) {
           throw new Error(
             "Failed to fetch total events count: " + response.statusText
@@ -28,56 +30,56 @@ export default function Events() {
         }
         const totalCount = await response.json();
         setTotalPages(Math.ceil(totalCount / eventsPerPage));
+        // If changing filters results in fewer pages, ensure currentPage is valid:
+        setCurrentPage((prevPage) => Math.min(prevPage, Math.ceil(totalCount / eventsPerPage)));
       } catch (error) {
         console.error("Error fetching total events count:", error);
       }
     };
 
     fetchTotalEventsCount();
-  }, []);
+  }, [filter]);
 
-  // Fetch events data from the backend
+  // Fetch events data from the backend whenever filter or page changes
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}`
+          `http://localhost:8000/events?page=${currentPage}&limit=${eventsPerPage}&filter=${filter}`
         );
         if (!response.ok) {
           throw new Error(`Failed to fetch events: ${response.statusText}`);
         }
+
         const data = await response.json();
+        const eventsToProcess = Array.isArray(data) ? data : data.events || [];
 
-        if (Array.isArray(data)) {
-          setEvents(data);
-        } else {
-          const eventsWithRatings = await Promise.all(
-            data.events.map(async (event) => {
-              try {
-                const ratingResponse = await fetch(
-                  `http://localhost:8000/ratings/event/${event.eventId}`
-                );
-                if (ratingResponse.ok) {
-                  const ratingData = await ratingResponse.json();
-                  return { ...event, averageRating: ratingData.average_rating };
-                }
-                return { ...event, averageRating: null };
-              } catch {
-                return { ...event, averageRating: null };
+        const eventsWithRatings = await Promise.all(
+          eventsToProcess.map(async (event) => {
+            try {
+              const ratingResponse = await fetch(
+                `http://localhost:8000/ratings/event/${event.eventId}`
+              );
+              if (ratingResponse.ok) {
+                const ratingData = await ratingResponse.json();
+                return { ...event, averageRating: ratingData.average_rating };
               }
-            })
-          );
+              return { ...event, averageRating: null };
+            } catch {
+              return { ...event, averageRating: null };
+            }
+          })
+        );
 
-          setEvents(eventsWithRatings);
-          setTotalPages(Math.ceil(data.total / eventsPerPage));
-        }
+        setEvents(eventsWithRatings);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
 
     fetchEvents();
-  }, [currentPage]);
+  }, [filter, currentPage]);
+
   // Fetch profile data if the user is signed in
   useEffect(() => {
     if (!user) return;
@@ -178,15 +180,51 @@ export default function Events() {
     }
   };
 
-  const currentDate = new Date();
-
   return (
     <div className="container mx-auto p-6 flex flex-col items-center w-11/12 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Available Events</h1>
+
+      {/* Filter Buttons */}
+      <div className="flex gap-4 mb-6">
+        <button
+          onClick={() => {
+            setFilter("all");
+            setCurrentPage(1);
+          }}
+          className={`px-4 py-2 rounded-lg ${
+            filter === "all" ? "button-whitebg-selected" : "button-whitebg-not-selected"
+          }`}
+        >
+          All Events
+        </button>
+        <button
+          onClick={() => {
+            setFilter("upcoming");
+            setCurrentPage(1);
+          }}
+          className={`px-4 py-2 rounded-lg ${
+            filter === "upcoming" ? "button-whitebg-selected" : "button-whitebg-not-selected"
+          }`}
+        >
+          Show Upcoming Events
+        </button>
+        <button
+          onClick={() => {
+            setFilter("passed");
+            setCurrentPage(1);
+          }}
+          className={`px-4 py-2 rounded-lg ${
+            filter === "passed" ? "button-whitebg-selected" : "button-whitebg-not-selected"
+          }`}
+        >
+          Show Passed Events
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
         {events.length > 0 ? (
           events.map((event) => {
-            const isPastEvent = new Date(event.startDate) < currentDate;
+            const isPastEvent = new Date(event.startDate) < new Date();
             const isFavorite = profileData?.favEventId?.includes(event.eventId);
 
             return (
@@ -244,7 +282,7 @@ export default function Events() {
                     View Details
                   </a>
                   {isPastEvent ? (
-                    <span className="w-full  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
+                    <span className="w-full text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-gray-200 text-center">
                       Event Passed
                     </span>
                   ) : event.requiredbooking ? (
@@ -257,7 +295,7 @@ export default function Events() {
                           window.location.href = `/events/${event.eventId}/book`;
                         }
                       }}
-                      className="w-full inline-block  text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
+                      className="w-full inline-block text-gray-600 font-semibold py-1 px-4 rounded-lg transition hover:bg-green-300 text-center"
                     >
                       Book Now
                     </button>
@@ -271,12 +309,17 @@ export default function Events() {
             );
           })
         ) : (
-          <p className="text-center col-span-full">No events found.</p>
+          <p className="text-center col-span-full">
+            No {filter === "passed"
+              ? "passed"
+              : filter === "upcoming"
+              ? "upcoming"
+              : ""} events found.
+          </p>
         )}
       </div>
       {/* Pagination Controls */}
       <div className="flex justify-center mt-8">
-        {/* First Page Button */}
         <button
           onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
@@ -285,7 +328,6 @@ export default function Events() {
           First
         </button>
 
-        {/* Previous Page Button */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -294,12 +336,10 @@ export default function Events() {
           Previous
         </button>
 
-        {/* Page Number Display */}
         <span className="px-4 py-2 mx-2 text-sm md:text-lg text-white">
           Page {currentPage} of {totalPages}
         </span>
 
-        {/* Next Page Button */}
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -308,7 +348,6 @@ export default function Events() {
           Next
         </button>
 
-        {/* Last Page Button */}
         <button
           onClick={() => handlePageChange(totalPages)}
           disabled={currentPage === totalPages}
