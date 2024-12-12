@@ -105,3 +105,11 @@ body {
 {
   @apply text-center text-3xl text-gray-500 py-20
 }
+
+.button-whitebg-selected {
+  @apply bg-gray-200 text-gray-800 font-bold
+}
+
+.button-whitebg-not-selected {
+  @apply text-gray-800 hover:bg-gray-200
+}
